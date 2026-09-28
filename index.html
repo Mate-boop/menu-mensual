@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Menú Mensual — Nicolás</title>
+<meta name="theme-color" content="#c1666b">
+<meta name="description" content="Menú mensual interactivo con macros, para planificar comidas día a día.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Menú Mensual">
+<style>
+  :root {
+    box-sizing: border-box;
+    --bg: #faf6f0;
+    --surface: #ffffff;
+    --text: #2e2620;
+    --muted: #7a6f63;
+    --accent: #c1666b;
+    --accent-soft: #f2dcd9;
+    --good: #7d8c4c;
+    --border: #e8ddd0;
+    --radius: 14px;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1815;
+      --surface: #26211d;
+      --text: #f0e9e1;
+      --muted: #b0a396;
+      --accent: #e0888c;
+      --accent-soft: #3a2a2a;
+      --good: #a3b56a;
+      --border: #3a332c;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1815;
+    --surface: #26211d;
+    --text: #f0e9e1;
+    --muted: #b0a396;
+    --accent: #e0888c;
+    --accent-soft: #3a2a2a;
+    --good: #a3b56a;
+    --border: #3a332c;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 16px;
+    padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+  }
+  h1 { font-size: 1.3rem; margin: 4px 0 2px; }
+  .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 14px; }
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .summary div { min-width: 70px; }
+  .summary .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .summary .value { font-size: 1.05rem; font-weight: 600; }
+  .day-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+  .day-btn {
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .day-btn.filled::after {
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--good);
+  }
+  .day-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .panel h2 { margin: 0 0 12px; font-size: 1.05rem; }
+  .meal-row { margin-bottom: 12px; }
+  .meal-row label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+  }
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.92rem;
+  }
+  .day-total {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  .day-total .value { font-weight: 700; }
+  .status-pill {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: var(--muted);
+    color: #fff;
+  }
+  .status-pill.ok { background: var(--good); }
+  .status-pill.warn { background: var(--accent); }
+  .actions { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; }
+  button.reset {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .note { font-size: 0.78rem; color: var(--muted); margin-top: 16px; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<h1>🍽️ Menú mensual</h1>
+<div class="subtitle">Elige un día y monta tu desayuno, comida, merienda y cena.</div>
+
+<div class="summary">
+  <div><div class="label">Objetivo</div><div class="value">2.000–2.200 kcal</div></div>
+  <div><div class="label">Proteína</div><div class="value">~195 g</div></div>
+  <div><div class="label">Grasa</div><div class="value">~55 g</div></div>
+  <div><div class="label">Carbos</div><div class="value">~200 g</div></div>
+</div>
+
+<div class="day-grid" id="dayGrid"></div>
+
+<div class="panel">
+  <h2 id="panelTitle">Día 1</h2>
+  <div id="mealRows"></div>
+  <div class="day-total" id="dayTotal"></div>
+</div>
+
+<div class="actions">
+  <button class="reset" id="autofillBtn">🔄 Autocompletar mes</button>
+  <button class="reset" id="resetBtn">Borrar selección del mes</button>
+  <button class="reset" id="exportBtn">⬇️ Exportar datos</button>
+  <button class="reset" id="importBtn">⬆️ Importar datos</button>
+  <input type="file" id="importInput" accept="application/json" hidden>
+</div>
+
+<div class="note">
+  Carnes, pescado y huevo: peso en cocinado (ya asado/cocido/a la plancha). Arroz, patata y pasta: peso ya cocido/hervido. Fruta, ensalada, nueces y queso: peso en crudo. Usa especias digestivas (comino, cúrcuma, jengibre, laurel, pimentón, orégano) y aceite de ajo infusionado en vez de ajo/cebolla crudos. La comida pre-entreno evita AOVE y verdura/ensalada a propósito (menos grasa y fibra = digestión más rápida, clave con tu margen de 1-2h y el IMO); la post-entreno sí las lleva porque ahí no hay prisa. Valores de kcal/macros revisados sobre tablas nutricionales estándar — sigue siendo una estimación, no un cálculo de laboratorio.
+</div>
+
+<script>
+const MEALS_COMMON = {
+  desayuno: [
+    { name: "3 huevos cocidos + 80g claras cocidas + 100g calabacín salteado + 1 plátano crudo", kcal: 403, p: 31, f: 17, c: 34 },
+    { name: "2 huevos cocidos + 100g claras cocidas + 50g atún al natural (escurrido) + 1 kiwi crudo", kcal: 304, p: 36, f: 12, c: 13 },
+    { name: "3 huevos cocidos + 20g jamón serrano + 150g piña cruda", kcal: 357, p: 26, f: 19, c: 21 },
+    { name: "150g claras cocidas + 20g queso curado + 1 kiwi crudo + 1/2 plátano crudo", kcal: 254, p: 23, f: 7, c: 26 }
+  ],
+  merienda: [
+    { name: "80g atún al natural (escurrido) + 25g galletas Triple Zero + 1 kiwi crudo", kcal: 221, p: 27, f: 2, c: 23 },
+    { name: "30g jamón serrano + 150g piña cruda", kcal: 147, p: 10, f: 4, c: 20 },
+    { name: "20g queso curado + 15g nueces crudas + 1 kiwi crudo", kcal: 220, p: 8, f: 16, c: 14 },
+    { name: "40g pavo en lonchas + 25g galletas Triple Zero + 1/2 plátano crudo", kcal: 188, p: 15, f: 2, c: 26 }
+  ]
+};
+
+const MEALS_BY_TYPE = {
+  fuerza: {
+    comida: [
+      { name: "220g pechuga de pollo asada + 280g arroz basmati cocido + 150g verduras al horno (40g calabacín, 40g pimiento verde, 40g berenjena, 30g zanahoria) + 10g AOVE", kcal: 860, p: 78, f: 20, c: 85 },
+      { name: "220g pavo marinado asado + 350g patata asada + 150g verduras al horno (40g calabacín, 40g pimiento verde, 40g berenjena, 30g zanahoria) + 10g AOVE", kcal: 745, p: 73, f: 16, c: 81 },
+      { name: "220g lomo de cerdo a la plancha + 250g pasta maíz-arroz cocida + 150g verduras al horno (40g calabacín, 40g pimiento verde, 40g berenjena, 30g zanahoria) + 10g AOVE", kcal: 786, p: 69, f: 26, c: 69 },
+      { name: "220g carne picada de vacuno cocida + 270g arroz basmati cocido + 150g verduras al horno (40g calabacín, 40g pimiento verde, 40g berenjena, 30g zanahoria) + 10g AOVE", kcal: 871, p: 54, f: 33, c: 82 }
+    ],
+    cena: [
+      { name: "220g merluza al horno + 300g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE", kcal: 576, p: 44, f: 15, c: 65 },
+      { name: "180g salmón al horno + 200g arroz basmati cocido + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE", kcal: 742, p: 42, f: 34, c: 60 },
+      { name: "180g carne picada de vacuno cocida + 250g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE", kcal: 650, p: 42, f: 28, c: 55 },
+      { name: "200g lomo de cerdo a la plancha + 200g pasta maíz-arroz cocida + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE", kcal: 672, p: 61, f: 23, c: 54 }
+    ]
+  },
+  cardio: {
+    comida: [
+      { name: "220g pechuga de pollo asada + 150g arroz basmati cocido + 200g verduras al horno (50g calabacín, 50g pimiento verde, 50g berenjena, 50g zanahoria) + 10g AOVE", kcal: 706, p: 75, f: 20, c: 51 },
+      { name: "220g pavo marinado asado + 180g patata asada + 200g verduras al horno (50g calabacín, 50g pimiento verde, 50g berenjena, 50g zanahoria) + 10g AOVE", kcal: 607, p: 70, f: 16, c: 48 },
+      { name: "220g lomo de cerdo a la plancha + 130g pasta maíz-arroz cocida + 200g verduras al horno (50g calabacín, 50g pimiento verde, 50g berenjena, 50g zanahoria) + 10g AOVE", kcal: 669, p: 67, f: 25, c: 42 },
+      { name: "220g carne picada de vacuno cocida + 140g arroz basmati cocido + 200g verduras al horno (50g calabacín, 50g pimiento verde, 50g berenjena, 50g zanahoria) + 10g AOVE", kcal: 717, p: 51, f: 34, c: 48 }
+    ],
+    cena: [
+      { name: "220g merluza al horno + 180g patata asada + ensalada cruda grande (70g tomate, 50g pepino, 30g lechuga) + 10g AOVE", kcal: 478, p: 43, f: 15, c: 42 },
+      { name: "150g salmón al horno + 120g arroz basmati cocido + ensalada cruda grande (70g tomate, 50g pepino, 30g lechuga) + 5g AOVE", kcal: 542, p: 35, f: 25, c: 39 },
+      { name: "180g carne picada de vacuno cocida + 150g patata asada + ensalada cruda grande (70g tomate, 50g pepino, 30g lechuga) + 10g AOVE", kcal: 570, p: 41, f: 28, c: 36 },
+      { name: "200g lomo de cerdo a la plancha + 130g pasta maíz-arroz cocida + ensalada cruda grande (70g tomate, 50g pepino, 30g lechuga) + 10g AOVE", kcal: 605, p: 60, f: 23, c: 38 }
+    ]
+  }
+};
+
+const EXTRAS = [
+  { label: "Sin extra", kcal: 0, p: 0, f: 0, c: 0 },
+  { label: "Batido: 1 scoop proteína + 250ml leche semidesnatada sin lactosa", kcal: 228, p: 33, f: 5, c: 13 },
+  { label: "Batido: 2 scoops proteína + 250ml leche semidesnatada sin lactosa", kcal: 341, p: 57, f: 5, c: 14 },
+  { label: "Postre proteico: 180ml leche semidesnatada sin lactosa + 1 scoop proteína + 2 láminas de gelatina neutra", kcal: 196, p: 33, f: 2, c: 9 }
+];
+
+// Pool post-entreno: comidas completas (con AOVE y verdura/ensalada), sin prisa de digestión
+const POST_POOL = MEALS_BY_TYPE.fuerza.comida.concat(MEALS_BY_TYPE.fuerza.cena);
+
+// Pool pre-entreno: carbohidrato simple + proteína magra, sin aceite añadido ni verdura/ensalada,
+// pensado para digerir rápido con margen corto (1-2h) antes de entrenar — clave con SIBO/IMO
+const PRE_POOL = [
+  { name: "130g pechuga de pollo a la plancha (sin aceite añadido) + 350g arroz basmati cocido", kcal: 670, p: 50, f: 6, c: 98 },
+  { name: "130g pavo marinado a la plancha (sin aceite añadido) + 380g patata cocida (hervida, sin piel)", kcal: 506, p: 45, f: 3, c: 77 },
+  { name: "130g carne picada de vacuno cocida (magra, a la plancha) + 320g arroz basmati cocido", kcal: 645, p: 35, f: 14, c: 90 },
+  { name: "130g merluza al vapor o plancha (sin aceite añadido) + 380g patata cocida (hervida, sin piel)", kcal: 448, p: 30, f: 3, c: 76 }
+];
+
+// Pool de comidas "pequeñas" (usadas para el rol normal, sin relación con el entreno)
+const SMALL_POOL = MEALS_COMMON.desayuno.concat(MEALS_COMMON.merienda);
+
+// Determina qué rol juega cada comida según el tipo de día y el momento del entreno
+function getSlotRole(slot, type, momento) {
+  if (type !== "fuerza") return null; // en días de cardio no aplica el reparto pre/post
+  const isMorning = momento !== "noche";
+  if (isMorning) {
+    if (slot === "desayuno") return "pre";
+    if (slot === "comida") return "post";
+    return "normal"; // merienda, cena
+  } else {
+    if (slot === "merienda") return "pre";
+    if (slot === "cena") return "post";
+    return "normal"; // desayuno, comida
+  }
+}
+
+const SLOT_LABELS = { desayuno: "Desayuno", comida: "Comida", merienda: "Merienda", cena: "Cena" };
+const DAYS = 30;
+const STORAGE_KEY = "menu-mensual-nicolas";
+
+let state = { selections: {} }; // { "1": {desayuno: 0, comida: -1, ...}, ... }
+let currentDay = 1;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch (e) { /* localStorage no disponible, seguimos con estado en memoria */ }
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignorar */ }
+}
+
+function getDaySelection(day) {
+  if (!state.selections[day]) {
+    state.selections[day] = { type: "fuerza", momento: "manana", desayuno: -1, comida: -1, merienda: -1, cena: -1, extra: 0 };
+  }
+  if (state.selections[day].extra === undefined) state.selections[day].extra = 0;
+  if (state.selections[day].type === undefined) state.selections[day].type = "fuerza";
+  if (state.selections[day].momento === undefined) state.selections[day].momento = "manana";
+  return state.selections[day];
+}
+
+function getMealsForSlot(slot, type, momento) {
+  if (type !== "fuerza") {
+    if (slot === "desayuno" || slot === "merienda") return MEALS_COMMON[slot];
+    return MEALS_BY_TYPE[type][slot];
+  }
+  const role = getSlotRole(slot, type, momento);
+  if (role === "pre") return PRE_POOL;
+  if (role === "post") return POST_POOL;
+  return SMALL_POOL; // normal
+}
+
+function isDayFilled(day) {
+  const sel = state.selections[day];
+  if (!sel) return false;
+  return Object.values(sel).some(v => v >= 0);
+}
+
+function renderDayGrid() {
+  const grid = document.getElementById("dayGrid");
+  grid.innerHTML = "";
+  for (let d = 1; d <= DAYS; d++) {
+    const btn = document.createElement("button");
+    btn.className = "day-btn" + (d === currentDay ? " active" : "") + (isDayFilled(d) ? " filled" : "");
+    btn.textContent = d;
+    btn.addEventListener("click", () => { currentDay = d; renderAll(); });
+    grid.appendChild(btn);
+  }
+}
+
+function renderPanel() {
+  document.getElementById("panelTitle").textContent = "Día " + currentDay;
+  const sel = getDaySelection(currentDay);
+  const rowsEl = document.getElementById("mealRows");
+  rowsEl.innerHTML = "";
+
+  // Selector de tipo de día
+  const typeRow = document.createElement("div");
+  typeRow.className = "meal-row";
+  const typeLabel = document.createElement("label");
+  typeLabel.textContent = "Tipo de día";
+  typeRow.appendChild(typeLabel);
+  const typeToggle = document.createElement("div");
+  typeToggle.style.display = "flex";
+  typeToggle.style.gap = "8px";
+  [["fuerza", "💪 Fuerza"], ["cardio", "🏃 Cardio"]].forEach(([val, label]) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = label;
+    btn.className = "reset";
+    btn.style.flex = "1";
+    if (sel.type === val) {
+      btn.style.background = "var(--accent)";
+      btn.style.color = "#fff";
+      btn.style.borderColor = "var(--accent)";
+    }
+    btn.addEventListener("click", () => {
+      sel.type = val;
+      sel.desayuno = -1; sel.comida = -1; sel.merienda = -1; sel.cena = -1;
+      saveState();
+      renderAll();
+    });
+    typeToggle.appendChild(btn);
+  });
+  typeRow.appendChild(typeToggle);
+  rowsEl.appendChild(typeRow);
+
+  // Selector de momento del entreno (solo tiene sentido en día de fuerza)
+  if (sel.type === "fuerza") {
+    const momentoRow = document.createElement("div");
+    momentoRow.className = "meal-row";
+    const momentoLabel = document.createElement("label");
+    momentoLabel.textContent = "Momento del entreno";
+    momentoRow.appendChild(momentoLabel);
+    const momentoToggle = document.createElement("div");
+    momentoToggle.style.display = "flex";
+    momentoToggle.style.gap = "8px";
+    [["manana", "🌅 Mañana"], ["noche", "🌙 Noche"]].forEach(([val, label]) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = label;
+      btn.className = "reset";
+      btn.style.flex = "1";
+      if (sel.momento === val) {
+        btn.style.background = "var(--accent)";
+        btn.style.color = "#fff";
+        btn.style.borderColor = "var(--accent)";
+      }
+      btn.addEventListener("click", () => {
+        sel.momento = val;
+        sel.desayuno = -1; sel.comida = -1; sel.merienda = -1; sel.cena = -1;
+        saveState();
+        renderAll();
+      });
+      momentoToggle.appendChild(btn);
+    });
+    momentoRow.appendChild(momentoToggle);
+    rowsEl.appendChild(momentoRow);
+  }
+
+  let totals = { kcal: 0, p: 0, f: 0, c: 0 };
+
+  Object.keys(MEALS_COMMON).concat(["comida", "cena"]).forEach(() => {}); // noop guard
+
+  const roleTag = { pre: " · Pre-entreno", post: " · Post-entreno", normal: "" };
+
+  ["desayuno", "comida", "merienda", "cena"].forEach(slot => {
+    const options = getMealsForSlot(slot, sel.type, sel.momento);
+    const role = getSlotRole(slot, sel.type, sel.momento);
+    const row = document.createElement("div");
+    row.className = "meal-row";
+    const label = document.createElement("label");
+    label.textContent = SLOT_LABELS[slot] + (role ? roleTag[role] : "");
+    row.appendChild(label);
+
+    const select = document.createElement("select");
+    const emptyOpt = document.createElement("option");
+    emptyOpt.value = -1;
+    emptyOpt.textContent = "— Elegir —";
+    select.appendChild(emptyOpt);
+
+    options.forEach((meal, idx) => {
+      const opt = document.createElement("option");
+      opt.value = idx;
+      opt.textContent = `${meal.name} (${meal.kcal} kcal)`;
+      if (sel[slot] === idx) opt.selected = true;
+      select.appendChild(opt);
+    });
+
+    select.addEventListener("change", (e) => {
+      sel[slot] = parseInt(e.target.value, 10);
+      saveState();
+      renderAll();
+    });
+
+    row.appendChild(select);
+    rowsEl.appendChild(row);
+
+    if (sel[slot] >= 0) {
+      const meal = options[sel[slot]];
+      totals.kcal += meal.kcal;
+      totals.p += meal.p;
+      totals.f += meal.f;
+      totals.c += meal.c;
+    }
+  });
+
+  // Fila extra: batido de proteína o postre proteico
+  const extraRow = document.createElement("div");
+  extraRow.className = "meal-row";
+  const extraLabel = document.createElement("label");
+  extraLabel.textContent = "Extra";
+  extraRow.appendChild(extraLabel);
+
+  const extraSelect = document.createElement("select");
+  EXTRAS.forEach((ex, idx) => {
+    const opt = document.createElement("option");
+    opt.value = idx;
+    opt.textContent = idx === 0 ? ex.label : `${ex.label} (${ex.kcal} kcal, ${ex.p}g P)`;
+    if (sel.extra === idx) opt.selected = true;
+    extraSelect.appendChild(opt);
+  });
+  extraSelect.addEventListener("change", (e) => {
+    sel.extra = parseInt(e.target.value, 10);
+    saveState();
+    renderAll();
+  });
+  extraRow.appendChild(extraSelect);
+  rowsEl.appendChild(extraRow);
+
+  const chosenExtra = EXTRAS[sel.extra] || EXTRAS[0];
+  totals.kcal += chosenExtra.kcal;
+  totals.p += chosenExtra.p;
+  totals.f += chosenExtra.f;
+  totals.c += chosenExtra.c;
+
+  const totalEl = document.getElementById("dayTotal");
+  const rangeMin = sel.type === "fuerza" ? 2000 : 1800;
+  const rangeMax = sel.type === "fuerza" ? 2200 : 2000;
+  const inRange = totals.kcal >= rangeMin && totals.kcal <= rangeMax;
+  const anySelected = totals.kcal > 0;
+  totalEl.innerHTML = `
+    <div><span class="value">${totals.kcal}</span> kcal</div>
+    <div><span class="value">${totals.p}</span> P</div>
+    <div><span class="value">${totals.f}</span> G</div>
+    <div><span class="value">${totals.c}</span> C</div>
+    <span class="status-pill ${anySelected ? (inRange ? 'ok' : 'warn') : ''}">
+      ${anySelected ? (inRange ? 'En rango' : 'Fuera de rango') : 'Sin elegir'}
+    </span>
+  `;
+}
+
+function renderAll() {
+  renderDayGrid();
+  renderPanel();
+}
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  state = { selections: {} };
+  saveState();
+  renderAll();
+});
+
+document.getElementById("exportBtn").addEventListener("click", () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY) || JSON.stringify(state);
+    const blob = new Blob([raw], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const fecha = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `menu-mensual-${fecha}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    alert("No se pudo exportar: " + e.message);
+  }
+});
+
+document.getElementById("importBtn").addEventListener("click", () => {
+  document.getElementById("importInput").click();
+});
+
+document.getElementById("importInput").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!parsed || typeof parsed !== "object" || !parsed.selections) {
+        throw new Error("El archivo no tiene el formato esperado");
+      }
+      state = parsed;
+      saveState();
+      currentDay = 1;
+      renderAll();
+      alert("Datos importados correctamente.");
+    } catch (err) {
+      alert("No se pudo importar: " + err.message);
+    } finally {
+      e.target.value = "";
+    }
+  };
+  reader.onerror = () => alert("No se pudo leer el archivo.");
+  reader.readAsText(file);
+});
+
+function generateValidCombos(type, momento) {
+  const d = getMealsForSlot("desayuno", type, momento);
+  const c = getMealsForSlot("comida", type, momento);
+  const m = getMealsForSlot("merienda", type, momento);
+  const n = getMealsForSlot("cena", type, momento);
+  const rangeMin = type === "fuerza" ? 2000 : 1800;
+  const rangeMax = type === "fuerza" ? 2200 : 2000;
+  const combos = [];
+  for (let di = 0; di < d.length; di++)
+    for (let ci = 0; ci < c.length; ci++)
+      for (let mi = 0; mi < m.length; mi++)
+        for (let ni = 0; ni < n.length; ni++)
+          for (let ex = 0; ex < EXTRAS.length; ex++) {
+            const kcal = d[di].kcal + c[ci].kcal + m[mi].kcal + n[ni].kcal + EXTRAS[ex].kcal;
+            if (kcal >= rangeMin && kcal <= rangeMax) {
+              const p = d[di].p + c[ci].p + m[mi].p + n[ni].p + EXTRAS[ex].p;
+              combos.push({ desayuno: di, comida: ci, merienda: mi, cena: ni, extra: ex, kcal, p });
+            }
+          }
+  combos.sort((a, b) => b.p - a.p); // prioriza las combinaciones con más proteína dentro del rango
+  return combos;
+}
+
+document.getElementById("autofillBtn").addEventListener("click", () => {
+  const pools = {
+    fuerza: generateValidCombos("fuerza", "manana"), // Mañana es el patrón habitual por defecto
+    cardio: generateValidCombos("cardio", null)
+  };
+  for (let d = 1; d <= DAYS; d++) {
+    const type = d % 4 === 0 ? "cardio" : "fuerza";
+    const momento = "manana";
+    const pool = pools[type];
+    if (pool.length === 0) continue;
+    const combo = pool[d % pool.length];
+    state.selections[d] = {
+      type: type,
+      momento: momento,
+      desayuno: combo.desayuno,
+      comida: combo.comida,
+      merienda: combo.merienda,
+      cena: combo.cena,
+      extra: combo.extra
+    };
+  }
+  saveState();
+  renderAll();
+});
+
+loadState();
+renderAll();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch((err) => {
+      console.error("Error al registrar el service worker:", err);
+    });
+  });
+}
+</script>
+
+</body>
+</html>
