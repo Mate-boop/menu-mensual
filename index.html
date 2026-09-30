@@ -197,52 +197,908 @@
 </div>
 
 <div class="note">
-  Carnes, pescado y huevo: peso en cocinado (ya asado/cocido/a la plancha). Arroz, patata y pasta: peso ya cocido/hervido. Fruta, ensalada, nueces y queso: peso en crudo. Usa especias digestivas (comino, cúrcuma, jengibre, laurel, pimentón, orégano) y aceite de ajo infusionado en vez de ajo/cebolla crudos. La comida pre-entreno evita AOVE y verdura/ensalada a propósito (menos grasa y fibra = digestión más rápida, clave con tu margen de 1-2h y el IMO); la post-entreno sí las lleva porque ahí no hay prisa. Valores de kcal/macros revisados sobre tablas nutricionales estándar — sigue siendo una estimación, no un cálculo de laboratorio.
+  Carnes, pescado y huevo: peso en cocinado. Arroz, patata y pasta: peso ya cocido. Fruta, verdura cruda, nueces y queso: peso en crudo. Cantidades de verdura y fruta ajustadas a raciones bajas en FODMAP (referencia Monash): calabacín ≤65 g, berenjena ≤75 g, judía verde ≤75 g, pimiento verde ≤50 g, piña ≤140 g, kiwi ≤150 g, plátano firme o poco maduro (~95 g; si está muy maduro solo ~35 g). Es una referencia de dieta para intestino irritable: no hay una pauta oficial para IMO, así que prueba tu tolerancia. El autocompletar respeta un máximo de 3 huevos enteros, 40 g de queso curado y 40 g de jamón al día. Usa especias digestivas y aceite de ajo infusionado en vez de ajo o cebolla. La comida pre-entreno evita AOVE y verdura a propósito (menos grasa y fibra = digestión más rápida con margen de 1-2 h). Valores usados: galletas Triple Zero ~415 kcal, 7,7 g proteína, 14,5 g grasa y 50 g carbohidratos por 100 g; pasta de maíz-arroz cocida ~155 kcal y 34 g carbohidratos por 100 g (seca ~350 kcal); carne picada de vacuno magra (~10% grasa) ya cocinada ~217 kcal y 26 g proteína por 100 g; proteína de huevo 24 g por scoop de 30 g. Si tu paquete es distinto (más grasa en la carne picada, otro sabor de galletas, otro polvo), cambia el resultado: compara con la etiqueta. Revisa también que galletas, pasta y proteína en polvo no lleven inulina, sorbitol, maltitol ni xilitol. Es una estimación, no un análisis de laboratorio.
 </div>
 
 <script>
-const MEALS_COMMON = {
-  desayuno: [
-    { name: "3 huevos cocidos + 80g claras cocidas + 100g calabacín salteado + 1 plátano crudo", kcal: 403, p: 31, f: 17, c: 34 },
-    { name: "2 huevos cocidos + 100g claras cocidas + 50g atún al natural (escurrido) + 1 kiwi crudo", kcal: 304, p: 36, f: 12, c: 13 },
-    { name: "3 huevos cocidos + 20g jamón serrano + 150g piña cruda", kcal: 357, p: 26, f: 19, c: 21 },
-    { name: "150g claras cocidas + 20g queso curado + 1 kiwi crudo + 1/2 plátano crudo", kcal: 254, p: 23, f: 7, c: 26 }
-  ],
-  merienda: [
-    { name: "80g atún al natural (escurrido) + 25g galletas Triple Zero + 1 kiwi crudo", kcal: 221, p: 27, f: 2, c: 23 },
-    { name: "30g jamón serrano + 150g piña cruda", kcal: 147, p: 10, f: 4, c: 20 },
-    { name: "20g queso curado + 15g nueces crudas + 1 kiwi crudo", kcal: 220, p: 8, f: 16, c: 14 },
-    { name: "40g pavo en lonchas + 25g galletas Triple Zero + 1/2 plátano crudo", kcal: 188, p: 15, f: 2, c: 26 }
-  ]
-};
-
-const MEALS_BY_TYPE = {
-  fuerza: {
-    comida: [
-      { name: "220g pechuga de pollo asada + 280g arroz basmati cocido + 150g verduras al horno (40g calabacín, 40g pimiento verde, 40g berenjena, 30g zanahoria) + 10g AOVE", kcal: 860, p: 78, f: 20, c: 85 },
-      { name: "220g pavo marinado asado + 350g patata asada + 150g verduras al horno (40g calabacín, 40g pimiento verde, 40g berenjena, 30g zanahoria) + 10g AOVE", kcal: 745, p: 73, f: 16, c: 81 },
-      { name: "220g lomo de cerdo a la plancha + 250g pasta maíz-arroz cocida + 150g verduras al horno (40g calabacín, 40g pimiento verde, 40g berenjena, 30g zanahoria) + 10g AOVE", kcal: 786, p: 69, f: 26, c: 69 },
-      { name: "220g carne picada de vacuno cocida + 270g arroz basmati cocido + 150g verduras al horno (40g calabacín, 40g pimiento verde, 40g berenjena, 30g zanahoria) + 10g AOVE", kcal: 871, p: 54, f: 33, c: 82 }
+// Platos por franja y rol (kcal/macros calculados sobre tablas por 100 g; ver nota al pie)
+const POOLS = {
+  "desayuno": {
+    "normal": [
+      {
+        "name": "Revuelto de calabacín y cúrcuma — 2 huevos + 120g claras + 60g calabacín salteado (cúrcuma, pimienta) + 1 plátano firme (poco maduro, 95g)",
+        "kcal": 317,
+        "p": 28,
+        "f": 12,
+        "c": 26,
+        "h": 2,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Tortilla de atún y tomate — 1 huevo + 150g claras + 50g atún al natural escurrido + 60g tomate crudo en rodajas (orégano, sal marina) + 100g kiwi crudo",
+        "kcal": 282,
+        "p": 37,
+        "f": 7,
+        "c": 19,
+        "h": 1,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Revuelto de atún y calabacín — 1 huevo + 150g claras + 50g atún al natural escurrido (pimienta) + 60g calabacín salteado + 1 plátano firme (poco maduro, 95g)",
+        "kcal": 310,
+        "p": 37,
+        "f": 7,
+        "c": 26,
+        "h": 1,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Tortilla de claras y queso curado — 1 huevo + 180g claras + 20g queso curado rallado (orégano) + 150g kiwi crudo",
+        "kcal": 339,
+        "p": 33,
+        "f": 13,
+        "c": 25,
+        "h": 1,
+        "q": 20,
+        "j": 0
+      },
+      {
+        "name": "Huevos al horno con tomate — 2 huevos + 100g claras + 70g tomate tamizado bajo en sal (pimentón dulce, comino) + 150g kiwi crudo",
+        "kcal": 316,
+        "p": 26,
+        "f": 12,
+        "c": 27,
+        "h": 2,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Tortilla de espinacas y queso — 1 huevo + 150g claras + 80g espinacas salteadas (pimienta) + 15g queso curado rallado + 100g kiwi crudo + 60g plátano firme",
+        "kcal": 345,
+        "p": 31,
+        "f": 11,
+        "c": 33,
+        "h": 1,
+        "q": 15,
+        "j": 0
+      },
+      {
+        "name": "Revuelto de tomate y jamón — 1 huevo + 150g claras + 65g tomate en dados (orégano) + 20g jamón serrano en tiras + 1 plátano firme (poco maduro, 95g)",
+        "kcal": 300,
+        "p": 31,
+        "f": 9,
+        "c": 26,
+        "h": 1,
+        "q": 0,
+        "j": 20
+      },
+      {
+        "name": "Revuelto de jamón y espinacas — 1 huevo + 150g claras + 25g jamón serrano + 80g espinacas salteadas + 150g kiwi crudo",
+        "kcal": 326,
+        "p": 35,
+        "f": 10,
+        "c": 27,
+        "h": 1,
+        "q": 0,
+        "j": 25
+      }
     ],
-    cena: [
-      { name: "220g merluza al horno + 300g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE", kcal: 576, p: 44, f: 15, c: 65 },
-      { name: "180g salmón al horno + 200g arroz basmati cocido + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE", kcal: 742, p: 42, f: 34, c: 60 },
-      { name: "180g carne picada de vacuno cocida + 250g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE", kcal: 650, p: 42, f: 28, c: 55 },
-      { name: "200g lomo de cerdo a la plancha + 200g pasta maíz-arroz cocida + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE", kcal: 672, p: 61, f: 23, c: 54 }
+    "pre": [
+      {
+        "name": "Arroz con leche proteico y canela — 200g arroz basmati cocido + 200ml leche semidesnatada sin lactosa (canela) + 1 scoop de proteína de huevo (añádela al final, fuera del fuego) + 1 plátano firme (poco maduro, 95g)",
+        "kcal": 550,
+        "p": 37,
+        "f": 5,
+        "c": 89,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Tortilla de patata sin aceite — 200g claras + 1 huevo + 250g patata cocida en dados (pimentón dulce, sal marina) + 100g kiwi crudo",
+        "kcal": 463,
+        "p": 35,
+        "f": 7,
+        "c": 68,
+        "h": 1,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Batido de plátano con galletas — 250ml leche semidesnatada sin lactosa + 1 plátano firme (poco maduro, ~95g) batido + 1 scoop de proteína de huevo + 30g galletas Triple Zero",
+        "kcal": 437,
+        "p": 36,
+        "f": 9,
+        "c": 50,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Huevos con patata al pimentón — 2 huevos cocidos + 100g claras cocidas + 300g patata cocida (pimentón dulce, pimienta) + 100g kiwi crudo",
+        "kcal": 532,
+        "p": 31,
+        "f": 12,
+        "c": 78,
+        "h": 2,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Patatas con huevo y pimiento verde — 250g patata cocida en dados (pimentón dulce) + 40g pimiento verde salteado + 2 huevos + 100g claras + 100g kiwi crudo",
+        "kcal": 496,
+        "p": 30,
+        "f": 12,
+        "c": 69,
+        "h": 2,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Puré de patata con huevo y jamón — 300g patata cocida en puré + 100ml leche semidesnatada sin lactosa (pimienta) + 1 huevo cocido picado + 25g jamón serrano",
+        "kcal": 448,
+        "p": 24,
+        "f": 11,
+        "c": 66,
+        "h": 1,
+        "q": 0,
+        "j": 25
+      },
+      {
+        "name": "Arroz con leche proteico y limón — 230g arroz basmati cocido + 200ml leche semidesnatada sin lactosa (canela y piel de limón) + 1 scoop de proteína de huevo (añádela al final, fuera del fuego)",
+        "kcal": 504,
+        "p": 37,
+        "f": 4,
+        "c": 75,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Tortilla de patata y jamón — 200g claras + 1 huevo + 250g patata cocida en dados + 25g jamón serrano + 100g kiwi crudo",
+        "kcal": 523,
+        "p": 42,
+        "f": 10,
+        "c": 68,
+        "h": 1,
+        "q": 0,
+        "j": 25
+      }
     ]
   },
-  cardio: {
-    comida: [
-      { name: "220g pechuga de pollo asada + 150g arroz basmati cocido + 200g verduras al horno (50g calabacín, 50g pimiento verde, 50g berenjena, 50g zanahoria) + 10g AOVE", kcal: 706, p: 75, f: 20, c: 51 },
-      { name: "220g pavo marinado asado + 180g patata asada + 200g verduras al horno (50g calabacín, 50g pimiento verde, 50g berenjena, 50g zanahoria) + 10g AOVE", kcal: 607, p: 70, f: 16, c: 48 },
-      { name: "220g lomo de cerdo a la plancha + 130g pasta maíz-arroz cocida + 200g verduras al horno (50g calabacín, 50g pimiento verde, 50g berenjena, 50g zanahoria) + 10g AOVE", kcal: 669, p: 67, f: 25, c: 42 },
-      { name: "220g carne picada de vacuno cocida + 140g arroz basmati cocido + 200g verduras al horno (50g calabacín, 50g pimiento verde, 50g berenjena, 50g zanahoria) + 10g AOVE", kcal: 717, p: 51, f: 34, c: 48 }
+  "comida": {
+    "post": [
+      {
+        "name": "Pollo al limón y comino — 200g pechuga de pollo al horno (limón, comino) + 200g arroz basmati cocido con cúrcuma + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 10g AOVE",
+        "kcal": 729,
+        "p": 69,
+        "f": 18,
+        "c": 67,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo con puré de patata — 180g lomo de cerdo a la plancha (laurel, jengibre) + 300g patata cocida en puré + 100ml leche semidesnatada sin lactosa (puré) + 75g judías verdes cocidas + 8g AOVE",
+        "kcal": 714,
+        "p": 61,
+        "f": 21,
+        "c": 71,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Boloñesa de ternera — 170g carne picada de vacuno cocida (comino, laurel) + 75g tomate tamizado bajo en sal + 150g pasta maíz-arroz cocida + 60g zanahoria rallada en la salsa + 60g calabacín troceado en la salsa + 5g AOVE",
+        "kcal": 704,
+        "p": 50,
+        "f": 27,
+        "c": 63,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pollo al pimentón con patata asada — 200g pechuga de pollo al horno (pimentón dulce, orégano) + 300g patata asada con laurel + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 10g AOVE",
+        "kcal": 733,
+        "p": 70,
+        "f": 18,
+        "c": 72,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Merluza en salsa de tomate con arroz — 220g merluza (laurel, orégano) + 75g tomate tamizado bajo en sal + 220g arroz basmati cocido + 60g calabacín troceado + 8g AOVE",
+        "kcal": 599,
+        "p": 49,
+        "f": 12,
+        "c": 67,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Salmón con arroz de cúrcuma y espinacas — 150g salmón al horno (jengibre, limón) + 200g arroz basmati cocido con cúrcuma + 100g espinacas salteadas + 3g AOVE",
+        "kcal": 619,
+        "p": 41,
+        "f": 22,
+        "c": 60,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo al comino con patata y verduras — 190g lomo de cerdo al horno (comino, pimienta) + 300g patata asada + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 8g AOVE",
+        "kcal": 712,
+        "p": 61,
+        "f": 20,
+        "c": 72,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Guiso de pollo con patata y zanahoria — 200g pechuga de pollo troceada (comino, laurel, pimentón dulce) + 250g patata cocida + 100g zanahoria + 60g tomate tamizado bajo en sal + 8g AOVE",
+        "kcal": 677,
+        "p": 69,
+        "f": 16,
+        "c": 63,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo al pimentón con arroz y verduras — 190g lomo de cerdo a la plancha (pimentón dulce, comino) + 220g arroz basmati cocido con laurel + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 8g AOVE",
+        "kcal": 734,
+        "p": 61,
+        "f": 20,
+        "c": 73,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      }
     ],
-    cena: [
-      { name: "220g merluza al horno + 180g patata asada + ensalada cruda grande (70g tomate, 50g pepino, 30g lechuga) + 10g AOVE", kcal: 478, p: 43, f: 15, c: 42 },
-      { name: "150g salmón al horno + 120g arroz basmati cocido + ensalada cruda grande (70g tomate, 50g pepino, 30g lechuga) + 5g AOVE", kcal: 542, p: 35, f: 25, c: 39 },
-      { name: "180g carne picada de vacuno cocida + 150g patata asada + ensalada cruda grande (70g tomate, 50g pepino, 30g lechuga) + 10g AOVE", kcal: 570, p: 41, f: 28, c: 36 },
-      { name: "200g lomo de cerdo a la plancha + 130g pasta maíz-arroz cocida + ensalada cruda grande (70g tomate, 50g pepino, 30g lechuga) + 10g AOVE", kcal: 605, p: 60, f: 23, c: 38 }
+    "normal": [
+      {
+        "name": "Pollo al limón con arroz y verduras — 180g pechuga de pollo a la plancha (limón, orégano) + 130g arroz basmati cocido con cúrcuma + 60g calabacín salteado + 40g pimiento verde salteado + 8g AOVE",
+        "kcal": 560,
+        "p": 60,
+        "f": 15,
+        "c": 41,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Merluza en salsa de tomate con patata — 200g merluza (laurel, orégano) + 75g tomate tamizado bajo en sal + 200g patata cocida + 60g calabacín troceado + 5g AOVE",
+        "kcal": 444,
+        "p": 44,
+        "f": 9,
+        "c": 46,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pasta con atún y tomate — 150g pasta maíz-arroz cocida + 150g atún al natural escurrido + 75g tomate tamizado bajo en sal (orégano) + 60g calabacín troceado + 5g AOVE",
+        "kcal": 475,
+        "p": 41,
+        "f": 8,
+        "c": 57,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Arroz salteado con ternera — 140g carne picada de vacuno cocida (comino, pimentón dulce) + 160g arroz basmati cocido + 40g pimiento verde + 60g zanahoria rallada + 3g AOVE",
+        "kcal": 571,
+        "p": 42,
+        "f": 20,
+        "c": 53,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo a la plancha con patata y espinacas — 170g lomo de cerdo a la plancha (pimienta, limón) + 200g patata cocida + 100g espinacas salteadas + 6g AOVE",
+        "kcal": 544,
+        "p": 55,
+        "f": 17,
+        "c": 44,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Ensalada templada de arroz y atún — 150g arroz basmati cocido + 130g atún al natural escurrido + 60g tomate crudo + 60g pepino crudo + 50g zanahoria rallada + 8g AOVE (limón, vinagre de vino tinto)",
+        "kcal": 449,
+        "p": 37,
+        "f": 10,
+        "c": 52,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Salmón con arroz y calabacín — 120g salmón al horno (jengibre, limón) + 150g arroz basmati cocido + 60g calabacín a la plancha",
+        "kcal": 457,
+        "p": 31,
+        "f": 15,
+        "c": 44,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pollo con puré de zanahoria y patata — 180g pechuga de pollo al horno (comino, laurel) + 200g patata cocida + 100g zanahoria cocida + 60ml leche semidesnatada sin lactosa (puré) + 5g AOVE",
+        "kcal": 586,
+        "p": 63,
+        "f": 13,
+        "c": 54,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Arroz con lomo y verduras salteadas — 160g lomo de cerdo troceado (comino, pimentón dulce) + 150g arroz basmati cocido + 60g calabacín salteado + 60g zanahoria rallada + 5g AOVE",
+        "kcal": 554,
+        "p": 50,
+        "f": 15,
+        "c": 50,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      }
+    ],
+    "cardio": [
+      {
+        "name": "Pollo al limón y comino — 200g pechuga de pollo al horno (limón, comino) + 120g arroz basmati cocido con cúrcuma + 200g verduras al horno (60g calabacín, 70g berenjena, 70g zanahoria) + 10g AOVE",
+        "kcal": 643,
+        "p": 67,
+        "f": 18,
+        "c": 49,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo con puré de patata — 180g lomo de cerdo a la plancha (laurel, jengibre) + 200g patata cocida en puré + 80ml leche semidesnatada sin lactosa (puré) + 75g judías verdes cocidas + 8g AOVE",
+        "kcal": 616,
+        "p": 58,
+        "f": 20,
+        "c": 50,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Boloñesa de ternera — 160g carne picada de vacuno cocida (comino, laurel) + 75g tomate tamizado bajo en sal + 120g pasta maíz-arroz cocida + 60g zanahoria rallada en la salsa + 60g calabacín troceado en la salsa + 5g AOVE",
+        "kcal": 636,
+        "p": 47,
+        "f": 25,
+        "c": 53,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pollo al pimentón con patata asada — 200g pechuga de pollo al horno (pimentón dulce, orégano) + 180g patata asada con laurel + 200g verduras al horno (60g calabacín, 70g berenjena, 70g zanahoria) + 10g AOVE",
+        "kcal": 645,
+        "p": 68,
+        "f": 18,
+        "c": 52,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Merluza en salsa de tomate con arroz — 220g merluza (laurel, orégano) + 75g tomate tamizado bajo en sal + 130g arroz basmati cocido + 60g calabacín troceado + 80g espinacas salteadas + 8g AOVE",
+        "kcal": 501,
+        "p": 49,
+        "f": 12,
+        "c": 45,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Salmón con patata y espinacas — 150g salmón al horno (jengibre, limón) + 150g patata asada + 100g espinacas salteadas",
+        "kcal": 464,
+        "p": 39,
+        "f": 19,
+        "c": 34,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo al comino con patata y verduras — 180g lomo de cerdo al horno (comino, pimienta) + 170g patata asada + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 8g AOVE",
+        "kcal": 580,
+        "p": 55,
+        "f": 19,
+        "c": 46,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Arroz con atún, tomate y zanahoria — 130g arroz basmati cocido + 130g atún al natural escurrido + 60g tomate tamizado bajo en sal (orégano) + 80g zanahoria rallada + 8g AOVE",
+        "kcal": 431,
+        "p": 36,
+        "f": 10,
+        "c": 47,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo al comino con arroz y verduras — 170g lomo de cerdo a la plancha (comino, pimienta) + 110g arroz basmati cocido + 200g verduras al horno (60g calabacín, 70g berenjena, 70g zanahoria) + 8g AOVE",
+        "kcal": 574,
+        "p": 53,
+        "f": 19,
+        "c": 46,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      }
+    ]
+  },
+  "merienda": {
+    "normal": [
+      {
+        "name": "Huevos rellenos de atún — 2 huevos cocidos + 70g atún al natural escurrido + 5g mayonesa (pimentón dulce)",
+        "kcal": 266,
+        "p": 30,
+        "f": 15,
+        "c": 1,
+        "h": 2,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Ensaladilla de atún y patata — 150g patata cocida + 60g atún al natural escurrido + 1 huevo cocido + 30g zanahoria cocida + 8g mayonesa (limón)",
+        "kcal": 342,
+        "p": 24,
+        "f": 12,
+        "c": 34,
+        "h": 1,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Tortilla francesa de jamón y queso — 1 huevo + 100g claras + 20g jamón serrano + 15g queso curado rallado",
+        "kcal": 235,
+        "p": 27,
+        "f": 13,
+        "c": 1,
+        "h": 1,
+        "q": 15,
+        "j": 20
+      },
+      {
+        "name": "Jamón y queso con tomate aliñado — 30g jamón serrano + 20g queso curado + 65g tomate en rodajas (orégano) + 3g AOVE",
+        "kcal": 187,
+        "p": 15,
+        "f": 13,
+        "c": 3,
+        "h": 0,
+        "q": 20,
+        "j": 30
+      },
+      {
+        "name": "Ensalada de tomate, pepino y atún — 65g tomate + 60g pepino + 100g atún al natural escurrido + 5g AOVE (limón, orégano)",
+        "kcal": 175,
+        "p": 25,
+        "f": 6,
+        "c": 5,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Ensalada de pollo, pepino y tomate — 100g pechuga de pollo cocinada desmenuzada + 75g pepino + 50g tomate + 5g AOVE (limón, pimienta)",
+        "kcal": 229,
+        "p": 32,
+        "f": 9,
+        "c": 5,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Galletas con leche y plátano — 25g galletas Triple Zero + 200ml leche semidesnatada sin lactosa + 1 plátano firme (poco maduro, 95g)",
+        "kcal": 280,
+        "p": 10,
+        "f": 7,
+        "c": 44,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Plátano con nueces y leche — 1 plátano firme (poco maduro, 95g) + 20g nueces + 200ml leche semidesnatada sin lactosa",
+        "kcal": 307,
+        "p": 11,
+        "f": 16,
+        "c": 34,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      }
+    ],
+    "pre": [
+      {
+        "name": "Arroz con pollo al limón — 90g pechuga de pollo desmenuzada (limón, comino) + 250g arroz basmati cocido",
+        "kcal": 474,
+        "p": 35,
+        "f": 4,
+        "c": 70,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Puré de patata con pollo — 100g pechuga de pollo a la plancha + 300g patata cocida en puré + 100ml leche semidesnatada sin lactosa (pimienta)",
+        "kcal": 475,
+        "p": 40,
+        "f": 6,
+        "c": 66,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Arroz con leche proteico y plátano — 200g arroz basmati cocido + 200ml leche semidesnatada sin lactosa (canela) + 1 scoop de proteína de huevo (añádela al final, fuera del fuego) + 1 plátano firme (poco maduro, 95g)",
+        "kcal": 550,
+        "p": 37,
+        "f": 5,
+        "c": 89,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pasta con atún y tomate — 150g pasta maíz-arroz cocida + 100g atún al natural escurrido + 60g tomate tamizado bajo en sal (orégano) + de postre: 1 plátano firme (poco maduro, ~95g)",
+        "kcal": 442,
+        "p": 30,
+        "f": 2,
+        "c": 76,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Arroz con atún y tomate — 250g arroz basmati cocido + 100g atún al natural escurrido + 60g tomate tamizado bajo en sal (orégano)",
+        "kcal": 450,
+        "p": 31,
+        "f": 2,
+        "c": 73,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Patata con merluza al limón — 120g merluza a la plancha (limón, pimienta) + 300g patata cocida",
+        "kcal": 378,
+        "p": 29,
+        "f": 2,
+        "c": 61,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pasta con pollo y tomate — 150g pasta maíz-arroz cocida + 100g pechuga de pollo desmenuzada (orégano) + 60g tomate tamizado bajo en sal + de postre: 1 plátano firme (poco maduro, ~95g)",
+        "kcal": 497,
+        "p": 37,
+        "f": 5,
+        "c": 76,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Batido de plátano con galletas — 250ml leche semidesnatada sin lactosa + 1 plátano firme (poco maduro, ~95g) batido + 1 scoop de proteína de huevo + 30g galletas Triple Zero",
+        "kcal": 437,
+        "p": 36,
+        "f": 9,
+        "c": 50,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Arroz con lomo al limón — 90g lomo de cerdo a la plancha (limón, comino) + 250g arroz basmati cocido",
+        "kcal": 480,
+        "p": 32,
+        "f": 6,
+        "c": 70,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      }
+    ]
+  },
+  "cena": {
+    "normal": [
+      {
+        "name": "Merluza al horno con patata — 220g merluza al horno (limón, laurel) + 150g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 8g AOVE",
+        "kcal": 428,
+        "p": 46,
+        "f": 12,
+        "c": 34,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Tortilla de calabacín y pimiento — 2 huevos + 150g claras + 60g calabacín + 40g pimiento verde + 150g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga)",
+        "kcal": 405,
+        "p": 35,
+        "f": 12,
+        "c": 40,
+        "h": 2,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pollo con verduras a la plancha — 170g pechuga de pollo a la plancha (pimienta, limón) + 60g calabacín a la plancha + 75g berenjena a la plancha + 100g patata asada + 8g AOVE",
+        "kcal": 480,
+        "p": 56,
+        "f": 15,
+        "c": 29,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Salmón con espinacas y arroz — 120g salmón a la plancha (jengibre, limón) + 120g espinacas salteadas + 100g arroz basmati cocido",
+        "kcal": 405,
+        "p": 33,
+        "f": 15,
+        "c": 32,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo a la plancha con patata y ensalada — 150g lomo de cerdo a la plancha (comino) + 150g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 6g AOVE",
+        "kcal": 460,
+        "p": 46,
+        "f": 15,
+        "c": 34,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Merluza con puré de zanahoria — 220g merluza a la plancha (limón, pimienta) + 150g zanahoria cocida en puré (jengibre) + 100g patata cocida + 6g AOVE",
+        "kcal": 412,
+        "p": 45,
+        "f": 10,
+        "c": 35,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Ensalada templada de atún y patata — 130g atún al natural escurrido + 200g patata cocida + 60g tomate crudo + 60g pepino crudo + 30g lechuga + 8g AOVE (vinagre de vino tinto)",
+        "kcal": 414,
+        "p": 37,
+        "f": 10,
+        "c": 46,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pollo al limón con arroz y espinacas — 170g pechuga de pollo al horno (limón, orégano) + 100g arroz basmati cocido + 100g espinacas salteadas + 5g AOVE",
+        "kcal": 478,
+        "p": 58,
+        "f": 12,
+        "c": 32,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo a la plancha con arroz y espinacas — 150g lomo de cerdo a la plancha (pimienta, limón) + 100g arroz basmati cocido + 100g espinacas salteadas + 5g AOVE",
+        "kcal": 455,
+        "p": 48,
+        "f": 15,
+        "c": 32,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      }
+    ],
+    "post": [
+      {
+        "name": "Merluza al horno con patata — 220g merluza al horno (laurel, pimentón dulce) + 350g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE",
+        "kcal": 622,
+        "p": 50,
+        "f": 14,
+        "c": 75,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Salmón con arroz de cúrcuma — 150g salmón al horno (jengibre, limón) + 250g arroz basmati cocido con cúrcuma + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 3g AOVE",
+        "kcal": 677,
+        "p": 41,
+        "f": 22,
+        "c": 74,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Boloñesa de ternera — 170g carne picada de vacuno cocida (comino, laurel) + 75g tomate tamizado bajo en sal + 150g pasta maíz-arroz cocida + 60g calabacín troceado en la salsa + 5g AOVE",
+        "kcal": 679,
+        "p": 50,
+        "f": 26,
+        "c": 57,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo con arroz y ensalada — 200g lomo de cerdo a la plancha (comino) + 220g arroz basmati cocido + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 8g AOVE",
+        "kcal": 717,
+        "p": 63,
+        "f": 21,
+        "c": 65,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pollo asado con patatas al pimentón — 200g pechuga de pollo al horno (pimentón dulce, orégano) + 300g patata asada + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 8g AOVE",
+        "kcal": 715,
+        "p": 70,
+        "f": 16,
+        "c": 72,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Merluza con arroz y verduras — 220g merluza al horno (limón, laurel) + 250g arroz basmati cocido + 60g calabacín + 60g zanahoria + 8g AOVE",
+        "kcal": 644,
+        "p": 50,
+        "f": 12,
+        "c": 78,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Salmón con patata asada y espinacas — 140g salmón al horno (jengibre, limón) + 300g patata asada + 100g espinacas salteadas + 3g AOVE",
+        "kcal": 602,
+        "p": 40,
+        "f": 21,
+        "c": 65,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo en salsa de tomate con patata — 200g lomo de cerdo troceado (comino, laurel) + 75g tomate tamizado bajo en sal + 300g patata cocida + 60g zanahoria + 8g AOVE",
+        "kcal": 722,
+        "p": 63,
+        "f": 21,
+        "c": 70,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo con arroz de cúrcuma y verduras — 200g lomo de cerdo al horno (comino, laurel) + 210g arroz basmati cocido con cúrcuma + 60g calabacín + 60g zanahoria + 8g AOVE",
+        "kcal": 727,
+        "p": 63,
+        "f": 21,
+        "c": 67,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      }
+    ],
+    "cardio": [
+      {
+        "name": "Merluza al horno con patata — 220g merluza al horno (limón, laurel) + 170g patata asada + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 10g AOVE",
+        "kcal": 471,
+        "p": 47,
+        "f": 14,
+        "c": 40,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Salmón con arroz y ensalada — 130g salmón al horno (jengibre, limón) + 100g arroz basmati cocido + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 4g AOVE",
+        "kcal": 458,
+        "p": 33,
+        "f": 20,
+        "c": 33,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Tortilla de calabacín y pimiento — 2 huevos + 150g claras + 60g calabacín + 40g pimiento verde + 150g patata asada + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 5g AOVE",
+        "kcal": 457,
+        "p": 35,
+        "f": 17,
+        "c": 42,
+        "h": 2,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pollo con verduras a la plancha — 190g pechuga de pollo a la plancha (pimienta, limón) + 60g calabacín a la plancha + 75g berenjena a la plancha + 120g patata asada + 8g AOVE",
+        "kcal": 531,
+        "p": 63,
+        "f": 15,
+        "c": 33,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo a la plancha con patata y ensalada — 160g lomo de cerdo a la plancha (comino) + 140g patata asada + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 6g AOVE",
+        "kcal": 476,
+        "p": 49,
+        "f": 16,
+        "c": 34,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Merluza en salsa de tomate con patata — 220g merluza (laurel, orégano) + 75g tomate tamizado bajo en sal + 150g patata cocida + 60g calabacín troceado + 5g AOVE",
+        "kcal": 419,
+        "p": 46,
+        "f": 9,
+        "c": 36,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Pollo al limón con espinacas y arroz — 180g pechuga de pollo al horno (limón, orégano) + 120g espinacas salteadas + 100g arroz basmati cocido + 6g AOVE",
+        "kcal": 508,
+        "p": 62,
+        "f": 13,
+        "c": 32,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Ensalada templada de atún y patata — 140g atún al natural escurrido + 170g patata cocida + 60g tomate crudo + 60g pepino crudo + 40g lechuga + 8g AOVE (vinagre de vino tinto)",
+        "kcal": 400,
+        "p": 39,
+        "f": 10,
+        "c": 40,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      },
+      {
+        "name": "Lomo a la plancha con arroz y ensalada — 150g lomo de cerdo a la plancha (comino) + 110g arroz basmati cocido + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 6g AOVE",
+        "kcal": 478,
+        "p": 46,
+        "f": 16,
+        "c": 36,
+        "h": 0,
+        "q": 0,
+        "j": 0
+      }
     ]
   }
 };
@@ -254,20 +1110,6 @@ const EXTRAS = [
   { label: "Postre proteico: 180ml leche semidesnatada sin lactosa + 1 scoop proteína + 2 láminas de gelatina neutra", kcal: 196, p: 33, f: 2, c: 9 }
 ];
 
-// Pool post-entreno: comidas completas (con AOVE y verdura/ensalada), sin prisa de digestión
-const POST_POOL = MEALS_BY_TYPE.fuerza.comida.concat(MEALS_BY_TYPE.fuerza.cena);
-
-// Pool pre-entreno: carbohidrato simple + proteína magra, sin aceite añadido ni verdura/ensalada,
-// pensado para digerir rápido con margen corto (1-2h) antes de entrenar — clave con SIBO/IMO
-const PRE_POOL = [
-  { name: "130g pechuga de pollo a la plancha (sin aceite añadido) + 350g arroz basmati cocido", kcal: 670, p: 50, f: 6, c: 98 },
-  { name: "130g pavo marinado a la plancha (sin aceite añadido) + 380g patata cocida (hervida, sin piel)", kcal: 506, p: 45, f: 3, c: 77 },
-  { name: "130g carne picada de vacuno cocida (magra, a la plancha) + 320g arroz basmati cocido", kcal: 645, p: 35, f: 14, c: 90 },
-  { name: "130g merluza al vapor o plancha (sin aceite añadido) + 380g patata cocida (hervida, sin piel)", kcal: 448, p: 30, f: 3, c: 76 }
-];
-
-// Pool de comidas "pequeñas" (usadas para el rol normal, sin relación con el entreno)
-const SMALL_POOL = MEALS_COMMON.desayuno.concat(MEALS_COMMON.merienda);
 
 // Determina qué rol juega cada comida según el tipo de día y el momento del entreno
 function getSlotRole(slot, type, momento) {
@@ -313,13 +1155,11 @@ function getDaySelection(day) {
 
 function getMealsForSlot(slot, type, momento) {
   if (type !== "fuerza") {
-    if (slot === "desayuno" || slot === "merienda") return MEALS_COMMON[slot];
-    return MEALS_BY_TYPE[type][slot];
+    if (slot === "desayuno" || slot === "merienda") return POOLS[slot].normal;
+    return POOLS[slot].cardio;
   }
-  const role = getSlotRole(slot, type, momento);
-  if (role === "pre") return PRE_POOL;
-  if (role === "post") return POST_POOL;
-  return SMALL_POOL; // normal
+  const role = getSlotRole(slot, type, momento) || "normal";
+  return POOLS[slot][role];
 }
 
 function isDayFilled(day) {
@@ -410,9 +1250,8 @@ function renderPanel() {
     rowsEl.appendChild(momentoRow);
   }
 
-  let totals = { kcal: 0, p: 0, f: 0, c: 0 };
+  let totals = { kcal: 0, p: 0, f: 0, c: 0, h: 0 };
 
-  Object.keys(MEALS_COMMON).concat(["comida", "cena"]).forEach(() => {}); // noop guard
 
   const roleTag = { pre: " · Pre-entreno", post: " · Post-entreno", normal: "" };
 
@@ -454,6 +1293,7 @@ function renderPanel() {
       totals.p += meal.p;
       totals.f += meal.f;
       totals.c += meal.c;
+      totals.h += meal.h || 0;
     }
   });
 
@@ -496,6 +1336,7 @@ function renderPanel() {
     <div><span class="value">${totals.p}</span> P</div>
     <div><span class="value">${totals.f}</span> G</div>
     <div><span class="value">${totals.c}</span> C</div>
+    <div style="${totals.h > 3 ? 'color:var(--accent);font-weight:700' : ''}"><span class="value">${Math.round(totals.h * 10) / 10}</span> huevos</div>
     <span class="status-pill ${anySelected ? (inRange ? 'ok' : 'warn') : ''}">
       ${anySelected ? (inRange ? 'En rango' : 'Fuera de rango') : 'Sin elegir'}
     </span>
@@ -565,43 +1406,90 @@ function generateValidCombos(type, momento) {
   const c = getMealsForSlot("comida", type, momento);
   const m = getMealsForSlot("merienda", type, momento);
   const n = getMealsForSlot("cena", type, momento);
-  const rangeMin = type === "fuerza" ? 2000 : 1800;
-  const rangeMax = type === "fuerza" ? 2200 : 2000;
+  const fuerza = type === "fuerza";
+  const kMin = fuerza ? 2000 : 1800, kMax = fuerza ? 2200 : 2000;
+  const cMin = fuerza ? 190 : 140, cMax = fuerza ? 225 : 170;
   const combos = [];
   for (let di = 0; di < d.length; di++)
     for (let ci = 0; ci < c.length; ci++)
       for (let mi = 0; mi < m.length; mi++)
         for (let ni = 0; ni < n.length; ni++)
           for (let ex = 0; ex < EXTRAS.length; ex++) {
-            const kcal = d[di].kcal + c[ci].kcal + m[mi].kcal + n[ni].kcal + EXTRAS[ex].kcal;
-            if (kcal >= rangeMin && kcal <= rangeMax) {
-              const p = d[di].p + c[ci].p + m[mi].p + n[ni].p + EXTRAS[ex].p;
-              combos.push({ desayuno: di, comida: ci, merienda: mi, cena: ni, extra: ex, kcal, p });
+            const x = EXTRAS[ex];
+            const kcal = d[di].kcal + c[ci].kcal + m[mi].kcal + n[ni].kcal + x.kcal;
+            const p = d[di].p + c[ci].p + m[mi].p + n[ni].p + x.p;
+            const f = d[di].f + c[ci].f + m[mi].f + n[ni].f + x.f;
+            const ch = d[di].c + c[ci].c + m[mi].c + n[ni].c + x.c;
+            const h = d[di].h + c[ci].h + m[mi].h + n[ni].h;
+            const q = d[di].q + c[ci].q + m[mi].q + n[ni].q;
+            const j = d[di].j + c[ci].j + m[mi].j + n[ni].j;
+            // Solo combinaciones que cumplen TODOS los objetivos del día
+            // (máx. 3 huevos enteros, 40 g de queso curado y 40 g de jamón al día)
+            if (kcal >= kMin && kcal <= kMax && p >= 190 && p <= 215 && f <= 70 && ch >= cMin && ch <= cMax && h <= 3 && q <= 40 && j <= 40) {
+              combos.push({ desayuno: di, comida: ci, merienda: mi, cena: ni, extra: ex });
             }
           }
-  combos.sort((a, b) => b.p - a.p); // prioriza las combinaciones con más proteína dentro del rango
   return combos;
 }
 
-document.getElementById("autofillBtn").addEventListener("click", () => {
-  const pools = {
-    fuerza: generateValidCombos("fuerza", "manana"), // Mañana es el patrón habitual por defecto
-    cardio: generateValidCombos("cardio", null)
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
+}
+
+document.getElementById("autofillBtn").addEventListener("click", () => {
+  const rand = mulberry32(Date.now() % 100000); // cada pulsación da un mes distinto
+  const shuffle = (arr) => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+  const pools = {
+    fuerza: shuffle(generateValidCombos("fuerza", "manana")), // Mañana es el patrón habitual por defecto
+    cardio: shuffle(generateValidCombos("cardio", null))
+  };
+  const slots = ["desayuno", "comida", "merienda", "cena"];
+  const titleOf = (slot, type, momento, idx) => getMealsForSlot(slot, type, momento)[idx].name.split(" — ")[0];
+  const usage = {};
+  let prev = null;
   for (let d = 1; d <= DAYS; d++) {
     const type = d % 4 === 0 ? "cardio" : "fuerza";
     const momento = "manana";
     const pool = pools[type];
     if (pool.length === 0) continue;
-    const combo = pool[d % pool.length];
+    // Entre las combinaciones válidas, elige la que menos repite platos (y no repite el de ayer)
+    let best = null, bestScore = Infinity;
+    const limit = Math.min(pool.length, 600);
+    for (let i = 0; i < limit; i++) {
+      const cmb = pool[i];
+      let score = 0;
+      slots.forEach(sl => {
+        const t = titleOf(sl, type, momento, cmb[sl]);
+        score += (usage[sl + t] || 0) * 10;
+        if (prev && prev[sl] === t) score += 100;
+      });
+      if (score < bestScore) { bestScore = score; best = cmb; }
+    }
+    prev = {};
+    slots.forEach(sl => {
+      const t = titleOf(sl, type, momento, best[sl]);
+      usage[sl + t] = (usage[sl + t] || 0) + 1;
+      prev[sl] = t;
+    });
     state.selections[d] = {
       type: type,
       momento: momento,
-      desayuno: combo.desayuno,
-      comida: combo.comida,
-      merienda: combo.merienda,
-      cena: combo.cena,
-      extra: combo.extra
+      desayuno: best.desayuno,
+      comida: best.comida,
+      merienda: best.merienda,
+      cena: best.cena,
+      extra: best.extra
     };
   }
   saveState();
