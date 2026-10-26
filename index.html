@@ -197,6 +197,7 @@
   .btn.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); box-shadow: var(--shadow); }
   .btn.soft { background: var(--primary-soft); border-color: transparent; color: var(--primary-ink); }
   .btn.ghost { background: none; }
+  .linkbtn { background: none; border: 0; padding: 4px 0 0; color: var(--primary); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; display: block; }
   .btn.danger { background: var(--surface); border: 1.5px solid var(--accent); color: var(--accent); }
   .btn.danger.solid { background: var(--accent); color: #fff; }
   .btn.small { min-height: 36px; padding: 6px 12px; font-size: 0.8rem; }
@@ -536,6 +537,7 @@
     </div>
   </div>
   <div id="shopList"></div>
+  <div class="card" id="tupperBox" hidden></div>
   <div class="small muted">Carnes, pescados y cereales: la cantidad grande es lo que compras (en crudo o seco, aproximado) y la pequeña, lo que pesa ya cocinado en los platos. Redondea al alza.</div>
 </section>
 
@@ -598,7 +600,7 @@
 <section class="view" id="view-mas" hidden>
   <div class="card">
     <h2>🗓️ Plan semanal de entreno</h2>
-    <div class="small muted" style="margin-bottom:10px">Lo habitual de cada día: el autocompletar lo usa para elegir la comida de antes (pre) y la de después (post) del entreno. Si un día cambia, ajústalo desde el menú.</div>
+    <div class="small muted" style="margin-bottom:10px">Lo habitual de cada día: el autocompletar lo usa para elegir la comida de antes (pre) y la de después (post) del entreno. Si un día concreto cambia, ajústalo desde el menú: ese día se respeta al autocompletar.</div>
     <div class="week-grid" id="weekGrid"></div>
   </div>
   <div class="card">
@@ -607,7 +609,11 @@
   </div>
   <div class="card">
     <h2>💶 Presupuesto</h2>
-    <label class="switch"><input type="checkbox" id="budgetToggle"><span><strong>Presupuesto ajustado</strong><br><span class="small muted">El autocompletar no usa platos caros (gambas, dorada, bacalao, filete de ternera, sepia…) y prefiere los más baratos. El salmón sí se mantiene. Los precios son orientativos de supermercado.</span></span></label>
+    <label class="switch"><input type="checkbox" id="budgetToggle"><span><strong>Presupuesto ajustado</strong><br><span class="small muted">El autocompletar no usa platos caros (gambas, dorada, bacalao, filete de ternera…) y prefiere los más baratos. El salmón sí se mantiene. Los precios son orientativos de supermercado.</span></span></label>
+  </div>
+  <div class="card">
+    <h2>🥡 Tuppers</h2>
+    <label class="switch"><input type="checkbox" id="tupperToggle"><span><strong>Cocino los domingos para toda la semana</strong><br><span class="small muted">El autocompletar repite cada comida y cena 2–3 veces por semana (unos 6 platos que cocinar el domingo) y deja para el principio de semana los que no se congelan. En «Compra» verás qué cocinar y qué va a la nevera o al congelador.</span></span></label>
   </div>
   <div class="card">
     <h2>🚫 Platos que no te sientan bien</h2>
@@ -672,6 +678,14 @@
       <li>Parte verde de la cebolleta y cebollino para el sabor a cebolla.</li>
       <li>Especias que sientan bien: comino, cúrcuma, jengibre, pimentón (dulce o ahumado), orégano, laurel, romero, tomillo, perejil, eneldo, canela, azafrán, pimienta.</li>
       <li><strong>Tamari sin gluten</strong> (1–2 cucharadas; la salsa de soja normal lleva trigo), limón, vinagre y mostaza dan mucho sabor sin calorías.</li>
+    </ul>
+    <h3>Tuppers del domingo</h3>
+    <ul>
+      <li>Cocina el domingo: lo de lunes a miércoles va a la <strong>nevera</strong> (3 días como mucho) y lo de jueves a sábado, al <strong>congelador</strong>. Pásalo a la nevera la noche antes.</li>
+      <li>El <strong>arroz</strong> cocido, enfríalo rápido y no lo tengas más de 1 día en la nevera: si es para después, congélalo.</li>
+      <li>Huevo cocido, tortilla y revuelto no se congelan bien; el pescado y la carne, sí. La patata congelada queda algo más blanda: asada o en puré aguanta mejor.</li>
+      <li>La patata y el arroz enfriados tienen más almidón resistente. Suele sentar bien, pero si notas más gases con los tuppers que recién hecho, apúntalo en el diario.</li>
+      <li>Aliña las ensaladas al comer y recalienta con un chorrito de agua para que no se seque.</li>
     </ul>
     <h3>Revisa las etiquetas</h3>
     <div class="chips">
@@ -922,7 +936,7 @@ function toast(msg) {
 function defaultState() {
   return {
     v: 4, selections: {}, weekly: JSON.parse(JSON.stringify(DEFAULT_WEEKLY)),
-    prefs: { suave: true, budget: true }, excluded: [], diary: {}, shopChecked: {}, profile: defaultProfile(), weights: {}
+    prefs: { suave: true, budget: true, tupper: true }, excluded: [], diary: {}, shopChecked: {}, profile: defaultProfile(), weights: {}
   };
 }
 const normalizeWhen = (o) => {
@@ -951,7 +965,12 @@ function normalizeState(s) {
     else normalizeWhen(w);
   });
   delete out.mealTimes;
-  out.prefs = Object.assign({ suave: true, budget: true }, s.prefs);
+  out.prefs = Object.assign({ suave: true, budget: true, tupper: true }, s.prefs);
+  // Días sin platos cuyo entreno no coincide con el plan semanal: los cambiaste a mano → se respetan
+  Object.entries(out.selections).forEach(([k, sel]) => {
+    const w = out.weekly[fromIso(k).getDay()];
+    if (w && !SLOTS.some(sl => sel[sl] >= 0) && (sel.type !== w.type || (sel.type === "fuerza" && sel.when !== w.when))) sel.custom = true;
+  });
   out.profile = Object.assign(defaultProfile(), s.profile);
   out.weights = s.weights || {};
   out.v = 4;
@@ -975,6 +994,11 @@ function saveState() {
 }
 
 const weeklyFor = (dateIso) => ({ ...(state.weekly[fromIso(dateIso).getDay()] || DEFAULT_WEEKLY[1]) });
+// Entreno de un día al autocompletar: el que pusiste a mano ese día o, si no, el del plan semanal
+const trainingFor = (dateIso) => {
+  const sel = state.selections[dateIso];
+  return sel && sel.custom ? { type: sel.type, when: sel.when } : weeklyFor(dateIso);
+};
 
 function getDaySelection(dateIso) {
   if (!state.selections[dateIso]) {
@@ -1130,6 +1154,7 @@ function renderPanel() {
     if (val === sel.type) return;
     const before = poolsOf(sel);
     sel.type = val;
+    sel.custom = true;
     resetChangedSlots(sel, before);
     saveState();
     renderAll();
@@ -1145,7 +1170,7 @@ function renderPanel() {
     });
     items.splice(w.pre ? SLOTS.indexOf(w.pre) + 1 : 0, 0, '<span class="tl train">🏋️ Entreno</span>');
     const tip = w.pre
-      ? `Come la ${SLOT_LABELS[w.pre].toLowerCase()} 1–2 h antes de entrenar. Si al final pasan más de 3–4 h, toma un plátano o 2–3 tortitas de arroz 30–60 min antes.`
+      ? `Come ${w.pre === "desayuno" ? "el" : "la"} ${SLOT_LABELS[w.pre].toLowerCase()} 1–2 h antes de entrenar. Si al final pasan más de 3–4 h, toma un plátano o 2–3 tortitas de arroz 30–60 min antes.`
       : "Si en ayunas te cuesta, toma un plátano o 2 tortitas de arroz 30 min antes. El desayuno será tu comida post-entreno.";
     trainBox.innerHTML = `
       <span class="label" style="margin-top:14px">¿Cuándo entrenas hoy?</span>
@@ -1156,12 +1181,26 @@ function renderPanel() {
       if (b.dataset.when === sel.when) return;
       const before = poolsOf(sel);
       sel.when = b.dataset.when;
+      sel.custom = true;
       resetChangedSlots(sel, before);
       saveState();
       renderAll();
     }));
   } else {
     trainBox.innerHTML = '<div class="tip">Día de cardio suave o descanso: menos hidratos y calorías, la misma proteína.</div>';
+  }
+  const plan = weeklyFor(currentDate);
+  if (sel.custom && (sel.type !== plan.type || (sel.type === "fuerza" && sel.when !== plan.when))) {
+    trainBox.insertAdjacentHTML("beforeend", `<div class="tip">📌 Entreno cambiado a mano para este día: el autocompletar lo respeta.
+      <button type="button" class="linkbtn" id="backWeeklyBtn">Volver al plan semanal</button></div>`);
+    document.getElementById("backWeeklyBtn").addEventListener("click", () => {
+      const before = poolsOf(sel);
+      Object.assign(sel, plan);
+      delete sel.custom;
+      resetChangedSlots(sel, before);
+      saveState();
+      renderAll();
+    });
   }
 
   const cards = document.getElementById("mealCards");
@@ -1405,25 +1444,50 @@ function mulberry32(a) {
   };
 }
 
-// Entre las combinaciones válidas, elige la que menos repite platos (y no repite los de ayer)
-function pickCombo(day, usage, prev, rand) {
+// ---------- Tuppers: se cocina el domingo para la semana (domingo a sábado) ----------
+const TUPPER_SLOTS = ["comida", "cena"];
+const TUPPER_DISHES = 6;   // platos distintos que cocinar cada domingo
+const TUPPER_REPEAT = 3;   // tuppers como mucho del mismo plato
+// Huevo, tortilla y revuelto no se congelan bien; el arroz cocido, mejor no más de 1 día en nevera
+const noFreeze = (meal) => meal.h > 0 || /^(Tortilla|Revuelto)/.test(titleOf(meal));
+const hasRice = (meal) => meal.i.some(([k]) => k === "arroz");
+const tupperStore = (meal, offset) => offset === 0 ? "hoy" : offset > 3 || (hasRice(meal) && offset > 1) ? (noFreeze(meal) ? "fresco" : "congelador") : "nevera";
+const blockStart = (dateIso) => iso(addDays(fromIso(dateIso), -fromIso(dateIso).getDay()));
+
+// Entre las combinaciones válidas, elige la que menos repite platos (y no repite los de ayer).
+// Con tuppers (tup = { counts, offset }), comida y cena repiten plato dentro de la semana a propósito.
+function pickCombo(day, usage, prev, rand, tup) {
   const pool = generateValidCombos(day);
   if (!pool.length) return null;
   let best = null, bestScore = Infinity;
-  for (let i = 0; i < 800; i++) {
+  const distinct = tup ? Object.keys(tup.counts).length : 0;
+  for (let i = 0; i < (tup ? 2000 : 800); i++) {
     const cmb = pool[Math.floor(rand() * pool.length)];
     let score = rand();
+    const titles = {};
     SLOTS.forEach(sl => {
       const meal = getMealsForSlot(sl, day)[cmb[sl]];
       const title = titleOf(meal);
-      score += (usage[title] || 0) * 10;
-      if (prev && prev.includes(title)) score += 100;
+      titles[sl] = title;
+      if (tup && TUPPER_SLOTS.includes(sl)) {
+        const n = tup.counts[title] || 0;
+        score += Math.max(0, (usage[title] || 0) - n) * 10; // variedad entre semanas
+        if (n >= TUPPER_REPEAT) score += 60;
+        else if (n > 0) score -= 12;                       // reaprovecha lo ya cocinado
+        else if (distinct >= TUPPER_DISHES) score += 45;   // no más platos que cocinar
+        if (prev && prev.includes(title)) score += 3;      // mejor alternar que comer igual dos días seguidos
+        if (tupperStore(meal, tup.offset) === "fresco") score += 40;
+      } else {
+        score += (usage[title] || 0) * 10;
+        if (prev && prev.includes(title)) score += 100;
+      }
       if (state.prefs.budget) score += meal.cost * 2;  // con presupuesto ajustado, mejor lo más barato
       if (state.prefs.suave) {
         if (meal.raw) score += 4;                     // verdura cocinada mejor que ensalada cruda
         if (sl === "cena" && meal.f > 15) score += 4; // cenas con menos grasa
       }
     });
+    if (titles.comida === titles.cena) score += 50;   // lo mismo en comida y cena, no
     if (cmb.extra) score += 1;
     if (score < bestScore) { bestScore = score; best = cmb; }
   }
@@ -1445,18 +1509,34 @@ function applyCombo(dateIso, day, cmb) {
 document.getElementById("autofillBtn").addEventListener("click", () => {
   const dim = daysInMonth(viewYear, viewMonth);
   const keys = Array.from({ length: dim }, (_, i) => iso(new Date(viewYear, viewMonth, i + 1)));
-  if (keys.some(isDayFilled) && !confirm(`¿Rehacer el menú de ${MONTHS[viewMonth]}? Se sustituirán los días ya elegidos y se aplicará tu plan semanal.`)) return;
+  if (keys.some(isDayFilled) && !confirm(`¿Rehacer el menú de ${MONTHS[viewMonth]}? Se sustituirán los platos ya elegidos. Los días de entreno que cambiaste a mano se mantienen.`)) return;
   const rand = mulberry32(Date.now() % 100000); // cada pulsación da un mes distinto
   const usage = {};
   let prev = titlesOfDay(state.selections[iso(addDays(fromIso(keys[0]), -1))]);
   let failed = 0;
+  // Tuppers: si el mes empieza a mitad de semana, cuenta lo ya cocinado ese domingo
+  let tup = null;
+  const startBlock = (key) => {
+    tup = { counts: {}, start: blockStart(key), offset: 0 };
+    for (let d = fromIso(tup.start); iso(d) < key; d = addDays(d, 1)) {
+      const sel = state.selections[iso(d)];
+      if (sel) TUPPER_SLOTS.forEach(sl => { const m = sel[sl] >= 0 && getMealsForSlot(sl, sel)[sel[sl]]; if (m) tup.counts[titleOf(m)] = (tup.counts[titleOf(m)] || 0) + 1; });
+    }
+  };
   keys.forEach(key => {
-    const day = weeklyFor(key);
-    const cmb = pickCombo(day, usage, prev, rand);
+    const day = trainingFor(key);
+    if (state.prefs.tupper) {
+      if (!tup || blockStart(key) !== tup.start) startBlock(key);
+      tup.offset = fromIso(key).getDay();
+    }
+    const cmb = pickCombo(day, usage, prev, rand, state.prefs.tupper ? tup : null);
     if (!cmb) { failed++; return; }
+    const custom = state.selections[key] && state.selections[key].custom;
     applyCombo(key, day, cmb);
+    if (custom) state.selections[key].custom = true;
     prev = titlesOfDay(state.selections[key]);
     prev.forEach(t => { usage[t] = (usage[t] || 0) + 1; });
+    if (tup) TUPPER_SLOTS.forEach(sl => { const t = titleOf(getMealsForSlot(sl, day)[cmb[sl]]); tup.counts[t] = (tup.counts[t] || 0) + 1; });
   });
   saveState();
   renderAll();
@@ -1475,7 +1555,9 @@ document.getElementById("autofillDayBtn").addEventListener("click", () => {
   const prev = titlesOfDay(state.selections[iso(addDays(fromIso(currentDate), -1))]);
   const cmb = pickCombo(sel, usage, prev, mulberry32(Date.now() % 100000));
   if (!cmb) { alert("No hay combinaciones válidas para este tipo de día."); return; }
+  const custom = sel.custom;
   applyCombo(currentDate, sel, cmb);
+  if (custom) state.selections[currentDate].custom = true;
   saveState();
   renderAll();
 });
@@ -1537,14 +1619,17 @@ function buildShopping() {
   return { items, missing, days, from, cost: items.reduce((t, i) => t + i.cost, 0) };
 }
 
+// Con tuppers, la compra por defecto es para la semana que se cocina: del próximo domingo (u hoy si es domingo) al sábado
+const nextSunday = () => iso(addDays(fromIso(today), (7 - fromIso(today).getDay()) % 7));
 function renderShopping() {
   const input = document.getElementById("shopFrom");
-  if (!input.value) input.value = today;
+  if (!input.value) input.value = state.prefs.tupper ? nextSunday() : today;
   const { items, missing, days, from, cost } = buildShopping();
   const to = iso(addDays(fromIso(from), days - 1));
   document.getElementById("shopInfo").textContent = `Del ${longDate(from).toLowerCase()} al ${longDate(to).toLowerCase()}.` +
     (items.length ? ` Coste aproximado: ${eur(cost)} (${eur(cost / (days - missing || 1))} al día).` : "") +
     (missing ? ` ⚠️ ${missing} día(s) sin menú: autocompleta el mes para incluirlos.` : "");
+  renderTuppers();
   const list = document.getElementById("shopList");
   if (!items.length) { list.innerHTML = '<div class="card empty">No hay comidas elegidas en estas fechas.</div>'; return; }
   list.innerHTML = CAT_ORDER.map(cat => {
@@ -1562,6 +1647,55 @@ function renderShopping() {
     saveState();
     renderShopping();
   }));
+}
+
+const STORE_LABELS = {
+  hoy: "🍽️ se come hoy",
+  nevera: "🧊 nevera",
+  congelador: "❄️ congelador (pásalo a la nevera la noche antes)",
+  fresco: "🍳 mejor hacerlo ese día (no se congela bien)"
+};
+const qtyOf = (k, a) => FOODS[k].unit ? `${a} ud.` : k === "leche" ? `${Math.round(a)} ml` : `${Math.round(a)} g`;
+function renderTuppers() {
+  const box = document.getElementById("tupperBox");
+  box.hidden = !state.prefs.tupper;
+  if (box.hidden) return;
+  const start = blockStart(document.getElementById("shopFrom").value || today);
+  const dishes = {};
+  for (let o = 0; o < 7; o++) {
+    const key = iso(addDays(fromIso(start), o));
+    const sel = state.selections[key];
+    if (!sel) continue;
+    const f = dayScale(sel);
+    TUPPER_SLOTS.forEach(sl => {
+      const base = sel[sl] >= 0 && getMealsForSlot(sl, sel)[sel[sl]];
+      if (!base) return;
+      const meal = scaledMeal(base, f);
+      const d = dishes[titleOf(base)] = dishes[titleOf(base)] || { list: [], tot: {} };
+      d.list.push({ key, sl, meal, store: tupperStore(base, o) });
+      meal.i.forEach(([k, a]) => { d.tot[k] = (d.tot[k] || 0) + a; });
+    });
+  }
+  const entries = Object.entries(dishes);
+  const head = `<h2>🥡 Tuppers del ${longDate(start).toLowerCase()}</h2>`;
+  if (!entries.length) {
+    box.innerHTML = head + '<div class="small muted">No hay comidas ni cenas elegidas esa semana. Autocompleta el mes en «Menú».</div>';
+    return;
+  }
+  const all = entries.flatMap(([, d]) => d.list);
+  const count = (st) => all.filter(t => t.store === st).length;
+  const cooked = all.filter(t => t.store !== "fresco");
+  const dayName = (key) => WEEKDAYS[fromIso(key).getDay()];
+  box.innerHTML = head + `
+    <div class="small muted">${entries.length} platos que cocinar · ${cooked.length} raciones: ${count("hoy")} para hoy, ${count("nevera")} a la nevera (lunes a miércoles) y ${count("congelador")} al congelador (jueves a sábado)${count("fresco") ? ` · ${count("fresco")} mejor hacerlas ese día` : ""}.</div>` +
+    entries.sort((a, b) => b[1].list.length - a[1].list.length).map(([title, d]) => `
+    <details class="recipe">
+      <summary>${esc(title)} · ${d.list.length} ${d.list.length === 1 ? "ración" : "raciones"}</summary>
+      <p><strong>Cocina en total</strong> (peso ya cocinado): ${Object.entries(d.tot).map(([k, a]) => `${qtyOf(k, a)} de ${esc(shortName(k))}`).join(", ")}.</p>
+      <ul>${d.list.map(t => `<li><strong>${dayName(t.key)}, ${t.sl}</strong> — ${STORE_LABELS[t.store]}<br>${esc(ingredientSummary(t.meal.i))}</li>`).join("")}</ul>
+      ${PREP[title] ? `<p class="small muted">${esc(PREP[title])}</p>` : ""}
+    </details>`).join("") + `
+    <div class="tip">💡 Deja enfriar los tuppers (como mucho 1–2 h fuera) y guárdalos cerrados. Recalienta hasta que humee. Si un plato lleva ensalada, prepárala aparte y alíñala al comer. Las cantidades ya están ajustadas a cada día.</div>`;
 }
 
 document.getElementById("shopFrom").addEventListener("change", renderShopping);
@@ -1723,6 +1857,10 @@ function renderSettings() {
     select.addEventListener("change", (e) => {
       if (e.target.value === "cardio") w.type = "cardio";
       else { w.type = "fuerza"; w.when = e.target.value; }
+      // los días aún sin platos ni cambios a mano pasan a seguir el plan nuevo
+      Object.keys(state.selections).forEach(k => {
+        if (fromIso(k).getDay() === wd && !state.selections[k].custom && !isDayFilled(k)) delete state.selections[k];
+      });
       saveState();
     });
     grid.append(label, select);
@@ -1734,6 +1872,9 @@ function renderSettings() {
   const suave = document.getElementById("suaveToggle");
   suave.checked = !!state.prefs.suave;
   suave.onchange = () => { state.prefs.suave = suave.checked; saveState(); };
+  const tupper = document.getElementById("tupperToggle");
+  tupper.checked = !!state.prefs.tupper;
+  tupper.onchange = () => { state.prefs.tupper = tupper.checked; saveState(); };
 
   const list = document.getElementById("excludedList");
   if (!state.excluded.length) list.innerHTML = '<div class="empty">Ninguno por ahora.</div>';
