@@ -17,7 +17,7 @@ const FOODS = {
   dorada:     { n: "Dorada o lubina (en filetes)", kcal: 155, p: 25, f: 6, c: 0, cat: "Carne y pescado", raw: 1.25, eur: 15 },
   salmon:     { n: "Salmón", kcal: 206, p: 22, f: 12.4, c: 0, cat: "Carne y pescado", raw: 1.25, eur: 16 },
   gambas:     { n: "Gambas o langostinos pelados", kcal: 99, p: 24, f: 0.3, c: 0.2, cat: "Carne y pescado", raw: 1.15, eur: 14 },
-  sepia:      { n: "Sepia o calamar limpio", kcal: 158, p: 32.5, f: 1.4, c: 3.3, cat: "Carne y pescado", raw: 2, eur: 11 },
+  sepia:      { n: "Pota limpia (congelada)", kcal: 122, p: 25.5, f: 1.7, c: 1.7, cat: "Carne y pescado", raw: 1.7, eur: 6 },
   conejo:     { n: "Conejo (carne sin hueso)", kcal: 197, p: 29, f: 8, c: 0, cat: "Carne y pescado", raw: 1.3, eur: 7.5 },
   atun:       { n: "Atún al natural (escurrido)", kcal: 100, p: 23.5, f: 0.8, c: 0, cat: "Conservas", eur: 11 },
   caballa:    { n: "Caballa al natural (lata, escurrida)", kcal: 156, p: 23, f: 6.3, c: 0, cat: "Conservas", eur: 10 },
