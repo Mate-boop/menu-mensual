@@ -18,6 +18,7 @@ icons/                   # iconos de instalación
 
 - **Menú** (pensado para móvil): calendario por meses, tarjetas por comida con receta, selector a pantalla completa que muestra cómo quedaría el total del día con cada plato, autocompletar mes o día y barras de objetivo diario.
 - **Cuándo entrenas**: cada día eliges entre qué comidas entrenas (en ayunas, desayuno→comida, comida→merienda o merienda→cena), sin horas fijas. La app marca la comida pre-entreno y la post-entreno, usa platos adecuados para cada una y avisa si un plato no es ideal.
+- **Yo**: objetivo (ganar músculo, recomposición, mantener o perder grasa), datos personales, actividad, entreno semanal e hipotiroidismo. Calcula metabolismo basal (Mifflin-St Jeor, con Katch-McArdle si hay % de grasa), gasto diario y kcal/macros para días de fuerza y de descanso. Las raciones de cada día se ajustan solas con dos factores (alimentos proteicos → proteína; hidratos y grasas → kcal); verduras y frutas con límite FODMAP, huevos, queso y jamón no cambian. Registro de peso con gráfica y ajuste automático de calorías según la tendencia real.
 - **Compra**: lista agrupada por pasillo para N días, con cantidades en crudo para carnes, pescados y cereales; se puede marcar y copiar.
 - **Diario**: hinchazón, pesadez, cansancio, gases y dolor (0-3), deposiciones y escala de Bristol, hábitos (paseo tras comer, no picar, agua…), notas, historial de 14 días y «platos a vigilar».
 - **Más**: plan semanal de entreno, modo digestión suave, platos descartados, copia de seguridad y guía SIBO/IMO.

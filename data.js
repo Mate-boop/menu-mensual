@@ -232,7 +232,16 @@ const EXTRAS = [
   { label: "🍍 Piña asada con skyr y canela: 140g piña + 200g skyr sin lactosa", i: [["pina",140],["skyr",200]],
     prep: "Dora la piña en rodajas en una sartén antiadherente sin aceite, 2 min por lado, con canela. Sírvela caliente sobre el skyr frío." },
   { label: "🍮 Flan de claras al microondas: 100g claras + 200ml leche sin lactosa + 15g proteína + 5g sirope de arce", i: [["claras",100],["leche",200],["proteina",15],["sirope",5]],
-    prep: "Pon el sirope en el fondo de un cuenco. Bate claras, leche y proteína con vainilla y viértelo encima. Microondas a potencia media 4-5 min, en tandas de 1 min, hasta que cuaje. Nevera 2 h y desmolda." }
+    prep: "Pon el sirope en el fondo de un cuenco. Bate claras, leche y proteína con vainilla y viértelo encima. Microondas a potencia media 4-5 min, en tandas de 1 min, hasta que cuaje. Nevera 2 h y desmolda." },
+  // Extras de volumen (más calorías y grasa saludable para objetivos altos)
+  { label: "🥤 Batido de volumen: 300ml leche sin lactosa + 40g avena + 1 plátano firme + 20g crema de cacahuete + 1 scoop proteína", i: [["leche",300],["avena",40],["platano",95],["cacahuete",20],["proteina",30]],
+    prep: "Tritura todo con hielo y canela hasta que quede cremoso. Mejor justo después de una comida o del entreno, no como picoteo." },
+  { label: "🍞 Tostada con AOVE, tomate y jamón: 52g pan de espelta + 10g AOVE + 50g tomate + 30g jamón serrano", i: [["panespelta",52],["aove",10],["tomate",50],["jamon",30]],
+    prep: "Tuesta el pan, frota el tomate, riega con el aceite y una pizca de sal y pon el jamón encima." },
+  { label: "🌰 Nueces (30g) con 1 kiwi", i: [["nueces",30],["kiwi",100]],
+    prep: "Un puñado de nueces y un kiwi de postre, justo después de comer." },
+  { label: "🍌 Tortitas con crema de cacahuete (25g) y plátano", i: [["tortitas",24],["cacahuete",25],["platano",95]],
+    prep: "Unta 3 tortitas de arroz con la crema de cacahuete y pon el plátano en rodajas con canela." }
 ];
 
 if (typeof module !== "undefined") module.exports = { POOLS, EXTRAS };

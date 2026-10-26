@@ -1,4 +1,4 @@
-const CACHE_NAME = "menu-mensual-cache-v5";
+const CACHE_NAME = "menu-mensual-cache-v6";
 const ASSETS = [
   "./",
   "./index.html",

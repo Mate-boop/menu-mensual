@@ -419,6 +419,26 @@
   .score.ok { background: var(--primary-soft); color: var(--primary-ink); }
   .score.bad { background: var(--accent-soft); color: var(--accent); }
 
+  /* Yo */
+  .goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .goal { text-align: left; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); border-radius: 14px; padding: 10px 12px; cursor: pointer; font-family: inherit; }
+  .goal strong { display: block; font-size: 0.88rem; }
+  .goal span { display: block; font-size: 0.72rem; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+  .goal.on { border-color: var(--primary); background: var(--primary-soft); }
+  .goal.on strong { color: var(--primary-ink); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 10px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .form-grid .help { font-size: 0.72rem; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+  .stats { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; font-size: 0.88rem; align-items: baseline; }
+  .stats .v { font-weight: 800; text-align: right; }
+  .stats .sep { grid-column: 1 / -1; border-top: 1px solid var(--border); margin: 2px 0; }
+  .daytarget { background: var(--surface-2); border-radius: 12px; padding: 10px 12px; margin-top: 10px; }
+  .daytarget strong { display: block; font-size: 0.85rem; margin-bottom: 6px; }
+  .wchart { width: 100%; height: auto; margin-top: 14px; display: block; }
+  .advice { margin-top: 12px; border-radius: 12px; padding: 12px; background: var(--surface-2); font-size: 0.86rem; line-height: 1.45; }
+  .advice.act { background: var(--warn-soft); }
+  .advice.good { background: var(--primary-soft); }
+
   /* Más */
   .week-grid { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 8px; align-items: center; font-size: 0.88rem; font-weight: 600; }
   .switch { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 0.92rem; }
@@ -538,6 +558,40 @@
   </div>
 </section>
 
+<!-- ============ YO ============ -->
+<section class="view" id="view-yo" hidden>
+  <div class="card">
+    <h2>🎯 Tu objetivo</h2>
+    <div class="goal-grid" id="goalGrid"></div>
+  </div>
+  <div class="card" id="planCard"></div>
+  <div class="card">
+    <h2>⚖️ Peso</h2>
+    <div class="small muted" style="margin-bottom:10px">Pésate 2–3 veces por semana, por la mañana, después de ir al baño y antes de comer. Con 2 semanas de datos la app comprueba si tu peso va al ritmo esperado y te propone ajustar las calorías.</div>
+    <div class="row">
+      <div><label class="label" for="weightDate">Fecha</label><input type="date" id="weightDate"></div>
+      <div><label class="label" for="weightKg">Peso (kg)</label><input type="number" id="weightKg" inputmode="decimal" step="0.1" min="30" max="250" placeholder="75,0"></div>
+    </div>
+    <button class="btn primary" id="weightSave" style="width:100%;margin-top:10px">Guardar peso</button>
+    <div id="weightChart"></div>
+    <div id="weightAdvice"></div>
+    <div id="weightList"></div>
+  </div>
+  <div class="card">
+    <h2>👤 Tus datos</h2>
+    <div class="form-grid" id="profileForm"></div>
+  </div>
+  <div class="card">
+    <h2>🏋️ Actividad y entreno</h2>
+    <div class="small muted" style="margin-bottom:10px">Pon tu media de una semana normal.</div>
+    <div class="form-grid" id="activityForm"></div>
+  </div>
+  <div class="card">
+    <h2>🦋 Tiroides</h2>
+    <div id="thyroidForm"></div>
+  </div>
+</section>
+
 <!-- ============ MÁS ============ -->
 <section class="view" id="view-mas" hidden>
   <div class="card">
@@ -579,6 +633,16 @@
       <li><strong>Infusiones que sientan bien:</strong> menta poleo y jengibre. La manzanilla y el hinojo, si son fuertes, son altos en FODMAP.</li>
       <li><strong>Para el estreñimiento:</strong> 2 kiwis verdes al día, moverte a diario e ir al baño a la misma hora (después del desayuno) con los pies en alto sobre un taburete.</li>
       <li><strong>Si el cansancio no mejora,</strong> coméntalo a tu médico: con SIBO es frecuente revisar vitamina B12, hierro y vitamina D en una analítica.</li>
+    </ul>
+    <h3>Hipotiroidismo</h3>
+    <ul>
+      <li><strong>Levotiroxina en ayunas, solo con agua, 30–60 min antes del desayuno</strong> y siempre a la misma hora.</li>
+      <li>El café, los lácteos, la soja (tofu) y mucha fibra junto a la pastilla reducen su absorción. Lo importante es <strong>ser constante cada día</strong>, para que tu médico pueda ajustar bien la dosis.</li>
+      <li>Los suplementos de <strong>calcio, hierro o magnesio y los antiácidos</strong>, al menos 4 horas separados de la pastilla.</li>
+      <li>No tomes yodo, selenio ni «suplementos para el tiroides» sin consultarlo: en el hipotiroidismo autoinmune el exceso de yodo puede empeorarlo.</li>
+      <li>El brócoli y otras crucíferas, cocinados y en cantidades normales, no son un problema.</li>
+      <li>Si está mal controlado da cansancio y estreñimiento, y cuesta más ganar músculo o perder grasa. Revisa la TSH cuando te diga tu médico (y 6–8 semanas después de cada cambio de dosis).</li>
+      <li>La <strong>biotina</strong> (en algunos suplementos para pelo y uñas) altera los análisis de tiroides: déjala 2–3 días antes de la analítica.</li>
     </ul>
     <h3>Comidas antes y después de entrenar</h3>
     <ul>
@@ -624,6 +688,7 @@
   <button data-tab="menu" class="active"><span class="ico">🍽️</span>Menú</button>
   <button data-tab="compra"><span class="ico">🛒</span>Compra</button>
   <button data-tab="diario"><span class="ico">📓</span>Diario</button>
+  <button data-tab="yo"><span class="ico">👤</span>Yo</button>
   <button data-tab="mas"><span class="ico">⚙️</span>Más</button>
 </nav>
 
@@ -663,8 +728,46 @@ function calcIngredients(ing) {
   t.raw = ing.some(([k]) => RAW_SALAD.includes(k)); // lleva ensalada cruda
   return t;
 }
-Object.values(POOLS).forEach(roles => Object.values(roles).forEach(list => list.forEach(r => Object.assign(r, calcIngredients(r.i)))));
+// Al ajustar las raciones a tu objetivo hay dos factores: uno para los alimentos proteicos (para clavar la proteína)
+// y otro para hidratos y grasas (para clavar las kcal). Se quedan fijos los alimentos con ración máxima FODMAP,
+// los huevos (van por unidades) y los topes diarios de queso y jamón.
+const FIXED_FOODS = ["huevo", "queso", "jamon", "gelatina"];
+const PROTEIN_FOODS = ["pollo", "pavo", "lomo", "ternera", "solomillo", "merluza", "bacalao", "dorada", "salmon", "gambas",
+  "atun", "sardinas", "claras", "pavofiambre", "tofu", "skyr", "proteina", "leche"];
+const isFixedFood = (k) => FIXED_FOODS.includes(k) || !!FOODS[k].lim;
+const foodGroup = (k) => isFixedFood(k) ? "fx" : PROTEIN_FOODS.includes(k) ? "pr" : "cb";
+Object.values(POOLS).forEach(roles => Object.values(roles).forEach(list => list.forEach(r => {
+  Object.assign(r, calcIngredients(r.i));
+  ["fx", "pr", "cb"].forEach(g => { r[g] = calcIngredients(r.i.filter(([k]) => foodGroup(k) === g)); });
+})));
 EXTRAS.forEach(e => Object.assign(e, calcIngredients(e.i)));
+
+function roundAmount(k, a) {
+  if (FOODS[k].unit) return a;
+  const step = a >= 20 ? 5 : 1;
+  return Math.max(step, Math.round(a / step) * step);
+}
+// f = 1 (sin ajuste) o { p, c }: factores para alimentos proteicos e hidratos/grasas
+const scaledIngredients = (meal, f) => f === 1 ? meal.i : meal.i.map(([k, a]) => {
+  const g = foodGroup(k);
+  return [k, g === "fx" ? a : roundAmount(k, a * (g === "pr" ? f.p : f.c))];
+});
+const SCALE_P = [0.6, 1.7], SCALE_C = [0.5, 2.5];
+const clamp = (v, [lo, hi]) => Math.min(hi, Math.max(lo, v));
+// Resuelve los dos factores para que el día dé las kcal y la proteína objetivo (K y P: parte fija, proteica e hidratos)
+function solveScale(K, P, T) {
+  const kt = (T.kcal[0] + T.kcal[1]) / 2 - K.fx, pt = T.mid.p - P.fx;
+  const det = K.pr * P.cb - K.cb * P.pr;
+  let fp = Math.abs(det) < 1e-6 ? kt / (K.pr + K.cb) : (kt * P.cb - K.cb * pt) / det;
+  fp = clamp(fp, SCALE_P);
+  const fc = K.cb ? clamp((kt - K.pr * fp) / K.cb, SCALE_C) : 1; // las kcal mandan si la proteína quedó topada
+  return { p: fp, c: fc };
+}
+function scaledMeal(meal, f) {
+  if (f === 1 || (f.p === 1 && f.c === 1)) return meal;
+  const i = scaledIngredients(meal, f);
+  return Object.assign({}, meal, calcIngredients(i), { i });
+}
 
 const SLOTS = ["desayuno", "comida", "merienda", "cena"];
 const SLOT_LABELS = { desayuno: "Desayuno", comida: "Comida", merienda: "Merienda", cena: "Cena" };
@@ -677,6 +780,72 @@ const TARGETS = {
   cardio: { kcal: [1800, 2000], p: [190, 215], f: [0, 70], c: [140, 170] }
 };
 function toMin(t) { const [h, m] = (t || "00:00").split(":").map(Number); return h * 60 + m; }
+
+// ---------- Perfil: gasto calórico y objetivo ----------
+const GOALS = {
+  volumen: { label: "💪 Ganar músculo", desc: "Superávit pequeño para ganar músculo con la menor grasa posible.", protein: 2.0, adj: { principiante: 0.12, intermedio: 0.08, avanzado: 0.05 } },
+  recomp: { label: "🔁 Recomposición", desc: "Mantener el peso perdiendo grasa y ganando músculo poco a poco.", protein: 2.2, adj: 0 },
+  mantener: { label: "⚖️ Mantener", desc: "Comer lo que gastas.", protein: 1.8, adj: 0 },
+  definir: { label: "🔥 Perder grasa", desc: "Déficit moderado conservando el músculo.", protein: 2.3, adj: -0.2 }
+};
+const STEPS = { 1: ["Poco activo (menos de 5.000 pasos al día)", 1.2], 2: ["Algo activo (5.000–8.000 pasos)", 1.3], 3: ["Activo (8.000–11.000 pasos)", 1.4], 4: ["Muy activo (más de 11.000 o trabajo físico)", 1.5] };
+const EXPERIENCE = { principiante: "Principiante (menos de 1 año entrenando)", intermedio: "Intermedio (1–3 años)", avanzado: "Avanzado (más de 3 años)" };
+const CARDIO_MET = { suave: 3.5, moderado: 6, intenso: 8.5 }; // MET netos (sin contar el gasto en reposo)
+const STRENGTH_MET = 4; // pesas: ~5 MET, 4 netos
+const THYROID = {
+  controlado: [1, "Hipotiroidismo controlado con medicación (TSH en rango)"],
+  ajuste: [0.95, "Hipotiroidismo sin controlar o ajustando la dosis"],
+  no: [1, "Sin problemas de tiroides"]
+};
+const defaultProfile = () => ({
+  goal: "volumen", sex: "h", age: null, height: null, bf: null, exp: "intermedio", steps: 2,
+  strengthSessions: 4, strengthMin: 60, cardioSessions: 1, cardioMin: 30, cardioInt: "moderado",
+  thyroid: "controlado", levo: true, adjust: 0
+});
+
+function latestWeight() {
+  const keys = Object.keys(state.weights || {}).sort();
+  return keys.length ? state.weights[keys[keys.length - 1]] : null;
+}
+
+// Metabolismo basal (Mifflin-St Jeor; si hay % de grasa, media con Katch-McArdle) × actividad diaria
+// + entrenos de la semana repartidos por día. El objetivo y la corrección por tu peso real van encima.
+function computePlan() {
+  const p = state.profile, kg = latestWeight();
+  if (!p || !p.age || !p.height || !kg) return null;
+  const mifflin = 10 * kg + 6.25 * p.height - 5 * p.age + (p.sex === "m" ? -161 : 5);
+  const lbm = p.bf ? kg * (1 - p.bf / 100) : null;
+  const bmr = (lbm ? (mifflin + 370 + 21.6 * lbm) / 2 : mifflin) * THYROID[p.thyroid][0];
+  const neat = bmr * STEPS[p.steps][1];
+  const exercise = (STRENGTH_MET * kg * p.strengthSessions * p.strengthMin / 60
+    + CARDIO_MET[p.cardioInt] * kg * p.cardioSessions * p.cardioMin / 60) / 7;
+  const tdee = neat + exercise;
+  const g = GOALS[p.goal];
+  const adj = typeof g.adj === "number" ? g.adj : g.adj[p.exp];
+  const avg = tdee * (1 + adj) + (p.adjust || 0);
+  // Días de fuerza un 5 % por encima de la media; los de cardio/descanso compensan para que la semana cuadre
+  const nF = Object.values(state.weekly).filter(w => w.type === "fuerza").length;
+  const fuerzaK = nF === 0 || nF === 7 ? avg : avg * 1.05;
+  const cardioK = nF === 0 || nF === 7 ? avg : (7 * avg - nF * fuerzaK) / (7 - nF);
+  const refKg = lbm && p.bf > (p.sex === "m" ? 25 : 32) ? lbm / 0.8 : kg; // con mucha grasa, proteína según masa magra
+  const prot = Math.round(g.protein * refKg);
+  const day = (k) => {
+    const fat = Math.round(k * 0.27 / 9);
+    return { kcal: Math.round(k), p: prot, f: fat, c: Math.round((k - prot * 4 - fat * 9) / 4) };
+  };
+  return { kg, bmr, neat, exercise, tdee, avg, adj, nF, weekly: tdee * adj * 7 / 7700, days: { fuerza: day(fuerzaK), cardio: day(cardioK) } };
+}
+
+// Rangos válidos del día: del perfil si está completo; si no, los objetivos fijos de siempre (sin escalar raciones)
+function targetRanges(type) {
+  const plan = computePlan();
+  if (!plan) return Object.assign({ scale: [1, 1] }, TARGETS[type]);
+  const t = plan.days[type];
+  const r = (a, b) => [Math.round(a), Math.round(b)];
+  // Grasa mínima: 0,6 g/kg y al menos un 18 % de las kcal
+  const fMin = Math.max(0.6 * plan.kg, 0.18 * t.kcal / 9);
+  return { kcal: r(t.kcal * 0.97, t.kcal * 1.03), p: r(t.p * 0.95, t.p * 1.15), f: r(fMin, t.f * 1.25), c: r(t.c * 0.8, t.c * 1.2), mid: t, scale: [0.7, 1.6] };
+}
 // Qué conviene en cada comida según el entreno
 const ROLE_GUIDE = {
   pre: { check: m => m.c >= 45 && m.f <= 13, ok: "Buen pre-entreno: hidratos y poca grasa", bad: "Para antes de entrenar, mejor más hidratos y menos grasa" },
@@ -722,7 +891,7 @@ function toast(msg) {
 function defaultState() {
   return {
     v: 4, selections: {}, weekly: JSON.parse(JSON.stringify(DEFAULT_WEEKLY)),
-    prefs: { suave: true }, excluded: [], diary: {}, shopChecked: {}
+    prefs: { suave: true }, excluded: [], diary: {}, shopChecked: {}, profile: defaultProfile(), weights: {}
   };
 }
 const normalizeWhen = (o) => {
@@ -752,6 +921,8 @@ function normalizeState(s) {
   });
   delete out.mealTimes;
   out.prefs = Object.assign({ suave: true }, s.prefs);
+  out.profile = Object.assign(defaultProfile(), s.profile);
+  out.weights = s.weights || {};
   out.v = 4;
   return out;
 }
@@ -814,15 +985,31 @@ function resetChangedSlots(sel, before) {
 const excludeKey = (slot, meal) => slot + "|" + titleOf(meal);
 const isExcluded = (slot, meal) => state.excluded.includes(excludeKey(slot, meal));
 
+// Factores de raciones del día para llegar a tus kcal y tu proteína (solo con el día completo y el perfil hecho)
+function dayScale(sel, override) {
+  const T = targetRanges(sel.type);
+  const pick = Object.assign({}, sel, override);
+  if (T.scale[0] === T.scale[1] || !SLOTS.every(s => pick[s] >= 0)) return 1;
+  const extra = EXTRAS[pick.extra] || EXTRAS[0];
+  const K = { fx: extra.kcal, pr: 0, cb: 0 }, P = { fx: extra.p, pr: 0, cb: 0 };
+  SLOTS.forEach(s => {
+    const m = getMealsForSlot(s, sel)[pick[s]];
+    if (m) ["fx", "pr", "cb"].forEach(g => { K[g] += m[g].kcal; P[g] += m[g].p; });
+  });
+  const f = solveScale(K, P, T);
+  return { p: Math.round(f.p * 100) / 100, c: Math.round(f.c * 100) / 100 };
+}
+
 function dayTotals(sel, override) {
   const t = { kcal: 0, p: 0, f: 0, c: 0, h: 0, q: 0, j: 0 };
   const add = (m) => { if (m) Object.keys(t).forEach(k => { t[k] += m[k] || 0; }); };
   const pick = Object.assign({}, sel, override);
-  SLOTS.forEach(slot => { if (pick[slot] >= 0) add(getMealsForSlot(slot, sel)[pick[slot]]); });
+  const f = dayScale(sel, override);
+  SLOTS.forEach(slot => { if (pick[slot] >= 0) add(scaledMeal(getMealsForSlot(slot, sel)[pick[slot]], f)); });
   add(EXTRAS[pick.extra] || EXTRAS[0]);
   return t;
 }
-const inTarget = (t, type) => ["kcal", "p", "f", "c"].every(k => t[k] >= TARGETS[type][k][0] && t[k] <= TARGETS[type][k][1]);
+const inTarget = (t, type) => { const T = targetRanges(type); return ["kcal", "p", "f", "c"].every(k => t[k] >= T[k][0] && t[k] <= T[k][1]); };
 
 // ---------- Pestañas ----------
 let currentTab = "menu";
@@ -928,13 +1115,21 @@ function renderPanel() {
 
   const cards = document.getElementById("mealCards");
   cards.innerHTML = "";
-  SLOTS.forEach(slot => cards.appendChild(mealCard(slot, sel, roles[slot])));
+  const f = dayScale(sel);
+  if (!computePlan()) cards.innerHTML = '<div class="card tip" style="margin-top:0">👤 Rellena tu perfil en «Yo» y la app calculará tus calorías y ajustará las raciones de cada plato a tu objetivo.</div>';
+  else if (f !== 1) cards.innerHTML = `<div class="tip" style="margin:0 0 12px">⚖️ Raciones ajustadas a tu objetivo: proteína ×${nf(f.p, 2)} · hidratos y grasas ×${nf(f.c, 2)}. Las verduras y frutas se quedan en su ración baja en FODMAP.</div>`;
+  SLOTS.forEach(slot => cards.appendChild(mealCard(slot, sel, roles[slot], f)));
   cards.appendChild(extraCard(sel));
   renderTotals(sel);
 }
 
-function mealCard(slot, sel, role) {
-  const meal = getMealsForSlot(slot, sel)[sel[slot]];
+// Texto de ingredientes con las cantidades ya ajustadas
+const shortName = (k) => FOODS[k].n.replace(/ \(.*\)/, "").toLowerCase();
+const ingredientSummary = (ing) => ing.map(([k, a]) => FOODS[k].unit ? `${a} ${a === 1 ? "huevo" : "huevos"}` : `${a}${k === "leche" ? "ml" : "g"} ${shortName(k)}`).join(" + ");
+
+function mealCard(slot, sel, role, f = 1) {
+  const base = getMealsForSlot(slot, sel)[sel[slot]];
+  const meal = base && scaledMeal(base, f);
   const card = document.createElement("div");
   card.className = "card meal";
   const hasRole = !!ROLE_LABELS[role];
@@ -950,7 +1145,8 @@ function mealCard(slot, sel, role) {
   const excluded = isExcluded(slot, meal);
   card.innerHTML = top + `
     <div class="meal-title">${excluded ? "🚫 " : ""}${esc(titleOf(meal))}</div>
-    <div class="meal-desc">${esc(descOf(meal))}</div>
+    <div class="meal-desc">${esc(f === 1 ? descOf(meal) : ingredientSummary(meal.i))}</div>
+    ${slot === "desayuno" && state.profile.levo && state.profile.thyroid !== "no" ? '<div class="tip">💊 Levotiroxina en ayunas, solo con agua, 30–60 min antes de desayunar.</div>' : ""}
     <div class="chips">${macroChips(meal)}${meal.raw && state.prefs.suave ? '<span class="chip">🥗 lleva crudo</span>' : ""}</div>
     ${guideChip ? `<div class="chips">${guideChip}</div>` : ""}
     <details class="recipe"><summary>👩‍🍳 Receta e ingredientes</summary>
@@ -1008,7 +1204,7 @@ function extraCard(sel) {
 
 function renderTotals(sel) {
   const t = dayTotals(sel);
-  const target = TARGETS[sel.type] || TARGETS.fuerza;
+  const target = targetRanges(sel.type);
   const anySelected = SLOTS.some(s => sel[s] >= 0);
   const ok = inTarget(t, sel.type);
   const mini = document.getElementById("miniTotal");
@@ -1050,9 +1246,10 @@ function openPicker(slot) {
     body.appendChild(clear);
   }
   const guide = ROLE_GUIDE[role];
-  items.forEach(({ meal, idx, excluded }) => {
+  items.forEach(({ meal: base, idx, excluded }) => {
     const current = isExtra ? sel.extra === idx : sel[slot] === idx;
     const proj = dayTotals(sel, { [slot]: idx });
+    const meal = isExtra ? base : scaledMeal(base, dayScale(sel, { [slot]: idx }));
     const fits = inTarget(proj, sel.type);
     const btn = document.createElement("button");
     btn.className = "opt" + (current ? " current" : "") + (excluded ? " excluded" : "");
@@ -1060,7 +1257,7 @@ function openPicker(slot) {
       <div class="t">${excluded ? "🚫 " : ""}${esc(isExtra ? meal.label : titleOf(meal))}</div>
       ${isExtra ? "" : `<div class="d">${esc(descOf(meal))}</div>`}
       <div class="chips">${idx || !isExtra ? macroChips(meal) : ""}
-        <span class="chip ${fits ? "ok" : ""}">Día: ${proj.kcal} kcal · P ${proj.p}${fits ? " ✓" : ""}</span>
+        <span class="chip ${fits ? "ok" : ""}">Día: ${proj.kcal} kcal · P ${proj.p} · H ${proj.c}${fits ? " ✓" : ""}</span>
         ${guide && !guide.check(meal) ? '<span class="chip warn">⚠ no ideal</span>' : ""}
         ${meal.raw && state.prefs.suave ? '<span class="chip">🥗 crudo</span>' : ""}</div>`;
     btn.addEventListener("click", () => choose(slot, idx));
@@ -1089,27 +1286,33 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePicke
 let combosCache = {};
 function generateValidCombos(day) {
   const roles = dayRoles(day);
-  const cacheKey = day.type + "|" + SLOTS.map(s => roles[s]).join(",");
+  const T = targetRanges(day.type);
+  const cacheKey = day.type + "|" + SLOTS.map(s => roles[s]).join(",") + "|" + JSON.stringify(T);
   if (combosCache[cacheKey]) return combosCache[cacheKey];
-  const lists = SLOTS.map(slot => getMealsForSlot(slot, day).map((meal, idx) => ({ meal, idx })).filter(o => !isExcluded(slot, o.meal)));
+  // Por plato: parte fija (FODMAP, huevos, queso, jamón), parte proteica y parte de hidratos/grasas
+  const lists = SLOTS.map(slot => getMealsForSlot(slot, day).map((meal, idx) => ({ idx, meal })).filter(o => !isExcluded(slot, o.meal)));
   const [d, c, m, n] = lists;
-  const t = TARGETS[day.type];
+  const scaled = T.scale[0] !== T.scale[1];
+  const shrink = scaled ? 0.02 : 0; // margen por el redondeo de las raciones
+  const inR = (v, [min, max]) => v >= min * (1 + shrink) && v <= max * (1 - shrink);
+  const sum = (ms, g, k) => ms[0][g][k] + ms[1][g][k] + ms[2][g][k] + ms[3][g][k];
   const combos = [];
   for (const a of d) for (const b of c) for (const e of m) for (const g of n) {
-    const kcal0 = a.meal.kcal + b.meal.kcal + e.meal.kcal + g.meal.kcal;
-    if (kcal0 > t.kcal[1]) continue;
+    const ms = [a.meal, b.meal, e.meal, g.meal];
     // máx. 3 huevos enteros, 40 g de queso curado y 40 g de jamón al día
-    const h0 = a.meal.h + b.meal.h + e.meal.h + g.meal.h;
+    const h0 = ms[0].h + ms[1].h + ms[2].h + ms[3].h;
     if (h0 > 3) continue;
-    if (a.meal.q + b.meal.q + e.meal.q + g.meal.q > 40) continue;
-    if (a.meal.j + b.meal.j + e.meal.j + g.meal.j > 40) continue;
+    if (ms[0].q + ms[1].q + ms[2].q + ms[3].q > 40) continue;
+    if (ms[0].j + ms[1].j + ms[2].j + ms[3].j > 40) continue;
+    const base = {};
+    ["fx", "pr", "cb"].forEach(gr => { base[gr] = { kcal: sum(ms, gr, "kcal"), p: sum(ms, gr, "p"), f: sum(ms, gr, "f"), c: sum(ms, gr, "c") }; });
     for (let ex = 0; ex < EXTRAS.length; ex++) {
       const x = EXTRAS[ex];
-      const kcal = kcal0 + x.kcal;
-      const p = a.meal.p + b.meal.p + e.meal.p + g.meal.p + x.p;
-      const f = a.meal.f + b.meal.f + e.meal.f + g.meal.f + x.f;
-      const ch = a.meal.c + b.meal.c + e.meal.c + g.meal.c + x.c;
-      if (kcal >= t.kcal[0] && kcal <= t.kcal[1] && p >= t.p[0] && p <= t.p[1] && f <= t.f[1] && ch >= t.c[0] && ch <= t.c[1] && h0 + x.h <= 3) {
+      if (h0 + x.h > 3) continue;
+      const fx = { kcal: base.fx.kcal + x.kcal, p: base.fx.p + x.p, f: base.fx.f + x.f, c: base.fx.c + x.c };
+      const k = scaled ? solveScale({ fx: fx.kcal, pr: base.pr.kcal, cb: base.cb.kcal }, { fx: fx.p, pr: base.pr.p, cb: base.cb.p }, T) : { p: 1, c: 1 };
+      const tot = (q) => fx[q] + k.p * base.pr[q] + k.c * base.cb[q];
+      if (inR(tot("kcal"), T.kcal) && inR(tot("p"), T.p) && tot("f") <= T.f[1] * (1 - shrink) && tot("f") >= T.f[0] && inR(tot("c"), T.c)) {
         combos.push({ desayuno: a.idx, comida: b.idx, merienda: e.idx, cena: g.idx, extra: ex });
       }
     }
@@ -1241,7 +1444,7 @@ function buildShopping() {
     const add = (ing) => ing.forEach(([k, a]) => { totals[k] = (totals[k] || 0) + a; });
     SLOTS.forEach(slot => {
       const meal = sel[slot] >= 0 && getMealsForSlot(slot, sel)[sel[slot]];
-      if (meal) add(meal.i);
+      if (meal) add(scaledIngredients(meal, dayScale(sel)));
     });
     add((EXTRAS[sel.extra] || EXTRAS[0]).i);
   }
@@ -1524,6 +1727,200 @@ document.getElementById("importInput").addEventListener("change", (e) => {
   reader.readAsText(file);
 });
 
+// ---------- Yo: perfil, objetivo y peso ----------
+const nf = (v, d = 0) => Number(v).toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+function profileField(spec) {
+  const p = state.profile;
+  const wrap = document.createElement("div");
+  if (spec.full) wrap.className = "full";
+  const id = "pf-" + spec.key;
+  const input = spec.options
+    ? `<select id="${id}">${Object.entries(spec.options).map(([v, l]) => `<option value="${v}"${String(p[spec.key]) === v ? " selected" : ""}>${l}</option>`).join("")}</select>`
+    : `<input type="number" id="${id}" inputmode="decimal" step="${spec.step || 1}" min="${spec.min}" max="${spec.max}" value="${p[spec.key] ?? ""}" placeholder="${spec.ph || ""}">`;
+  wrap.innerHTML = `<label class="label" for="${id}">${spec.label}</label>${input}${spec.help ? `<div class="help">${spec.help}</div>` : ""}`;
+  wrap.querySelector("#" + id).addEventListener("change", (e) => {
+    const v = e.target.value;
+    p[spec.key] = spec.options ? (spec.num ? Number(v) : v) : (v === "" ? null : Math.min(spec.max, Math.max(spec.min, Number(v))));
+    saveState();
+    renderProfile();
+  });
+  return wrap;
+}
+
+function renderProfile() {
+  const p = state.profile;
+  document.getElementById("goalGrid").innerHTML = Object.entries(GOALS).map(([k, g]) =>
+    `<button type="button" class="goal${p.goal === k ? " on" : ""}" data-goal="${k}"><strong>${g.label}</strong><span>${g.desc}</span></button>`).join("");
+  document.querySelectorAll("#goalGrid [data-goal]").forEach(b => b.addEventListener("click", () => {
+    if (p.goal !== b.dataset.goal) p.adjust = 0; // la corrección por peso era para el objetivo anterior
+    p.goal = b.dataset.goal;
+    saveState();
+    renderProfile();
+  }));
+
+  const form = document.getElementById("profileForm");
+  form.innerHTML = "";
+  [
+    { key: "sex", label: "Sexo", options: { h: "Hombre", m: "Mujer" } },
+    { key: "age", label: "Edad", min: 14, max: 99, ph: "30" },
+    { key: "height", label: "Altura (cm)", min: 120, max: 230, ph: "178" },
+    { key: "bf", label: "% de grasa (opcional)", min: 4, max: 60, step: 0.5, ph: "18", help: "Si lo sabes (báscula de bioimpedancia, plicómetro o DEXA), el cálculo es más preciso." },
+    { key: "exp", label: "Experiencia entrenando", options: EXPERIENCE, full: true, help: "Cuanta más experiencia, más despacio se gana músculo y menor es el superávit que conviene." }
+  ].forEach(spec => form.appendChild(profileField(spec)));
+
+  const act = document.getElementById("activityForm");
+  act.innerHTML = "";
+  [
+    { key: "steps", label: "Actividad diaria (sin contar el entreno)", options: Object.fromEntries(Object.entries(STEPS).map(([k, v]) => [k, v[0]])), num: true, full: true },
+    { key: "strengthSessions", label: "Días de pesas por semana", min: 0, max: 7 },
+    { key: "strengthMin", label: "Minutos por sesión", min: 0, max: 240, step: 5 },
+    { key: "cardioSessions", label: "Sesiones de cardio por semana", min: 0, max: 14 },
+    { key: "cardioMin", label: "Minutos por sesión", min: 0, max: 240, step: 5 },
+    { key: "cardioInt", label: "Intensidad del cardio", options: { suave: "Suave (andar rápido, bici tranquila)", moderado: "Moderada (correr suave, elíptica)", intenso: "Intensa (correr rápido, HIIT)" }, full: true }
+  ].forEach(spec => act.appendChild(profileField(spec)));
+
+  const thy = document.getElementById("thyroidForm");
+  thy.innerHTML = "";
+  thy.appendChild(profileField({ key: "thyroid", label: "Situación", options: Object.fromEntries(Object.entries(THYROID).map(([k, v]) => [k, v[1]])), full: true,
+    help: "Con el hipotiroidismo bien controlado el metabolismo es prácticamente normal. Si aún no está controlado, la app resta un 5 % al metabolismo basal; el registro de peso afinará el resto." }));
+  if (p.thyroid !== "no") {
+    const levo = document.createElement("label");
+    levo.className = "switch";
+    levo.style.marginTop = "12px";
+    levo.innerHTML = `<input type="checkbox" id="levoToggle"${p.levo ? " checked" : ""}><span><strong>Tomo levotiroxina (Eutirox u otra)</strong><br><span class="small muted">Muestra un recordatorio en el desayuno.</span></span>`;
+    levo.querySelector("input").addEventListener("change", (e) => { p.levo = e.target.checked; saveState(); });
+    thy.appendChild(levo);
+  }
+
+  renderPlanCard();
+  renderWeights();
+}
+
+function renderPlanCard() {
+  const plan = computePlan();
+  const el = document.getElementById("planCard");
+  if (!plan) {
+    const missing = [!state.profile.age && "edad", !state.profile.height && "altura", !latestWeight() && "peso"].filter(Boolean);
+    el.innerHTML = `<h2>📊 Tus calorías</h2><div class="empty">Para calcularlas faltan: <strong>${missing.join(", ")}</strong>. Rellénalo abajo; el peso se guarda en el apartado «Peso».</div>`;
+    return;
+  }
+  const p = state.profile;
+  const pct = Math.round(plan.adj * 100);
+  const sign = (v) => (v > 0 ? "+" : v < 0 ? "−" : "") + nf(Math.abs(v));
+  const day = (t, title) => `<div class="daytarget"><strong>${title}: ${nf(t.kcal)} kcal</strong>
+    <div class="chips" style="margin-top:0"><span class="chip">${dot("p")}Proteína ${t.p} g</span><span class="chip">${dot("f")}Grasa ${t.f} g</span><span class="chip">${dot("c")}Hidratos ${t.c} g</span></div></div>`;
+  const perMonth = plan.weekly * 4.33;
+  const goalName = GOALS[p.goal].label.split(" ").slice(1).join(" ");
+  el.innerHTML = `<h2>📊 Tus calorías</h2>
+    <div class="stats">
+      <span>Metabolismo basal${p.bf ? " (con tu % de grasa)" : ""}</span><span class="v">${nf(plan.bmr)} kcal</span>
+      <span>Actividad diaria</span><span class="v">+${nf(plan.neat - plan.bmr)} kcal</span>
+      <span>Entreno (media por día)</span><span class="v">+${nf(plan.exercise)} kcal</span>
+      <span class="sep"></span>
+      <span><strong>Gasto diario estimado</strong></span><span class="v">${nf(plan.tdee)} kcal</span>
+      <span>Objetivo «${goalName}» (${pct > 0 ? "+" : ""}${pct} %)</span><span class="v">${sign(plan.tdee * plan.adj)} kcal</span>
+      ${p.adjust ? `<span>Corrección por tu peso real</span><span class="v">${sign(p.adjust)} kcal</span>` : ""}
+      <span class="sep"></span>
+      <span><strong>Media diaria a comer</strong></span><span class="v">${nf(plan.avg)} kcal</span>
+    </div>
+    ${day(plan.days.fuerza, "💪 Días de fuerza")}
+    ${plan.nF < 7 ? day(plan.days.cardio, "🏃 Días de cardio / descanso") : ""}
+    <div class="small muted" style="margin-top:10px">Ritmo esperado: ${plan.weekly === 0 ? "mantener el peso" : `${plan.weekly > 0 ? "+" : "−"}${nf(Math.abs(plan.weekly), 2)} kg/semana (≈ ${nf(Math.abs(perMonth), 1)} kg/mes)`}. Proteína: ${nf(GOALS[p.goal].protein, 1)} g por kg. Es una estimación (±10 %): el registro de peso la corrige con tus datos reales.</div>
+    ${p.adjust ? '<button class="btn ghost small" id="resetAdjust" style="margin-top:10px">Quitar la corrección por peso</button>' : ""}`;
+  const reset = el.querySelector("#resetAdjust");
+  if (reset) reset.addEventListener("click", () => { p.adjust = 0; saveState(); renderProfile(); });
+}
+
+// Tendencia de peso: regresión lineal de los últimos 28 días (kg por semana)
+function weightTrend() {
+  const keys = Object.keys(state.weights).sort();
+  if (!keys.length) return null;
+  const last = fromIso(keys[keys.length - 1]);
+  const pts = keys.map(k => ({ x: (fromIso(k) - last) / 86400000, y: state.weights[k] })).filter(pt => pt.x >= -28);
+  const span = pts.length ? -pts[0].x : 0;
+  if (pts.length < 6 || span < 14) return { enough: false, count: pts.length, span };
+  const mx = pts.reduce((a, pt) => a + pt.x, 0) / pts.length, my = pts.reduce((a, pt) => a + pt.y, 0) / pts.length;
+  const slope = pts.reduce((a, pt) => a + (pt.x - mx) * (pt.y - my), 0) / pts.reduce((a, pt) => a + (pt.x - mx) ** 2, 0);
+  return { enough: true, perWeek: slope * 7, span };
+}
+
+function renderWeights() {
+  const dateInput = document.getElementById("weightDate");
+  if (!dateInput.value) dateInput.value = today;
+  const keys = Object.keys(state.weights).sort();
+
+  // Gráfica de los últimos 90 días
+  const chart = document.getElementById("weightChart");
+  const recent = keys.filter(k => (fromIso(today) - fromIso(k)) / 86400000 <= 90);
+  if (recent.length >= 2) {
+    const W = 320, H = 130, pad = 22;
+    const xs = recent.map(k => fromIso(k).getTime()), ys = recent.map(k => state.weights[k]);
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys) - 0.5, y1 = Math.max(...ys) + 0.5;
+    const X = (x) => pad + (x - x0) / (x1 - x0 || 1) * (W - pad - 8), Y = (y) => 8 + (y1 - y) / (y1 - y0) * (H - 8 - pad);
+    // Media móvil de 7 días para ver la tendencia sin el ruido del agua
+    const avg = recent.map((k, i) => {
+      const win = recent.filter(k2 => { const d = (fromIso(k) - fromIso(k2)) / 86400000; return d >= 0 && d < 7; });
+      return [X(xs[i]), Y(win.reduce((a, k2) => a + state.weights[k2], 0) / win.length)];
+    });
+    const lbl = (k) => `${fromIso(k).getDate()} ${MONTHS[fromIso(k).getMonth()].slice(0, 3)}`;
+    chart.innerHTML = `<svg class="wchart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gráfica de peso">
+      <text x="2" y="14" font-size="10" fill="var(--muted)">${nf(y1, 1)}</text>
+      <text x="2" y="${H - pad}" font-size="10" fill="var(--muted)">${nf(y0, 1)}</text>
+      <line x1="${pad}" x2="${W - 8}" y1="${H - pad + 4}" y2="${H - pad + 4}" stroke="var(--border)"/>
+      <polyline fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linejoin="round" points="${avg.map(pt => pt.join(",")).join(" ")}"/>
+      ${recent.map((k, i) => `<circle cx="${X(xs[i])}" cy="${Y(ys[i])}" r="2.6" fill="var(--c-p)" opacity="0.6"/>`).join("")}
+      <text x="${pad}" y="${H - 4}" font-size="10" fill="var(--muted)">${lbl(recent[0])}</text>
+      <text x="${W - 8}" y="${H - 4}" font-size="10" fill="var(--muted)" text-anchor="end">${lbl(recent[recent.length - 1])}</text>
+    </svg><div class="small muted">Puntos: cada pesada · línea: media de 7 días.</div>`;
+  } else chart.innerHTML = "";
+
+  // Ajuste según tu evolución real
+  const advice = document.getElementById("weightAdvice");
+  const plan = computePlan(), trend = weightTrend();
+  if (!plan || !trend) advice.innerHTML = "";
+  else if (!trend.enough) {
+    advice.innerHTML = `<div class="advice">📈 Para comprobar tu ritmo hacen falta al menos 6 pesadas en 2 semanas (llevas ${trend.count} en ${Math.round(trend.span)} días).</div>`;
+  } else {
+    const diff = trend.perWeek - plan.weekly;
+    // 7.700 kcal ≈ 1 kg; corrección máxima de 300 kcal cada vez, redondeada a 50
+    const suggest = Math.max(-300, Math.min(300, Math.round(-diff * 7700 / 7 / 50) * 50));
+    const fmt = (v) => `${v >= 0 ? "+" : "−"}${nf(Math.abs(v), 2)} kg/semana`;
+    if (Math.abs(suggest) < 50) {
+      advice.innerHTML = `<div class="advice good">✅ Vas al ritmo previsto: ${fmt(trend.perWeek)} (objetivo ${fmt(plan.weekly)}). No hace falta cambiar nada.</div>`;
+    } else {
+      advice.innerHTML = `<div class="advice act">⚖️ Tu peso va a ${fmt(trend.perWeek)} y el objetivo es ${fmt(plan.weekly)}. Te propongo <strong>${suggest > 0 ? "subir" : "bajar"} ${Math.abs(suggest)} kcal al día</strong>.
+        <button class="btn primary small" id="applyAdjust" style="width:100%;margin-top:10px">Aplicar ajuste</button></div>`;
+      advice.querySelector("#applyAdjust").addEventListener("click", () => {
+        state.profile.adjust = (state.profile.adjust || 0) + suggest;
+        saveState();
+        renderProfile();
+        toast("Calorías ajustadas ✓");
+      });
+    }
+  }
+
+  const list = document.getElementById("weightList");
+  list.innerHTML = keys.slice(-8).reverse().map(k =>
+    `<div class="shop-item"><span class="name">${longDate(k)}</span><span class="qty">${nf(state.weights[k], 1)} kg <button class="link" data-del="${k}" aria-label="Borrar">✕</button></span></div>`).join("");
+  list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+    delete state.weights[b.dataset.del];
+    saveState();
+    renderProfile();
+  }));
+}
+
+document.getElementById("weightSave").addEventListener("click", () => {
+  const kg = parseFloat(String(document.getElementById("weightKg").value).replace(",", "."));
+  const date = document.getElementById("weightDate").value || today;
+  if (!(kg >= 30 && kg <= 250)) { toast("Escribe un peso válido"); return; }
+  state.weights[date] = Math.round(kg * 10) / 10;
+  saveState();
+  document.getElementById("weightKg").value = "";
+  renderProfile();
+  toast("Peso guardado ✓");
+});
+
 function renderAll() {
   document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === currentTab));
   document.querySelectorAll(".view").forEach(v => { v.hidden = v.id !== "view-" + currentTab; });
@@ -1533,6 +1930,7 @@ function renderAll() {
   } else if (currentTab === "compra") renderShopping();
   else if (currentTab === "diario") renderDiary();
   else if (currentTab === "mas") renderSettings();
+  else if (currentTab === "yo") renderProfile();
 }
 
 loadState();
