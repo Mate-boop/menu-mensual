@@ -985,15 +985,30 @@ function resetChangedSlots(sel, before) {
 const excludeKey = (slot, meal) => slot + "|" + titleOf(meal);
 const isExcluded = (slot, meal) => state.excluded.includes(excludeKey(slot, meal));
 
-// Factores de raciones del día para llegar a tus kcal y tu proteína (solo con el día completo y el perfil hecho)
+// Plato «medio» de una lista: se usa para las comidas que aún no has elegido
+const poolAverages = new Map();
+function poolAverage(list) {
+  if (!poolAverages.has(list)) {
+    const avg = {};
+    ["fx", "pr", "cb"].forEach(g => {
+      avg[g] = { kcal: list.reduce((a, m) => a + m[g].kcal, 0) / list.length, p: list.reduce((a, m) => a + m[g].p, 0) / list.length };
+    });
+    poolAverages.set(list, avg);
+  }
+  return poolAverages.get(list);
+}
+
+// Factores de raciones del día para llegar a tus kcal y tu proteína. Si faltan comidas por elegir, cuenta con un
+// plato medio en su lugar: así las raciones ya son las buenas desde el primer plato y no saltan al completar el día.
 function dayScale(sel, override) {
   const T = targetRanges(sel.type);
   const pick = Object.assign({}, sel, override);
-  if (T.scale[0] === T.scale[1] || !SLOTS.every(s => pick[s] >= 0)) return 1;
+  if (T.scale[0] === T.scale[1] || !SLOTS.some(s => pick[s] >= 0)) return 1;
   const extra = EXTRAS[pick.extra] || EXTRAS[0];
   const K = { fx: extra.kcal, pr: 0, cb: 0 }, P = { fx: extra.p, pr: 0, cb: 0 };
   SLOTS.forEach(s => {
-    const m = getMealsForSlot(s, sel)[pick[s]];
+    const list = getMealsForSlot(s, sel);
+    const m = pick[s] >= 0 ? list[pick[s]] : poolAverage(list);
     if (m) ["fx", "pr", "cb"].forEach(g => { K[g] += m[g].kcal; P[g] += m[g].p; });
   });
   const f = solveScale(K, P, T);
@@ -1218,7 +1233,9 @@ function renderTotals(sel) {
     return `<div class="lbl">${dot(k)}${label}</div><div class="bar"><span class="${cls}" style="width:${pct}%;background:${MACRO_COLORS[k]}"></span></div><div class="num">${t[k]}${unit} <small>/ ${min ? `${min}–${max}` : `≤${max}`}</small></div>`;
   }).join("");
   const lim = (v, max, text) => `<span class="${v > max ? "over" : ""}">${text}</span>`;
+  const missing = SLOTS.filter(s => !(sel[s] >= 0)).length;
   document.getElementById("dayTotal").innerHTML = `
+    ${missing && anySelected ? `<div class="tip" style="margin:0 0 12px">Faltan ${missing} ${missing === 1 ? "comida" : "comidas"} por elegir: el total subirá al añadirlas.</div>` : ""}
     <div class="bars">${bars}</div>
     <div class="limits">${lim(t.h, 3, `🥚 ${t.h}/3 huevos`)}${lim(t.q, 40, `🧀 ${t.q}/40 g queso`)}${lim(t.j, 40, `🍖 ${t.j}/40 g jamón`)}</div>`;
 }
