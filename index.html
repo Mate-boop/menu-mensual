@@ -733,7 +733,7 @@ function calcIngredients(ing) {
 // los huevos (van por unidades) y los topes diarios de queso y jamón.
 const FIXED_FOODS = ["huevo", "queso", "jamon", "gelatina"];
 const PROTEIN_FOODS = ["pollo", "pavo", "lomo", "ternera", "solomillo", "merluza", "bacalao", "dorada", "salmon", "gambas",
-  "atun", "sardinas", "claras", "pavofiambre", "tofu", "skyr", "proteina", "leche"];
+  "atun", "sardinas", "caballa", "sepia", "conejo", "claras", "pavofiambre", "tofu", "skyr", "proteina", "leche"];
 const isFixedFood = (k) => FIXED_FOODS.includes(k) || !!FOODS[k].lim;
 const foodGroup = (k) => isFixedFood(k) ? "fx" : PROTEIN_FOODS.includes(k) ? "pr" : "cb";
 Object.values(POOLS).forEach(roles => Object.values(roles).forEach(list => list.forEach(r => {
@@ -1301,6 +1301,7 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePicke
 
 // ---------- Autocompletar ----------
 let combosCache = {};
+const MAX_COMBOS = 20000;
 function generateValidCombos(day) {
   const roles = dayRoles(day);
   const T = targetRanges(day.type);
@@ -1310,10 +1311,12 @@ function generateValidCombos(day) {
   const lists = SLOTS.map(slot => getMealsForSlot(slot, day).map((meal, idx) => ({ idx, meal })).filter(o => !isExcluded(slot, o.meal)));
   const [d, c, m, n] = lists;
   const scaled = T.scale[0] !== T.scale[1];
-  const shrink = scaled ? 0.02 : 0; // margen por el redondeo de las raciones
-  const inR = (v, [min, max]) => v >= min * (1 + shrink) && v <= max * (1 - shrink);
+  // Margen por el redondeo de las raciones (las kcal ya se ajustan solas al centro del rango)
+  const shrink = scaled ? 0.04 : 0.01;
+  const inR = (v, [min, max], m = shrink) => v >= min * (1 + m) && v <= max * (1 - m);
   const sum = (ms, g, k) => ms[0][g][k] + ms[1][g][k] + ms[2][g][k] + ms[3][g][k];
   const combos = [];
+  let seen = 0;
   for (const a of d) for (const b of c) for (const e of m) for (const g of n) {
     const ms = [a.meal, b.meal, e.meal, g.meal];
     // máx. 3 huevos enteros, 40 g de queso curado y 40 g de jamón al día
@@ -1329,8 +1332,12 @@ function generateValidCombos(day) {
       const fx = { kcal: base.fx.kcal + x.kcal, p: base.fx.p + x.p, f: base.fx.f + x.f, c: base.fx.c + x.c };
       const k = scaled ? solveScale({ fx: fx.kcal, pr: base.pr.kcal, cb: base.cb.kcal }, { fx: fx.p, pr: base.pr.p, cb: base.cb.p }, T) : { p: 1, c: 1 };
       const tot = (q) => fx[q] + k.p * base.pr[q] + k.c * base.cb[q];
-      if (inR(tot("kcal"), T.kcal) && inR(tot("p"), T.p) && tot("f") <= T.f[1] * (1 - shrink) && tot("f") >= T.f[0] && inR(tot("c"), T.c)) {
-        combos.push({ desayuno: a.idx, comida: b.idx, merienda: e.idx, cena: g.idx, extra: ex });
+      if (inR(tot("kcal"), T.kcal, scaled ? 0.005 : 0.01) && inR(tot("p"), T.p) && inR(tot("f"), T.f) && inR(tot("c"), T.c)) {
+        // Muestra aleatoria de como mucho MAX_COMBOS (en el móvil no caben millones en memoria)
+        seen++;
+        const cmb = { desayuno: a.idx, comida: b.idx, merienda: e.idx, cena: g.idx, extra: ex };
+        if (combos.length < MAX_COMBOS) combos.push(cmb);
+        else { const r = Math.floor(Math.random() * seen); if (r < MAX_COMBOS) combos[r] = cmb; }
       }
     }
   }

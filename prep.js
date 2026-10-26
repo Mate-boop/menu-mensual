@@ -1,7 +1,6 @@
 // «Cómo se hace» de cada plato, por título (la parte del nombre antes de « — »).
 // Recetas de 5-25 min con el truco para que queden sabrosas sin ajo ni cebolla.
 const PREP = {
-  // ---------- Desayunos ----------
   "Revuelto de calabacín y cúrcuma": "⏱ 8 min. Saltea el calabacín en dados 3 min con una pizca de sal. Añade los huevos y las claras batidos con cúrcuma y pimienta y remueve a fuego suave hasta que cuajen jugosos.",
   "Tortilla de atún y tomate": "⏱ 8 min. Bate huevo y claras con el atún desmenuzado y orégano. Cuaja la tortilla en sartén antiadherente y sírvela con el tomate en rodajas, sal en escamas y un poco más de orégano.",
   "Revuelto de atún y calabacín": "⏱ 8 min. Dora el calabacín en dados, añade el atún y después el huevo y las claras batidos con pimienta. Remueve hasta que cuaje y termina con perejil picado.",
@@ -36,8 +35,6 @@ const PREP = {
   "Pancakes proteicos con fresas y sirope": "⏱ 10 min. Tritura avena, huevo, claras y plátano. Haz tortitas en sartén antiadherente y sírvelas con fresas y sirope.",
   "Bol de skyr con avena, plátano y cacahuete": "⏱ 3 min. Mezcla el skyr con la avena (mejor la víspera, para que se hidrate), añade el plátano y la crema de cacahuete por encima.",
   "Tostadas de pavo y tomate con batido de proteína": "⏱ 5 min. Tostadas con tomate rallado, sal y aceite, y el pavo encima. Bate la leche con la proteína.",
-
-  // ---------- Comidas y cenas ----------
   "Pollo al limón y comino": "⏱ 25 min (horno). Marina el pollo 10 min con limón, comino, sal y la mitad del aceite. Hornea a 200 °C junto a las verduras en dados con el resto del aceite 20 min. Arroz cocido con una pizca de cúrcuma.",
   "Lomo con puré de patata": "⏱ 15 min. Lomo a la plancha con sal, laurel desmenuzado y jengibre rallado. Puré: patata cocida chafada con la leche caliente y sal. Judías verdes cocidas con un hilo de aceite.",
   "Boloñesa de ternera": "⏱ 20 min. Dora la carne con comino, añade zanahoria rallada y calabacín picado 5 min y después el tomate con laurel 10 min. Sirve sobre la pasta. Para ahorrar tiempo, haz doble y congela.",
@@ -105,8 +102,6 @@ const PREP = {
   "Patata cocida con merluza y huevo": "⏱ 15 min. Cuece la patata, la merluza (últimos 6 min) y el huevo en la misma olla. Aliña con el aceite, pimentón y perejil.",
   "Arroz con gambas al pimentón": "⏱ 10 min con arroz cocido. Saltea las gambas en el aceite de ajo con pimentón, añade el tomate y el arroz. Perejil y limón.",
   "Arroz con lomo al limón y tomillo": "⏱ 10 min con arroz cocido. Lomo a la plancha con tomillo y sal; riega con limón y sirve con el arroz.",
-
-  // ---------- Meriendas ----------
   "Huevos rellenos de atún": "⏱ 5 min con huevos cocidos. Mezcla las yemas con el atún y la mayonesa, rellena las claras y espolvorea pimentón.",
   "Ensaladilla de atún y patata": "⏱ 5 min con patata, zanahoria y huevo cocidos. Trocea todo, mezcla con el atún, la mayonesa y unas gotas de limón.",
   "Tortilla francesa de jamón y queso": "⏱ 5 min. Tortilla francesa con el huevo y las claras; antes de doblarla, el jamón y el queso.",
@@ -126,7 +121,7 @@ const PREP = {
   "Puré de patata con pollo": "⏱ 8 min. Chafa la patata con la leche caliente, sal y pimienta. Pollo a la plancha en tiras por encima.",
   "Arroz con leche proteico y plátano": "⏱ 6 min. Arroz calentado en la leche con canela; fuera del fuego la proteína; plátano en rodajas.",
   "Arroz con atún y tomate": "⏱ 5 min. Calienta el tomate con orégano, añade el atún y el arroz.",
-  "Patata con merluza al limón": "⏱ 12 min. Merluza a la plancha con limón, pimienta y perejil. Patata cocida con sal en escamas.",
+  "Patata con merluza al limón": "⏱ 12 min. Merluza a la plancha con limón y perejil. Patata cocida con sal en escamas y pimentón.",
   "Pasta con pollo y tomate": "⏱ 10 min. Pollo desmenuzado con el tomate y orégano 3 min, mezclado con la pasta. El plátano de postre.",
   "Arroz con lomo al limón": "⏱ 10 min. Lomo a la plancha con comino, regado con limón, y el arroz.",
   "Tostadas de espelta con pavo + skyr con piña": "⏱ 4 min. Tostadas con el pavo y, de postre, skyr con la piña en dados.",
@@ -138,7 +133,50 @@ const PREP = {
   "Tortitas de arroz con atún y plátano": "⏱ 3 min. Mezcla el atún con la mayonesa y unta las tortitas. Tomate en rodajas. Plátano de postre.",
   "Arroz con leche proteico": "⏱ 6 min. Arroz calentado en la leche con canela y piel de limón; fuera del fuego, la proteína.",
   "Patata con huevos y jamón": "⏱ 5 min con patata y huevos cocidos. Trocea todo, añade el jamón en virutas y pimentón.",
-  "Bol de skyr proteico con avena y piña": "⏱ 3 min. Mezcla el skyr con la proteína y la avena; encima, la piña y el sirope."
+  "Bol de skyr proteico con avena y piña": "⏱ 3 min. Mezcla el skyr con la proteína y la avena; encima, la piña y el sirope.",
+  "Tortilla de patata y espinacas": "⏱ 10 min con patata ya cocida. Saltea las espinacas 1 min, mezcla con la patata y el huevo y las claras batidos y cuaja tapado por los dos lados.",
+  "Patatas revolconas con huevo y jamón": "⏱ 10 min. Chafa la patata caliente con el aceite, pimentón dulce y sal. Haz el huevo escalfado (3 min en agua con vinagre), cuaja las claras a la plancha y sirve todo con el jamón crujiente por encima.",
+  "Salteado de patata, pavo y pimiento con huevo": "⏱ 10 min. Dora la patata y el pimiento en sartén antiadherente, añade el pavo en tiras y termina con el huevo y las claras revueltos. Pimentón ahumado por encima.",
+  "Skyr con piña y nueces": "⏱ 2 min. Skyr con canela, la piña en dados y las nueces troceadas por encima.",
+  "Patatas al microondas con claras y pavo": "⏱ 10 min. Patata en rodajas finas en un plato con sal y pimentón, tapada, 6–7 min al microondas. Encima, las claras a la plancha y el pavo.",
+  "Puré de patata y boniato con claras": "⏱ 12 min. Cuece patata y boniato (o microondas 8 min), cháfalos con sal y un poco del agua. Sirve con las claras revueltas y cebollino picado.",
+  "Tortitas de arroz con pavo y plátano + batido": "⏱ 3 min. Tortitas con el pavo, el plátano de postre y el batido de leche y proteína.",
+  "Huevos rotos con patatas al horno y jamón": "⏱ 25 min (o 12 en airfryer). Patata en gajos finos con sal y el aceite al horno a 200 °C. Encima, los huevos y las claras a la plancha rotos con el tenedor y el jamón.",
+  "Tostadas de espelta con atún y tomate + kiwi": "⏱ 5 min. Tuesta el pan, unta el tomate con sal y aceite y reparte el atún. Kiwi de postre.",
+  "Porridge de avena con skyr y arándanos": "⏱ 6 min. Cuece la avena en la leche 4 min, deja templar y mezcla con el skyr. Arándanos y sirope por encima.",
+  "Patatas guisadas con merluza": "⏱ 25 min (olla). Rehoga el pimentón en el aceite unos segundos, añade el tomate, la patata «cascada» en trozos, laurel, azafrán y agua hasta cubrir. 15 min y añade la merluza en trozos los últimos 5 min.",
+  "Patata asada rellena de atún y tomate": "⏱ 10 min (microondas). Pincha las patatas y hazlas 8–10 min al microondas. Ábrelas y rellénalas con el atún mezclado con el tomate caliente y orégano.",
+  "Arroz con pavo y calabacín": "⏱ 12 min con arroz cocido. Dora el pavo con cúrcuma, añade el calabacín 3 min y el arroz. Unas gotas de limón al final.",
+  "Puré de patata con pollo y zanahoria": "⏱ 20 min. Cuece patata y zanahoria, cháfalas con la leche caliente, sal y nuez moscada. Pollo a la plancha en tiras por encima.",
+  "Patatas a la riojana con pollo (sin chorizo)": "⏱ 30 min (olla). Dora el pollo en dados, añade el pimiento, el pimentón (fuera del fuego para que no se queme), el tomate, la patata cascada, laurel y agua hasta cubrir. 20 min a fuego medio. El pimentón ahumado da el sabor a chorizo.",
+  "Pollo asado con patatas y zanahoria": "⏱ 35 min (horno). Patata y zanahoria en trozos con el aceite, sal y romero 15 min a 200 °C; añade el pollo salpimentado y 20 min más.",
+  "Lomo con patatas a lo pobre (sin cebolla)": "⏱ 25 min. Patata en rodajas finas y pimiento en tiras confitados a fuego suave con el aceite y tapa 15 min, luego subes el fuego para dorar. Lomo a la plancha. Perejil por encima.",
+  "Salmón con patata cocida y judías verdes": "⏱ 20 min. Cuece patata y judías juntas. Salmón al horno o airfryer 10–12 min con eneldo y limón.",
+  "Albóndigas de pavo en salsa de tomate con patata": "⏱ 25 min. Mezcla el pavo con la avena, cebollino, pimentón y sal; forma bolitas y dóralas. Añade el tomate con laurel y 10 min tapado. Con la patata cocida en dados. Se congelan muy bien.",
+  "Ensalada templada de patata, atún y huevo": "⏱ 15 min. Cuece patata, judías y huevo en la misma olla. Mezcla templado con el atún y aliña con aceite, vinagre, sal y perejil.",
+  "Merluza en salsa verde con patatas (sin ajo)": "⏱ 20 min. Cuece la patata en rodajas en agua con sal 10 min. En una cazuela con el aceite de ajo y perejil picado, pon la merluza con un poco del agua de cocción y mueve la cazuela 5 min para que ligue la salsa.",
+  "Pavo al horno con patatas y pimiento": "⏱ 30 min (horno). Todo en una bandeja con el aceite, sal, tomillo y pimentón a 200 °C: la patata 10 min antes que el resto.",
+  "Hamburguesa de pollo con patatas asadas y calabacín": "⏱ 20 min. Pica la pechuga (o cómprala picada sin aditivos), mezcla con cebollino, pimentón y sal y forma la hamburguesa. Plancha 4 min por lado. Patatas en gajos en airfryer.",
+  "Sepia a la plancha con patatas y perejil": "⏱ 15 min. Sepia en tiras a la plancha muy caliente 2–3 min (si se hace mucho se endurece). Mezcla con la patata cocida y aliña con el aceite de ajo, perejil y limón.",
+  "Conejo al horno con patatas y romero": "⏱ 40 min (horno). Conejo y patata en trozos con hierbas, limón, sal y aceite a 190 °C 35 min, dándole la vuelta a mitad. El calabacín los últimos 15 min.",
+  "Merluza con patatas panaderas": "⏱ 25 min (horno). Patata en rodajas finas y pimiento con el aceite 15 min a 200 °C. Encima, la merluza con perejil y 10 min más.",
+  "Sepia con patata y espinacas": "⏱ 15 min. Saltea la sepia en tiras 2 min, añade las espinacas hasta que se reduzcan y la patata cocida. Pimentón al final.",
+  "Caballa con patata cocida y judías verdes": "⏱ 15 min. Cuece patata y judías juntas, escurre y aliña con aceite, vinagre y sal. Encima, la caballa en lomos.",
+  "Patata cocida con atún y aceitunas": "⏱ 3 min con patata cocida. Trocea la patata, añade el atún y las aceitunas en rodajas y aliña con aceite y orégano.",
+  "Pincho de tortilla de patata con claras": "⏱ 8 min. Bate huevo y claras con sal, mezcla con la patata y cuaja una tortilla pequeña tapada. Se puede hacer la víspera.",
+  "Tortitas de arroz con caballa y tomate": "⏱ 2 min. Tomate en rodajas sobre las tortitas, la caballa desmenuzada encima y pimienta negra.",
+  "Skyr con kiwi y avena": "⏱ 2 min. Skyr con el kiwi en dados y la avena por encima (mejor si la mezclas un rato antes para que se ablande).",
+  "Patata cocida con pavo y pimentón": "⏱ 3 min con patata cocida. Patata templada en rodajas con sal en escamas y pimentón, y el pavo enrollado al lado.",
+  "Patatas al microondas con atún y tomate": "⏱ 10 min. Patata en rodajas, tapada, 7 min al microondas con sal. Encima, el atún con el tomate caliente y orégano.",
+  "Tortitas con pavo y plátano": "⏱ 2 min. Tortitas con el pavo y el plátano de postre. Fácil de llevar al gimnasio.",
+  "Puré de patata con pollo y huevo": "⏱ 10 min con patata y pollo cocinados. Chafa la patata con la leche caliente y sal; encima el pollo y el huevo picado.",
+  "Bocadillo de tortilla de patata y jamón": "⏱ 10 min. Tortilla de patata con el huevo y las claras, en el pan con el jamón. Las tortitas de arroz, al lado.",
+  "Merluza a la gallega con cachelos": "⏱ 20 min. Cuece la patata en rodajas gruesas 12 min y la merluza en la misma agua los últimos 5 min. Riega con el aceite templado con pimentón y sal en escamas.",
+  "Tortilla de patata y calabacín": "⏱ 15 min. Pocha el calabacín en dados con el aceite, mezcla con la patata cocida y el huevo y claras batidos. Cuaja tapado y gira con un plato.",
+  "Pollo al horno con patata y judías verdes": "⏱ 25 min. Pollo al horno con limón y tomillo y la patata en gajos en la misma bandeja. Judías cocidas o al vapor.",
+  "Sepia con patata y calabacín": "⏱ 15 min. Calabacín y sepia en tiras a la plancha muy caliente, patata cocida al lado. Aliña con aceite, perejil y limón.",
+  "Crema de patata y calabacín con pavo y huevo": "⏱ 20 min. Cuece patata y calabacín, tritura con la leche, el aceite y sal (tipo vichyssoise sin puerro). Sirve con el huevo picado y el pavo en tiras.",
+  "Conejo al ajillo (sin ajo) con patatas": "⏱ 35 min. Dora el conejo salpimentado en el aceite de ajo, añade un chorrito de agua, tapa y 20 min a fuego suave. Patatas en gajos al horno o airfryer. Mucho perejil al final."
 };
 
 if (typeof module !== "undefined") module.exports = { PREP };

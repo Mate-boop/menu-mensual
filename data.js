@@ -19,7 +19,11 @@ const POOLS = {
       { name: "Tofu revuelto con espinacas y cúrcuma — 120g tofu firme desmenuzado + 100g claras + 80g espinacas (cúrcuma, pimienta, cebollino) + 1 tortita de arroz + 100g kiwi", i: [["tofu",120],["claras",100],["espinacas",80],["tortitas",8],["kiwi",100]] },
       { name: "Bocadillo de tortilla francesa y jamón — 50g pan de masa madre 100% espelta + 1 huevo + 100g claras + 20g jamón serrano + 50g tomate rallado", i: [["panespelta",50],["huevo",1],["claras",100],["jamon",20],["tomate",50]] },
       { name: "Revuelto de gambas y espinacas — 1 huevo + 120g claras + 80g gambas peladas + 80g espinacas (pimentón dulce) + 1 tortita de arroz + 1 naranja (130g)", i: [["huevo",1],["claras",120],["gambas",80],["espinacas",80],["tortitas",8],["naranja",130]] },
-      { name: "Bol de skyr con avena, fresas y chía — 250g skyr sin lactosa natural + 25g copos de avena + 60g fresas + 8g semillas de chía", i: [["skyr",250],["avena",25],["fresas",60],["chia",8]] }
+      { name: "Bol de skyr con avena, fresas y chía — 250g skyr sin lactosa natural + 25g copos de avena + 60g fresas + 8g semillas de chía", i: [["skyr",250],["avena",25],["fresas",60],["chia",8]] },
+      { name: "Tortilla de patata y espinacas — 1 huevo + 150g claras + 120g patata cocida en dados + 60g espinacas (pimienta)", i: [["huevo",1],["claras",150],["patata",120],["espinacas",60]] },
+      { name: "Patatas revolconas con huevo y jamón — 150g patata cocida chafada con 5g AOVE y pimentón + 1 huevo escalfado + 100g claras + 20g jamón serrano", i: [["patata",150],["aove",5],["huevo",1],["claras",100],["jamon",20]] },
+      { name: "Salteado de patata, pavo y pimiento con huevo — 120g patata cocida en dados + 60g pechuga de pavo en lonchas + 40g pimiento rojo + 1 huevo + 100g claras", i: [["patata",120],["pavofiambre",60],["pimientorojo",40],["huevo",1],["claras",100]] },
+      { name: "Skyr con piña y nueces — 250g skyr sin lactosa natural + 100g piña en dados + 10g nueces (canela)", i: [["skyr",250],["pina",100],["nueces",10]] }
     ],
     pre: [
       { name: "Arroz con leche proteico y canela — 200g arroz basmati cocido + 200ml leche semidesnatada sin lactosa (canela) + 1 scoop de proteína de huevo (añádela al final, fuera del fuego) + 1 plátano firme (poco maduro, 95g)", i: [["arroz",200],["leche",200],["proteina",30],["platano",95]] },
@@ -34,7 +38,10 @@ const POOLS = {
       { name: "Tostadas de espelta y tortitas con pavo y claras — 52g pan de masa madre 100% espelta + 3 tortitas de arroz + 60g pechuga de pavo en lonchas + 150g claras a la plancha + 1 plátano firme (poco maduro, 95g)", i: [["panespelta",52],["tortitas",24],["pavofiambre",60],["claras",150],["platano",95]] },
       { name: "Bol de skyr con piña, plátano y tortitas de arroz — 250g skyr sin lactosa natural + 140g piña + 60g plátano firme + 5 tortitas de arroz desmenuzadas + 10g sirope de arce", i: [["skyr",250],["pina",140],["platano",60],["tortitas",40],["sirope",10]] },
       { name: "Polenta cremosa con revuelto y jamón — 250g polenta cocida (con agua y sal) + 1 huevo + 150g claras revueltas + 25g jamón serrano + 100g kiwi", i: [["polenta",250],["huevo",1],["claras",150],["jamon",25],["kiwi",100]] },
-      { name: "Arroz a la cubana ligero — 250g arroz basmati cocido + 1 huevo a la plancha (sin aceite) + 150g claras a la plancha + 60g tomate tamizado bajo en sal (orégano)", i: [["arroz",250],["huevo",1],["claras",150],["tamizado",60]] }
+      { name: "Arroz a la cubana ligero — 250g arroz basmati cocido + 1 huevo a la plancha (sin aceite) + 150g claras a la plancha + 60g tomate tamizado bajo en sal (orégano)", i: [["arroz",250],["huevo",1],["claras",150],["tamizado",60]] },
+      { name: "Patatas al microondas con claras y pavo — 300g patata en rodajas al microondas + 150g claras a la plancha + 50g pechuga de pavo en lonchas (pimentón, sal)", i: [["patata",300],["claras",150],["pavofiambre",50]] },
+      { name: "Puré de patata y boniato con claras — 200g patata y 75g boniato en puré + 200g claras revueltas (pimentón, cebollino)", i: [["patata",200],["boniato",75],["claras",200]] },
+      { name: "Tortitas de arroz con pavo y plátano + batido — 4 tortitas de arroz + 60g pechuga de pavo en lonchas + 1 plátano firme (95g) + 250ml leche sin lactosa con 1 scoop de proteína", i: [["tortitas",32],["pavofiambre",60],["platano",95],["leche",250],["proteina",30]] }
     ],
     post: [
       { name: "Tostadas de espelta con huevos revueltos y jamón — 52g pan de masa madre 100% espelta + 4 tortitas de arroz + 2 huevos + 150g claras revueltas + 30g jamón serrano + 150g kiwi", i: [["panespelta",52],["tortitas",32],["huevo",2],["claras",150],["jamon",30],["kiwi",150]] },
@@ -42,7 +49,10 @@ const POOLS = {
       { name: "Pancakes proteicos con fresas y sirope — 50g copos de avena + 1 huevo + 200g claras + 60g plátano firme + 65g fresas + 10g sirope de arce", i: [["avena",50],["huevo",1],["claras",200],["platano",60],["fresas",65],["sirope",10]] },
       { name: "Bol de skyr con avena, plátano y cacahuete — 300g skyr sin lactosa natural + 40g copos de avena + 1 plátano firme (95g) + 10g crema de cacahuete 100%", i: [["skyr",300],["avena",40],["platano",95],["cacahuete",10]] },
       { name: "Tostadas de pavo y tomate con batido de proteína — 52g pan de masa madre 100% espelta + 2 tortitas de arroz + 80g pechuga de pavo en lonchas + 50g tomate rallado + 5g AOVE + batido (250ml leche sin lactosa + 1 scoop + 1 plátano firme)", i: [["panespelta",52],["tortitas",16],["pavofiambre",80],["tomate",50],["aove",5],["leche",250],["proteina",30],["platano",95]] },
-      { name: "Tortilla de patata y jamón — 200g claras + 1 huevo + 300g patata cocida en dados + 25g jamón serrano + 100g kiwi", i: [["claras",200],["huevo",1],["patata",300],["jamon",25],["kiwi",100]] }
+      { name: "Tortilla de patata y jamón — 200g claras + 1 huevo + 300g patata cocida en dados + 25g jamón serrano + 100g kiwi", i: [["claras",200],["huevo",1],["patata",300],["jamon",25],["kiwi",100]] },
+      { name: "Huevos rotos con patatas al horno y jamón — 300g patata al horno + 2 huevos a la plancha + 100g claras + 30g jamón serrano + 3g AOVE", i: [["patata",300],["huevo",2],["claras",100],["jamon",30],["aove",3]] },
+      { name: "Tostadas de espelta con atún y tomate + kiwi — 52g pan de masa madre 100% espelta + 2 tortitas de arroz + 100g atún al natural + 50g tomate rallado + 5g AOVE + 150g kiwi", i: [["panespelta",52],["tortitas",16],["atun",100],["tomate",50],["aove",5],["kiwi",150]] },
+      { name: "Porridge de avena con skyr y arándanos — 50g copos de avena + 200ml leche sin lactosa + 180g skyr sin lactosa + 60g arándanos + 10g sirope de arce", i: [["avena",50],["leche",200],["skyr",180],["arandanos",60],["sirope",10]] }
     ]
   },
   comida: {
@@ -52,7 +62,11 @@ const POOLS = {
       { name: "Patata cocida con merluza y huevo — 350g patata cocida + 200g merluza + 1 huevo cocido + 3g AOVE (pimentón, perejil)", i: [["patata",350],["merluza",200],["huevo",1],["aove",3]] },
       { name: "Arroz con gambas al pimentón — 250g arroz basmati cocido + 180g gambas peladas + 50g tomate tamizado + 5g aceite de ajo infusionado (pimentón, perejil)", i: [["arroz",250],["gambas",180],["tamizado",50],["aove",5]] },
       { name: "Pasta con atún y tomate — 220g pasta maíz-arroz cocida + 120g atún al natural escurrido + 75g tomate tamizado (orégano) + 3g AOVE", i: [["pasta",220],["atun",120],["tamizado",75],["aove",3]] },
-      { name: "Arroz con lomo al limón y tomillo — 120g lomo de cerdo a la plancha sin aceite + 250g arroz basmati cocido (limón, tomillo)", i: [["lomo",120],["arroz",250]] }
+      { name: "Arroz con lomo al limón y tomillo — 120g lomo de cerdo a la plancha sin aceite + 250g arroz basmati cocido (limón, tomillo)", i: [["lomo",120],["arroz",250]] },
+      { name: "Patatas guisadas con merluza — 350g patata + 200g merluza + 60g tomate tamizado + 3g AOVE (pimentón, azafrán, laurel)", i: [["patata",350],["merluza",200],["tamizado",60],["aove",3]] },
+      { name: "Patata asada rellena de atún y tomate — 350g patata asada + 120g atún al natural + 60g tomate tamizado (orégano)", i: [["patata",350],["atun",120],["tamizado",60]] },
+      { name: "Arroz con pavo y calabacín — 250g arroz basmati cocido + 140g pechuga de pavo en dados + 60g calabacín + 3g AOVE (cúrcuma, limón)", i: [["arroz",250],["pavo",140],["calabacin",60],["aove",3]] },
+      { name: "Puré de patata con pollo y zanahoria — 350g patata y 100g zanahoria en puré con 50ml leche sin lactosa + 140g pechuga de pollo a la plancha", i: [["patata",350],["zanahoria",100],["leche",50],["pollo",140]] }
     ],
     post: [
       { name: "Pollo al limón y comino — 200g pechuga de pollo al horno (limón, comino) + 200g arroz basmati cocido con cúrcuma + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 10g AOVE", i: [["pollo",200],["arroz",200],["calabacin",50],["berenjena",50],["zanahoria",50],["aove",10]] },
@@ -69,7 +83,12 @@ const POOLS = {
       { name: "Ternera salteada con quinoa y brócoli — 180g filete de ternera en tiras (jengibre, 1 cda salsa de soja/tamari) + 150g quinoa cocida + 80g arroz basmati cocido + 75g cabezas de brócoli + 60g zanahoria + 8g AOVE", i: [["solomillo",180],["quinoa",150],["arroz",80],["brocoli",75],["zanahoria",60],["aove",8]] },
       { name: "Paella de pollo y gambas — 130g pechuga de pollo + 100g gambas peladas + 220g arroz basmati cocido + 40g pimiento rojo + 60g judías verdes + 50g tomate tamizado (azafrán, pimentón dulce) + 10g AOVE o aceite de ajo", i: [["pollo",130],["gambas",100],["arroz",220],["pimientorojo",40],["judias",60],["tamizado",50],["aove",10]] },
       { name: "Bacalao con patata y pimientos — 230g bacalao (pimentón dulce, perejil) + 320g patata cocida + 40g pimiento rojo + 60g tomate tamizado + 12g AOVE o aceite de ajo", i: [["bacalao",230],["patata",320],["pimientorojo",40],["tamizado",60],["aove",12]] },
-      { name: "Hamburguesa de ternera con patata asada y ensalada — 170g carne picada de vacuno cocida (sal, pimienta, cebollino) + 300g patata asada + ensalada cruda (50g tomate, 40g pepino, 30g lechuga) + 5g AOVE", i: [["ternera",170],["patata",300],["tomate",50],["pepino",40],["lechuga",30],["aove",5]] }
+      { name: "Hamburguesa de ternera con patata asada y ensalada — 170g carne picada de vacuno cocida (sal, pimienta, cebollino) + 300g patata asada + ensalada cruda (50g tomate, 40g pepino, 30g lechuga) + 5g AOVE", i: [["ternera",170],["patata",300],["tomate",50],["pepino",40],["lechuga",30],["aove",5]] },
+      { name: "Patatas a la riojana con pollo (sin chorizo) — 200g pechuga de pollo + 320g patata + 40g pimiento rojo + 60g tomate tamizado + 10g AOVE (pimentón dulce y ahumado, laurel)", i: [["pollo",200],["patata",320],["pimientorojo",40],["tamizado",60],["aove",10]] },
+      { name: "Pollo asado con patatas y zanahoria — 200g pechuga o contramuslo sin piel de pollo + 320g patata + 100g zanahoria + 10g AOVE (romero, tomillo)", i: [["pollo",200],["patata",320],["zanahoria",100],["aove",10]] },
+      { name: "Lomo con patatas a lo pobre (sin cebolla) — 180g lomo de cerdo a la plancha + 300g patata + 40g pimiento verde + 10g AOVE (perejil)", i: [["lomo",180],["patata",300],["pimiento",40],["aove",10]] },
+      { name: "Salmón con patata cocida y judías verdes — 150g salmón al horno (eneldo, limón) + 300g patata cocida + 75g judías verdes", i: [["salmon",150],["patata",300],["judias",75]] },
+      { name: "Albóndigas de pavo en salsa de tomate con patata — 180g pavo picado (con 15g avena, cebollino y pimentón) + 60g tomate tamizado + 300g patata cocida + 5g AOVE", i: [["pavo",180],["avena",15],["tamizado",60],["patata",300],["aove",5]] }
     ],
     normal: [
       { name: "Pollo al limón con arroz y verduras — 180g pechuga de pollo a la plancha (limón, orégano) + 130g arroz basmati cocido con cúrcuma + 60g calabacín salteado + 40g pimiento verde salteado + 8g AOVE", i: [["pollo",180],["arroz",130],["calabacin",60],["pimiento",40],["aove",8]] },
@@ -87,7 +106,12 @@ const POOLS = {
       { name: "Wok de tofu con arroz y verduras — 200g tofu firme a la plancha (jengibre, 1 cda tamari) + 150g arroz basmati cocido + 75g cabezas de brócoli + 60g zanahoria + 40g pimiento rojo", i: [["tofu",200],["arroz",150],["brocoli",75],["zanahoria",60],["pimientorojo",40]] },
       { name: "Sardinas con patata, huevo y ensalada — 100g sardinas en AOVE escurridas + 200g patata cocida + 1 huevo cocido + ensalada (60g tomate, 60g pepino, 30g lechuga; vinagre)", i: [["sardinas",100],["patata",200],["huevo",1],["tomate",60],["pepino",60],["lechuga",30]] },
       { name: "Ternera con puré de patata y calabaza — 170g filete de ternera a la plancha (romero) + 200g patata y 75g calabaza japonesa en puré + 50ml leche semidesnatada sin lactosa + 5g AOVE", i: [["solomillo",170],["patata",200],["calabaza",75],["leche",50],["aove",5]] },
-      { name: "Bacalao con arroz y espinacas — 220g bacalao al horno (limón, perejil) + 160g arroz basmati cocido + 100g espinacas salteadas + 8g AOVE", i: [["bacalao",220],["arroz",160],["espinacas",100],["aove",8]] }
+      { name: "Bacalao con arroz y espinacas — 220g bacalao al horno (limón, perejil) + 160g arroz basmati cocido + 100g espinacas salteadas + 8g AOVE", i: [["bacalao",220],["arroz",160],["espinacas",100],["aove",8]] },
+      { name: "Ensalada templada de patata, atún y huevo — 250g patata cocida + 100g atún al natural + 1 huevo cocido + 75g judías verdes + 8g AOVE (vinagre, perejil)", i: [["patata",250],["atun",100],["huevo",1],["judias",75],["aove",8]] },
+      { name: "Merluza en salsa verde con patatas (sin ajo) — 220g merluza + 220g patata en rodajas + 8g aceite de ajo infusionado (mucho perejil)", i: [["merluza",220],["patata",220],["aove",8]] },
+      { name: "Pavo al horno con patatas y pimiento — 180g pechuga de pavo + 220g patata + 40g pimiento rojo + 60g calabacín + 8g AOVE (tomillo, pimentón)", i: [["pavo",180],["patata",220],["pimientorojo",40],["calabacin",60],["aove",8]] },
+      { name: "Hamburguesa de pollo con patatas asadas y calabacín — 180g pollo picado (cebollino, pimentón) + 220g patata asada + 60g calabacín a la plancha + 8g AOVE", i: [["pollo",180],["patata",220],["calabacin",60],["aove",8]] },
+      { name: "Sepia a la plancha con patatas y perejil — 180g sepia o calamar limpio + 250g patata cocida + 8g aceite de ajo infusionado (perejil, limón)", i: [["sepia",180],["patata",250],["aove",8]] }
     ],
     cardio: [
       { name: "Pollo al limón y comino — 200g pechuga de pollo al horno (limón, comino) + 120g arroz basmati cocido con cúrcuma + 200g verduras al horno (60g calabacín, 70g berenjena, 70g zanahoria) + 10g AOVE", i: [["pollo",200],["arroz",120],["calabacin",60],["berenjena",70],["zanahoria",70],["aove",10]] },
@@ -104,7 +128,11 @@ const POOLS = {
       { name: "Dorada al horno con patata y verduras — 220g dorada o lubina (limón) + 170g patata al horno + 40g pimiento rojo + 60g calabacín + 70g berenjena + 8g AOVE", i: [["dorada",220],["patata",170],["pimientorojo",40],["calabacin",60],["berenjena",70],["aove",8]] },
       { name: "Ternera salteada con quinoa y brócoli — 170g filete de ternera en tiras (jengibre, tamari) + 130g quinoa cocida + 75g cabezas de brócoli + 60g zanahoria + 6g AOVE", i: [["solomillo",170],["quinoa",130],["brocoli",75],["zanahoria",60],["aove",6]] },
       { name: "Paella de pollo y gambas — 130g pechuga de pollo + 100g gambas peladas + 140g arroz basmati cocido + 40g pimiento rojo + 60g judías verdes + 50g tomate tamizado (azafrán) + 8g AOVE", i: [["pollo",130],["gambas",100],["arroz",140],["pimientorojo",40],["judias",60],["tamizado",50],["aove",8]] },
-      { name: "Bacalao con pisto suave y patata — 230g bacalao + 150g patata cocida + pisto (60g calabacín, 70g berenjena, 40g pimiento rojo, 60g tomate tamizado) + 10g AOVE", i: [["bacalao",230],["patata",150],["calabacin",60],["berenjena",70],["pimientorojo",40],["tamizado",60],["aove",10]] }
+      { name: "Bacalao con pisto suave y patata — 230g bacalao + 150g patata cocida + pisto (60g calabacín, 70g berenjena, 40g pimiento rojo, 60g tomate tamizado) + 10g AOVE", i: [["bacalao",230],["patata",150],["calabacin",60],["berenjena",70],["pimientorojo",40],["tamizado",60],["aove",10]] },
+      { name: "Conejo al horno con patatas y romero — 180g conejo troceado + 170g patata + 60g calabacín + 5g AOVE (romero, tomillo, limón)", i: [["conejo",180],["patata",170],["calabacin",60],["aove",5]] },
+      { name: "Merluza con patatas panaderas — 220g merluza + 170g patata en rodajas al horno + 40g pimiento rojo + 8g AOVE (perejil)", i: [["merluza",220],["patata",170],["pimientorojo",40],["aove",8]] },
+      { name: "Sepia con patata y espinacas — 180g sepia o calamar limpio + 150g patata cocida + 100g espinacas + 8g AOVE (pimentón)", i: [["sepia",180],["patata",150],["espinacas",100],["aove",8]] },
+      { name: "Caballa con patata cocida y judías verdes — 120g caballa al natural + 170g patata cocida + 75g judías verdes + 3g AOVE (vinagre)", i: [["caballa",120],["patata",170],["judias",75],["aove",3]] }
     ]
   },
   merienda: {
@@ -123,7 +151,11 @@ const POOLS = {
       { name: "Batido de fresa y proteína — 250ml leche semidesnatada sin lactosa + 1 scoop de proteína de huevo + 65g fresas", i: [["leche",250],["proteina",30],["fresas",65]] },
       { name: "Skyr con mandarina y pipas de calabaza — 150g skyr sin lactosa natural + 1 mandarina (90g) + 15g pipas de calabaza", i: [["skyr",150],["mandarina",90],["pipas",15]] },
       { name: "Rollitos de pavo, mozzarella y pepino — 80g pechuga de pavo en lonchas + 40g mozzarella sin lactosa + 100g pepino en bastones", i: [["pavofiambre",80],["mozzarella",40],["pepino",100]] },
-      { name: "Tortitas con crema de cacahuete y plátano — 2 tortitas de arroz + 15g crema de cacahuete 100% + 60g plátano firme + 200ml leche semidesnatada sin lactosa", i: [["tortitas",16],["cacahuete",15],["platano",60],["leche",200]] }
+      { name: "Tortitas con crema de cacahuete y plátano — 2 tortitas de arroz + 15g crema de cacahuete 100% + 60g plátano firme + 200ml leche semidesnatada sin lactosa", i: [["tortitas",16],["cacahuete",15],["platano",60],["leche",200]] },
+      { name: "Patata cocida con atún y aceitunas — 120g patata cocida + 70g atún al natural + 15g aceitunas verdes + 3g AOVE (orégano)", i: [["patata",120],["atun",70],["aceitunas",15],["aove",3]] },
+      { name: "Pincho de tortilla de patata con claras — 1 huevo + 80g claras + 80g patata cocida en dados", i: [["huevo",1],["claras",80],["patata",80]] },
+      { name: "Tortitas de arroz con caballa y tomate — 2 tortitas de arroz + 60g caballa al natural + 40g tomate en rodajas (pimienta)", i: [["tortitas",16],["caballa",60],["tomate",40]] },
+      { name: "Skyr con kiwi y avena — 200g skyr sin lactosa natural + 100g kiwi + 15g copos de avena", i: [["skyr",200],["kiwi",100],["avena",15]] }
     ],
     pre: [
       { name: "Arroz con pollo al limón — 90g pechuga de pollo desmenuzada (limón, comino) + 250g arroz basmati cocido", i: [["pollo",90],["arroz",250]] },
@@ -140,7 +172,10 @@ const POOLS = {
       { name: "Tostadas de espelta con pavo + skyr con piña — 52g pan de masa madre 100% espelta + 2 tortitas de arroz + 80g pechuga de pavo en lonchas + 150g skyr sin lactosa con 140g piña", i: [["panespelta",52],["tortitas",16],["pavofiambre",80],["skyr",150],["pina",140]] },
       { name: "Arroz con pavo al limón — 100g pechuga de pavo a la plancha (limón, tomillo) + 250g arroz basmati cocido", i: [["pavo",100],["arroz",250]] },
       { name: "Patata con gambas al limón — 150g gambas peladas a la plancha (limón, perejil) + 300g patata cocida", i: [["gambas",150],["patata",300]] },
-      { name: "Polenta con pollo y tomate — 350g polenta cocida + 100g pechuga de pollo desmenuzada + 50g tomate tamizado bajo en sal (orégano)", i: [["polenta",350],["pollo",100],["tamizado",50]] }
+      { name: "Polenta con pollo y tomate — 350g polenta cocida + 100g pechuga de pollo desmenuzada + 50g tomate tamizado bajo en sal (orégano)", i: [["polenta",350],["pollo",100],["tamizado",50]] },
+      { name: "Patata cocida con pavo y pimentón — 300g patata cocida + 80g pechuga de pavo en lonchas (pimentón, sal en escamas)", i: [["patata",300],["pavofiambre",80]] },
+      { name: "Patatas al microondas con atún y tomate — 300g patata en rodajas al microondas + 100g atún al natural + 40g tomate tamizado (orégano)", i: [["patata",300],["atun",100],["tamizado",40]] },
+      { name: "Tortitas con pavo y plátano — 4 tortitas de arroz + 80g pechuga de pavo en lonchas + 1 plátano firme (95g)", i: [["tortitas",32],["pavofiambre",80],["platano",95]] }
     ],
     post: [
       { name: "Batido de plátano y avena con proteína — 300ml leche semidesnatada sin lactosa + 1 scoop de proteína de huevo + 1 plátano firme (95g) + 30g copos de avena (canela)", i: [["leche",300],["proteina",30],["platano",95],["avena",30]] },
@@ -148,7 +183,10 @@ const POOLS = {
       { name: "Tortitas de arroz con atún y plátano — 4 tortitas de arroz + 120g atún al natural escurrido + 50g tomate + 5g mayonesa + 1 plátano firme (95g)", i: [["tortitas",32],["atun",120],["tomate",50],["mayonesa",5],["platano",95]] },
       { name: "Arroz con leche proteico — 200g arroz basmati cocido + 250ml leche semidesnatada sin lactosa (canela, piel de limón) + 1 scoop de proteína de huevo (fuera del fuego)", i: [["arroz",200],["leche",250],["proteina",30]] },
       { name: "Patata con huevos y jamón — 300g patata cocida + 2 huevos cocidos + 100g claras cocidas + 20g jamón serrano (pimentón, aceite de ajo en spray)", i: [["patata",300],["huevo",2],["claras",100],["jamon",20]] },
-      { name: "Bol de skyr proteico con avena y piña — 250g skyr sin lactosa natural + 10g proteína de huevo + 40g copos de avena + 140g piña + 10g sirope de arce", i: [["skyr",250],["proteina",10],["avena",40],["pina",140],["sirope",10]] }
+      { name: "Bol de skyr proteico con avena y piña — 250g skyr sin lactosa natural + 10g proteína de huevo + 40g copos de avena + 140g piña + 10g sirope de arce", i: [["skyr",250],["proteina",10],["avena",40],["pina",140],["sirope",10]] },
+      { name: "Patata con merluza al limón — 150g merluza a la plancha (limón, perejil) + 300g patata cocida", i: [["merluza",150],["patata",300]] },
+      { name: "Puré de patata con pollo y huevo — 250g patata en puré con 50ml leche sin lactosa + 100g pechuga de pollo desmenuzada + 1 huevo cocido", i: [["patata",250],["leche",50],["pollo",100],["huevo",1]] },
+      { name: "Bocadillo de tortilla de patata y jamón — 52g pan de masa madre 100% espelta + 2 tortitas de arroz + 1 huevo + 120g claras + 100g patata cocida + 20g jamón serrano", i: [["panespelta",52],["tortitas",16],["huevo",1],["claras",120],["patata",100],["jamon",20]] }
     ]
   },
   cena: {
@@ -168,7 +206,12 @@ const POOLS = {
       { name: "Tofu a la plancha con quinoa y verduras — 180g tofu firme (jengibre, tamari) + 100g quinoa cocida + 60g calabacín + 40g pimiento rojo", i: [["tofu",180],["quinoa",100],["calabacin",60],["pimientorojo",40]] },
       { name: "Bacalao al horno con patata y pimiento — 220g bacalao (perejil, limón) + 150g patata asada + 40g pimiento rojo + 60g calabacín + 8g AOVE", i: [["bacalao",220],["patata",150],["pimientorojo",40],["calabacin",60],["aove",8]] },
       { name: "Hamburguesa de pavo con boniato y ensalada — 170g pavo picado (cebollino, pimentón, comino) + 75g boniato y 80g patata asados + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 6g AOVE", i: [["pavo",170],["boniato",75],["patata",80],["tomate",50],["pepino",30],["lechuga",20],["aove",6]] },
-      { name: "Revuelto de gambas y espinacas con patata — 1 huevo + 150g claras + 100g gambas peladas + 100g espinacas + 150g patata asada + 3g AOVE", i: [["huevo",1],["claras",150],["gambas",100],["espinacas",100],["patata",150],["aove",3]] }
+      { name: "Revuelto de gambas y espinacas con patata — 1 huevo + 150g claras + 100g gambas peladas + 100g espinacas + 150g patata asada + 3g AOVE", i: [["huevo",1],["claras",150],["gambas",100],["espinacas",100],["patata",150],["aove",3]] },
+      { name: "Merluza a la gallega con cachelos — 220g merluza + 180g patata cocida + 8g AOVE con pimentón (dulce y picante al gusto)", i: [["merluza",220],["patata",180],["aove",8]] },
+      { name: "Tortilla de patata y calabacín — 2 huevos + 150g claras + 150g patata cocida + 60g calabacín + 3g AOVE", i: [["huevo",2],["claras",150],["patata",150],["calabacin",60],["aove",3]] },
+      { name: "Pollo al horno con patata y judías verdes — 170g pechuga de pollo + 150g patata + 75g judías verdes + 6g AOVE (limón, tomillo)", i: [["pollo",170],["patata",150],["judias",75],["aove",6]] },
+      { name: "Sepia con patata y calabacín — 180g sepia o calamar limpio + 150g patata cocida + 60g calabacín + 6g AOVE (perejil, limón)", i: [["sepia",180],["patata",150],["calabacin",60],["aove",6]] },
+      { name: "Crema de patata y calabacín con pavo y huevo — crema (200g patata, 65g calabacín, 50ml leche sin lactosa, 5g AOVE) + 1 huevo cocido + 120g pechuga de pavo a la plancha", i: [["patata",200],["calabacin",65],["leche",50],["aove",5],["huevo",1],["pavo",120]] }
     ],
     post: [
       { name: "Merluza al horno con patata — 220g merluza al horno (laurel, pimentón dulce) + 350g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE", i: [["merluza",220],["patata",350],["tomate",50],["pepino",30],["lechuga",20],["aove",10]] },
@@ -186,7 +229,12 @@ const POOLS = {
       { name: "Bacalao con patata y pimientos — 230g bacalao (pimentón dulce, perejil) + 320g patata cocida + 40g pimiento rojo + 60g tomate tamizado + 12g AOVE o aceite de ajo", i: [["bacalao",230],["patata",320],["pimientorojo",40],["tamizado",60],["aove",12]] },
       { name: "Pasta con gambas y calabacín — 200g pasta maíz-arroz cocida + 180g gambas peladas + 60g calabacín + 50g tomate tamizado + 10g aceite de ajo infusionado (cebollino)", i: [["pasta",200],["gambas",180],["calabacin",60],["tamizado",50],["aove",10]] },
       { name: "Ternera con puré de patata y calabaza — 180g filete de ternera a la plancha (romero) + 300g patata y 75g calabaza japonesa en puré + 80ml leche semidesnatada sin lactosa + 5g AOVE", i: [["solomillo",180],["patata",300],["calabaza",75],["leche",80],["aove",5]] },
-      { name: "Wok de tofu con arroz y verduras — 200g tofu firme (jengibre, tamari) + 230g arroz basmati cocido + 75g cabezas de brócoli + 60g zanahoria + 40g pimiento rojo", i: [["tofu",200],["arroz",230],["brocoli",75],["zanahoria",60],["pimientorojo",40]] }
+      { name: "Wok de tofu con arroz y verduras — 200g tofu firme (jengibre, tamari) + 230g arroz basmati cocido + 75g cabezas de brócoli + 60g zanahoria + 40g pimiento rojo", i: [["tofu",200],["arroz",230],["brocoli",75],["zanahoria",60],["pimientorojo",40]] },
+      { name: "Patatas a la riojana con pollo (sin chorizo) — 200g pechuga de pollo + 320g patata + 40g pimiento rojo + 60g tomate tamizado + 10g AOVE (pimentón dulce y ahumado, laurel)", i: [["pollo",200],["patata",320],["pimientorojo",40],["tamizado",60],["aove",10]] },
+      { name: "Pollo asado con patatas y zanahoria — 200g pechuga o contramuslo sin piel de pollo + 320g patata + 100g zanahoria + 10g AOVE (romero, tomillo)", i: [["pollo",200],["patata",320],["zanahoria",100],["aove",10]] },
+      { name: "Albóndigas de pavo en salsa de tomate con patata — 180g pavo picado (con 15g avena, cebollino y pimentón) + 60g tomate tamizado + 300g patata cocida + 5g AOVE", i: [["pavo",180],["avena",15],["tamizado",60],["patata",300],["aove",5]] },
+      { name: "Merluza a la gallega con cachelos — 220g merluza + 350g patata cocida + 10g AOVE con pimentón", i: [["merluza",220],["patata",350],["aove",10]] },
+      { name: "Conejo al ajillo (sin ajo) con patatas — 200g conejo troceado + 300g patata + 10g aceite de ajo infusionado (perejil, guindilla opcional)", i: [["conejo",200],["patata",300],["aove",10]] }
     ],
     cardio: [
       { name: "Merluza al horno con patata — 220g merluza al horno (limón, laurel) + 170g patata asada + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 10g AOVE", i: [["merluza",220],["patata",170],["tomate",65],["pepino",45],["lechuga",40],["aove",10]] },
@@ -203,7 +251,11 @@ const POOLS = {
       { name: "Gambas al ajillo (sin ajo) con arroz y espinacas — 180g gambas peladas + 10g aceite de ajo infusionado (guindilla, perejil) + 100g arroz basmati cocido + 100g espinacas salteadas", i: [["gambas",180],["aove",10],["arroz",100],["espinacas",100]] },
       { name: "Bacalao al horno con patata y pimiento — 220g bacalao (perejil, limón) + 150g patata asada + 40g pimiento rojo + 60g calabacín + 8g AOVE", i: [["bacalao",220],["patata",150],["pimientorojo",40],["calabacin",60],["aove",8]] },
       { name: "Hamburguesa de pavo con boniato y ensalada — 170g pavo picado (cebollino, pimentón, comino) + 75g boniato y 80g patata asados + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 6g AOVE", i: [["pavo",170],["boniato",75],["patata",80],["tomate",50],["pepino",30],["lechuga",20],["aove",6]] },
-      { name: "Revuelto de gambas y espinacas con patata — 1 huevo + 150g claras + 100g gambas peladas + 100g espinacas + 150g patata asada + 3g AOVE", i: [["huevo",1],["claras",150],["gambas",100],["espinacas",100],["patata",150],["aove",3]] }
+      { name: "Revuelto de gambas y espinacas con patata — 1 huevo + 150g claras + 100g gambas peladas + 100g espinacas + 150g patata asada + 3g AOVE", i: [["huevo",1],["claras",150],["gambas",100],["espinacas",100],["patata",150],["aove",3]] },
+      { name: "Caballa con patata cocida y judías verdes — 120g caballa al natural + 170g patata cocida + 75g judías verdes + 3g AOVE (vinagre)", i: [["caballa",120],["patata",170],["judias",75],["aove",3]] },
+      { name: "Merluza a la gallega con cachelos — 220g merluza + 180g patata cocida + 8g AOVE con pimentón (dulce y picante al gusto)", i: [["merluza",220],["patata",180],["aove",8]] },
+      { name: "Tortilla de patata y calabacín — 2 huevos + 150g claras + 150g patata cocida + 60g calabacín + 3g AOVE", i: [["huevo",2],["claras",150],["patata",150],["calabacin",60],["aove",3]] },
+      { name: "Pollo al horno con patata y judías verdes — 170g pechuga de pollo + 150g patata + 75g judías verdes + 6g AOVE (limón, tomillo)", i: [["pollo",170],["patata",150],["judias",75],["aove",6]] }
     ]
   }
 };
@@ -216,7 +268,6 @@ const EXTRAS = [
     prep: "Hidrata la gelatina 5 min en agua fría. Calienta la leche sin que hierva, disuelve la gelatina escurrida y, fuera del fuego, bate con la proteína. A la nevera 3 h." },
   { label: "Skyr sin lactosa (250g) con canela", i: [["skyr",250]] },
   { label: "2 kiwis (150g) — ayudan al tránsito", i: [["kiwi",150]] },
-  // Postres proteicos
   { label: "🍫 Mousse de chocolate: 200g skyr sin lactosa + 6g cacao puro + 5g sirope de arce", i: [["skyr",200],["cacao",6],["sirope",5]],
     prep: "Bate el skyr con el cacao y el sirope hasta que quede liso. Mejor frío: 15 min en el congelador antes de comerlo. Opcional: unas virutas de chocolate negro 85%." },
   { label: "🍮 Natillas proteicas de canela: 250ml leche sin lactosa + 1 scoop proteína + 10g maicena", i: [["leche",250],["proteina",30],["maicena",10]],
@@ -233,7 +284,6 @@ const EXTRAS = [
     prep: "Dora la piña en rodajas en una sartén antiadherente sin aceite, 2 min por lado, con canela. Sírvela caliente sobre el skyr frío." },
   { label: "🍮 Flan de claras al microondas: 100g claras + 200ml leche sin lactosa + 15g proteína + 5g sirope de arce", i: [["claras",100],["leche",200],["proteina",15],["sirope",5]],
     prep: "Pon el sirope en el fondo de un cuenco. Bate claras, leche y proteína con vainilla y viértelo encima. Microondas a potencia media 4-5 min, en tandas de 1 min, hasta que cuaje. Nevera 2 h y desmolda." },
-  // Extras de volumen (más calorías y grasa saludable para objetivos altos)
   { label: "🥤 Batido de volumen: 300ml leche sin lactosa + 40g avena + 1 plátano firme + 20g crema de cacahuete + 1 scoop proteína", i: [["leche",300],["avena",40],["platano",95],["cacahuete",20],["proteina",30]],
     prep: "Tritura todo con hielo y canela hasta que quede cremoso. Mejor justo después de una comida o del entreno, no como picoteo." },
   { label: "🍞 Tostada con AOVE, tomate y jamón: 52g pan de espelta + 10g AOVE + 50g tomate + 30g jamón serrano", i: [["panespelta",52],["aove",10],["tomate",50],["jamon",30]],
