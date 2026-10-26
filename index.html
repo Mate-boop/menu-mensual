@@ -203,7 +203,7 @@
   .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn-row .btn { flex: 1; }
   .link { background: none; border: none; color: var(--primary); cursor: pointer; padding: 6px 0; font-size: 0.85rem; font-weight: 600; text-align: left; }
-  select, input[type="date"], input[type="time"], input[type="number"], textarea {
+  select, input[type="date"], input[type="time"], input[type="number"], input[type="search"], textarea {
     width: 100%;
     min-height: 44px;
     padding: 10px 12px;
@@ -372,6 +372,8 @@
     cursor: pointer;
     font-family: inherit;
   }
+  .sheet-search { margin-bottom: 10px; }
+  .opt[hidden] { display: none; }
   .opt.current { border-color: var(--primary); background: var(--surface); background: color-mix(in srgb, var(--primary-soft) 45%, var(--surface)); }
   .opt.excluded { opacity: 0.55; }
   .opt .t { font-weight: 800; font-size: 0.96rem; line-height: 1.3; }
@@ -605,7 +607,7 @@
   </div>
   <div class="card">
     <h2>💶 Presupuesto</h2>
-    <label class="switch"><input type="checkbox" id="budgetToggle"><span><strong>Presupuesto ajustado</strong><br><span class="small muted">El autocompletar no usa platos caros (salmón, gambas, dorada, bacalao, filete de ternera, sepia…) y prefiere los más baratos. Los precios son orientativos de supermercado.</span></span></label>
+    <label class="switch"><input type="checkbox" id="budgetToggle"><span><strong>Presupuesto ajustado</strong><br><span class="small muted">El autocompletar no usa platos caros (gambas, dorada, bacalao, filete de ternera, sepia…) y prefiere los más baratos. El salmón sí se mantiene. Los precios son orientativos de supermercado.</span></span></label>
   </div>
   <div class="card">
     <h2>🚫 Platos que no te sientan bien</h2>
@@ -742,9 +744,15 @@ const isFixedFood = (k) => FIXED_FOODS.includes(k) || !!FOODS[k].lim;
 const foodGroup = (k) => isFixedFood(k) ? "fx" : PROTEIN_FOODS.includes(k) ? "pr" : "cb";
 // Coste aproximado (precios de foods.js, en crudo tal como se compra)
 const dishCost = (ing) => ing.reduce((a, [k, q]) => { const f = FOODS[k]; return a + (f.unit ? q * f.eur : q * (f.raw || 1) / 1000 * f.eur); }, 0);
-// Plato caro: lleva un ingrediente de 12 €/kg o más en cantidad (pescados y carnes caras) o pasa de 3,60 €
+// Plato caro: lleva un ingrediente de 12 €/kg o más en cantidad (pescados y carnes caras) o pasa de 3,60 €.
+// El salmón se permite aunque sea caro (por sus omega-3 y porque lo has pedido).
 const PRICEY_DISH = 3.6;
-const isPricey = (ing) => dishCost(ing) > PRICEY_DISH || ing.some(([k, q]) => { const f = FOODS[k]; return !f.unit && f.eur >= 12 && q * (f.raw || 1) >= 40; });
+const BUDGET_ALLOWED = ["salmon"];
+const isPricey = (ing) => {
+  const rest = ing.filter(([k]) => !BUDGET_ALLOWED.includes(k));
+  if (rest.length < ing.length) return rest.some(([k, q]) => { const f = FOODS[k]; return !f.unit && f.eur >= 12 && q * (f.raw || 1) >= 40; });
+  return dishCost(ing) > PRICEY_DISH || ing.some(([k, q]) => { const f = FOODS[k]; return !f.unit && f.eur >= 12 && q * (f.raw || 1) >= 40; });
+};
 const eur = (v) => `${v.toFixed(2).replace(".", ",")} €`;
 Object.values(POOLS).forEach(roles => Object.values(roles).forEach(list => list.forEach(r => {
   Object.assign(r, calcIngredients(r.i));
@@ -888,6 +896,7 @@ const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
 const longDate = (s) => { const d = fromIso(s); const w = WEEKDAYS[d.getDay()]; return `${w[0].toUpperCase() + w.slice(1)} ${d.getDate()} de ${MONTHS[d.getMonth()]}`; };
 const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
 const titleOf = (meal) => meal.name.split(" — ")[0];
+const normText = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); // sin tildes, para buscar
 const descOf = (meal) => meal.name.split(" — ").slice(1).join(" — ");
 
 let toastTimer;
@@ -1270,6 +1279,18 @@ function openPicker(slot) {
   const items = options.map((meal, idx) => ({ meal, idx, excluded: !isExtra && isExcluded(slot, meal) }))
     .sort((a, b) => a.excluded - b.excluded || (state.prefs.budget ? (a.meal.pricey || false) - (b.meal.pricey || false) : 0));
   body.innerHTML = "";
+  if (!isExtra) {
+    const search = document.createElement("input");
+    search.type = "search";
+    search.className = "sheet-search";
+    search.placeholder = "🔍 Buscar: patata, pollo, arroz…";
+    search.setAttribute("aria-label", "Buscar plato");
+    search.addEventListener("input", () => {
+      const q = normText(search.value.trim());
+      body.querySelectorAll(".opt").forEach(o => { o.hidden = !!q && !o.dataset.q.includes(q); });
+    });
+    body.appendChild(search);
+  }
   if (!isExtra && sel[slot] >= 0) {
     const clear = document.createElement("button");
     clear.className = "btn ghost";
@@ -1287,6 +1308,7 @@ function openPicker(slot) {
     const fits = inTarget(proj, sel.type);
     const btn = document.createElement("button");
     btn.className = "opt" + (current ? " current" : "") + (excluded ? " excluded" : "");
+    btn.dataset.q = normText(isExtra ? meal.label : base.name);
     btn.innerHTML = `
       <div class="t">${excluded ? "🚫 " : ""}${esc(isExtra ? meal.label : titleOf(meal))}</div>
       ${isExtra ? "" : `<div class="d">${esc(descOf(meal))}</div>`}
@@ -1522,7 +1544,7 @@ function renderShopping() {
       <label class="shop-item${state.shopChecked[i.key] ? " done" : ""}">
         <input type="checkbox" data-key="${i.key}"${state.shopChecked[i.key] ? " checked" : ""}>
         <span class="name">${esc(i.name)}</span>
-        <span class="qty">${i.qty}${i.sub ? `<small>${i.sub}</small>` : ""}</span>
+        <span class="qty">${i.qty}<small>${i.sub ? i.sub + " · " : ""}≈ ${eur(i.cost)}</small></span>
       </label>`).join("") + "</div>";
   }).join("");
   list.querySelectorAll("input[data-key]").forEach(cb => cb.addEventListener("change", () => {
