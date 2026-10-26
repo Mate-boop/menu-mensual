@@ -30,7 +30,7 @@ const FOODS = {
   queso:      { n: "Queso curado", kcal: 420, p: 25, f: 35, c: 0.5, cat: "Huevos y lácteos", lim: 40, eur: 14 },
   mozzarella: { n: "Mozzarella sin lactosa", kcal: 245, p: 18, f: 18.5, c: 1, cat: "Huevos y lácteos", lim: 40, eur: 10 },
   leche:      { n: "Leche semidesnatada sin lactosa (ml)", kcal: 46, p: 3.2, f: 1.6, c: 4.7, cat: "Huevos y lácteos", eur: 1.1 },
-  skyr:       { n: "Yogur proteico/skyr sin lactosa natural", kcal: 62, p: 10.5, f: 0.2, c: 4, cat: "Huevos y lácteos", eur: 5 },
+  skyr:       { n: "Yogur natural alto en proteínas (tipo skyr, 0 % grasa)", kcal: 52, p: 10, f: 0.3, c: 3.1, cat: "Huevos y lácteos", eur: 3.8 },
   proteina:   { n: "Proteína de huevo en polvo", kcal: 370, p: 80, f: 1, c: 6, cat: "Despensa", eur: 35 },
   gelatina:   { n: "Gelatina neutra en láminas", kcal: 335, p: 85, f: 0, c: 0, cat: "Despensa", eur: 30 },
 
