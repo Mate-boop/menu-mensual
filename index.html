@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Menú Mensual — Nicolás</title>
 <meta name="theme-color" content="#c1666b">
-<meta name="description" content="Menú mensual interactivo con macros, para planificar comidas día a día.">
+<meta name="description" content="Menú mensual bajo en FODMAP con macros, lista de la compra y diario de síntomas.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -14,79 +14,171 @@
 <meta name="apple-mobile-web-app-title" content="Menú Mensual">
 <style>
   :root {
-    box-sizing: border-box;
     --bg: #faf6f0;
     --surface: #ffffff;
+    --surface-2: #f4ede4;
     --text: #2e2620;
     --muted: #7a6f63;
     --accent: #c1666b;
     --accent-soft: #f2dcd9;
-    --good: #7d8c4c;
+    --good: #6f7f3f;
+    --good-soft: #e6ead6;
+    --warn: #c98a2b;
     --border: #e8ddd0;
-    --radius: 14px;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --radius: 16px;
+    --nav-h: 64px;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #1c1815;
       --surface: #26211d;
+      --surface-2: #2f2924;
       --text: #f0e9e1;
       --muted: #b0a396;
       --accent: #e0888c;
       --accent-soft: #3a2a2a;
       --good: #a3b56a;
+      --good-soft: #2e3322;
+      --warn: #e0a84f;
       --border: #3a332c;
     }
   }
   :root[data-theme="dark"] {
     --bg: #1c1815;
     --surface: #26211d;
+    --surface-2: #2f2924;
     --text: #f0e9e1;
     --muted: #b0a396;
     --accent: #e0888c;
     --accent-soft: #3a2a2a;
     --good: #a3b56a;
+    --good-soft: #2e3322;
+    --warn: #e0a84f;
     --border: #3a332c;
   }
-  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
   body {
-    margin: 0;
+    margin: 0 auto;
+    max-width: 720px;
     min-height: 100%;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    padding: 16px;
-    padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+    font-size: 16px;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(var(--nav-h) + 24px + env(safe-area-inset-bottom, 0px));
   }
-  h1 { font-size: 1.3rem; margin: 4px 0 2px; }
-  .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 14px; }
-  .summary {
+  h1 { font-size: 1.25rem; margin: 0; }
+  h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  h3 { font-size: 0.95rem; margin: 18px 0 8px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .topbar .sub { color: var(--muted); font-size: 0.78rem; }
+
+  /* Barra de pestañas inferior (al alcance del pulgar) */
+  .tabs {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .tabs button {
+    flex: 1;
+    max-width: 180px;
+    height: var(--nav-h);
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+  }
+  .tabs button .ico { font-size: 1.35rem; line-height: 1; filter: grayscale(1); opacity: 0.7; }
+  .tabs button.active { color: var(--accent); }
+  .tabs button.active .ico { filter: none; opacity: 1; }
+  .view[hidden] { display: none; }
+
+  .card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 14px 16px;
-    margin-bottom: 16px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
+    margin-bottom: 12px;
   }
-  .summary div { min-width: 70px; }
-  .summary .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
-  .summary .value { font-size: 1.05rem; font-weight: 600; }
-  .day-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
-    gap: 6px;
-    margin-bottom: 18px;
+  .muted { color: var(--muted); }
+  .small { font-size: 0.8rem; }
+  .label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    margin-bottom: 6px;
   }
+  .btn {
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.ghost { background: none; }
+  .btn.small { min-height: 36px; padding: 6px 12px; font-size: 0.8rem; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-row .btn { flex: 1; }
+  .link { background: none; border: none; color: var(--accent); cursor: pointer; padding: 6px 0; font-size: 0.85rem; font-weight: 600; text-align: left; }
+  select, input[type="date"], input[type="time"], input[type="number"], textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 1rem;
+    font-family: inherit;
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  .seg { display: flex; background: var(--surface-2); border-radius: 12px; padding: 3px; gap: 3px; }
+  .seg button {
+    flex: 1;
+    min-height: 40px;
+    border: none;
+    background: none;
+    color: var(--text);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .seg button.on { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+
+  /* Calendario */
+  .month-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .month-nav .title { flex: 1; text-align: center; font-weight: 700; }
+  .month-nav .btn { min-width: 44px; }
+  .weekdays, .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+  .weekdays { font-size: 0.68rem; color: var(--muted); text-align: center; margin-bottom: 4px; font-weight: 700; }
   .day-btn {
     aspect-ratio: 1;
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
@@ -94,1275 +186,1193 @@
     align-items: center;
     justify-content: center;
     position: relative;
+    padding: 0;
   }
-  .day-btn.filled::after {
-    content: "";
-    position: absolute;
-    bottom: 4px;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--good);
+  .day-btn.cardio { background: var(--good-soft); }
+  .day-btn.today { border: 2px solid var(--accent); }
+  .day-btn.filled::after { content: ""; position: absolute; bottom: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--good); }
+  .day-btn.diary::before { content: ""; position: absolute; top: 5px; right: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .day-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .day-btn.active.filled::after, .day-btn.active.diary::before { background: #fff; }
+  .legend { font-size: 0.7rem; color: var(--muted); margin-top: 8px; }
+
+  /* Día */
+  .day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; scroll-margin-top: 12px; }
+  .day-head h2 { margin: 0; }
+  .mini-total { font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); white-space: nowrap; }
+  .mini-total.ok { background: var(--good-soft); color: var(--good); }
+  .mini-total.warn { background: var(--accent-soft); color: var(--accent); }
+  .when-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .when {
+    min-height: 46px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 8px;
   }
-  .day-btn.active {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
+  .when.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .timeline { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .timeline .arrow { color: var(--muted); font-size: 0.75rem; }
+  .tl { font-size: 0.75rem; padding: 5px 9px; border-radius: 999px; background: var(--surface-2); white-space: nowrap; }
+  .tl.train { background: var(--accent); color: #fff; font-weight: 700; }
+  .tl.pre, .tl.post { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .tip { font-size: 0.8rem; background: var(--surface-2); border-radius: 12px; padding: 10px 12px; margin-top: 10px; line-height: 1.4; }
+
+  .meal { padding: 14px 16px; }
+  .meal-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+  .meal-top .slot { font-weight: 700; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+  .meal-top .time { font-size: 0.78rem; color: var(--muted); }
+  .badge { font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+  .meal-top .change { margin-left: auto; }
+  .meal-title { font-weight: 700; font-size: 1.02rem; margin: 2px 0 4px; line-height: 1.3; }
+  .meal-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+  .meal-empty { width: 100%; text-align: center; border-style: dashed; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font-size: 0.74rem; padding: 4px 9px; border-radius: 999px; background: var(--surface-2); }
+  .chip.ok { background: var(--good-soft); color: var(--good); font-weight: 600; }
+  .chip.warn { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .chip.no { background: var(--accent-soft); }
+  details.recipe { margin-top: 8px; }
+  details.recipe summary { cursor: pointer; color: var(--accent); font-size: 0.85rem; font-weight: 600; padding: 6px 0; list-style: none; }
+  details.recipe summary::-webkit-details-marker { display: none; }
+  details.recipe p { font-size: 0.88rem; line-height: 1.5; margin: 6px 0; }
+  details.recipe ul { margin: 6px 0; padding-left: 18px; font-size: 0.85rem; line-height: 1.6; }
+
+  .bars { display: grid; grid-template-columns: auto 1fr auto; gap: 8px 10px; align-items: center; font-size: 0.82rem; }
+  .bar { height: 10px; border-radius: 5px; background: var(--surface-2); position: relative; overflow: hidden; }
+  .bar span { position: absolute; inset: 0 auto 0 0; background: var(--muted); border-radius: 5px; }
+  .bar span.ok { background: var(--good); }
+  .bar span.over { background: var(--accent); }
+  .bars .num { font-weight: 700; text-align: right; white-space: nowrap; }
+  .bars .num small { color: var(--muted); font-weight: 400; }
+  .limits { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; font-size: 0.8rem; }
+  .limits .over { color: var(--accent); font-weight: 700; }
+
+  /* Selector a pantalla completa */
+  .sheet { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; justify-content: flex-end; }
+  .sheet[hidden] { display: none; }
+  .sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+  .sheet-panel {
+    position: relative;
+    background: var(--bg);
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-  .panel {
+  .sheet-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+  .sheet-head strong { flex: 1; font-size: 1rem; }
+  .sheet-head .sub { display: block; font-weight: 400; font-size: 0.78rem; color: var(--muted); }
+  .sheet-body { overflow-y: auto; padding: 12px 16px 20px; -webkit-overflow-scrolling: touch; }
+  .opt {
+    width: 100%;
+    text-align: left;
+    display: block;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-  }
-  .panel h2 { margin: 0 0 12px; font-size: 1.05rem; }
-  .meal-row { margin-bottom: 12px; }
-  .meal-row label {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    margin-bottom: 4px;
-  }
-  select {
-    width: 100%;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 0.92rem;
-  }
-  .day-total {
-    margin-top: 14px;
+    border-radius: 14px;
     padding: 12px 14px;
+    margin-bottom: 8px;
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .opt.current { border: 2px solid var(--accent); }
+  .opt.excluded { opacity: 0.55; }
+  .opt .t { font-weight: 700; font-size: 0.95rem; line-height: 1.3; }
+  .opt .d { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* Compra */
+  .shop-cat h3 { margin: 0 0 4px; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .shop-item { display: flex; gap: 12px; align-items: center; min-height: 48px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; cursor: pointer; }
+  .shop-item:last-child { border-bottom: none; }
+  .shop-item input { width: 22px; height: 22px; accent-color: var(--accent); flex-shrink: 0; }
+  .shop-item .qty { margin-left: auto; text-align: right; font-weight: 700; white-space: nowrap; }
+  .shop-item .qty small { display: block; font-weight: 400; color: var(--muted); font-size: 0.72rem; }
+  .shop-item.done .name { text-decoration: line-through; color: var(--muted); }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; min-width: 0; }
+
+  /* Diario */
+  .field { margin-bottom: 14px; }
+  .scale { display: flex; gap: 5px; }
+  .scale button {
+    flex: 1;
+    min-height: 42px;
     border-radius: 10px;
-    background: var(--accent-soft);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: center;
-  }
-  .day-total .value { font-weight: 700; }
-  .status-pill {
-    padding: 3px 10px;
-    border-radius: 999px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    background: var(--muted);
-    color: #fff;
-  }
-  .status-pill.ok { background: var(--good); }
-  .status-pill.warn { background: var(--accent); }
-  .actions { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; }
-  button.reset {
-    background: none;
     border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 0.8rem;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.75rem;
+    font-weight: 600;
     cursor: pointer;
   }
-  .note { font-size: 0.78rem; color: var(--muted); margin-top: 16px; line-height: 1.4; }
+  .scale button.on { color: #fff; border-color: transparent; }
+  .scale button.on.l0 { background: var(--good); }
+  .scale button.on.l1 { background: var(--warn); }
+  .scale button.on.l2, .scale button.on.l3 { background: var(--accent); }
+  .habit { display: flex; align-items: center; gap: 12px; min-height: 46px; border-bottom: 1px solid var(--border); font-size: 0.92rem; cursor: pointer; }
+  .habit:last-child { border-bottom: none; }
+  .habit input { width: 22px; height: 22px; accent-color: var(--good); flex-shrink: 0; }
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .stepper .btn { min-width: 44px; }
+  .stepper .val { min-width: 30px; text-align: center; font-weight: 700; font-size: 1.1rem; }
+  .hist { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+  .hist:last-child { border-bottom: none; }
+  .score { min-width: 46px; text-align: center; font-weight: 700; padding: 4px 6px; border-radius: 10px; background: var(--surface-2); font-size: 0.8rem; }
+  .score.ok { background: var(--good-soft); color: var(--good); }
+  .score.bad { background: var(--accent-soft); color: var(--accent); }
+
+  /* Más */
+  .week-grid { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 8px; align-items: center; font-size: 0.88rem; }
+  .switch { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 0.92rem; }
+  .switch input { width: 22px; height: 22px; accent-color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+  .guide p, .guide li { font-size: 0.9rem; line-height: 1.55; }
+  .guide ul { padding-left: 20px; }
+  .guide h3 { font-size: 1rem; margin-top: 22px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; }
+  .empty { color: var(--muted); font-size: 0.88rem; padding: 8px 0; }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--nav-h) + 16px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    z-index: 60;
+    max-width: calc(100% - 32px);
+  }
+  .toast[hidden] { display: none; }
 </style>
 </head>
 <body>
 
-<h1>🍽️ Menú mensual</h1>
-<div class="subtitle">Elige un día y monta tu desayuno, comida, merienda y cena.</div>
-
-<div class="summary">
-  <div><div class="label">Objetivo</div><div class="value">2.000–2.200 kcal</div></div>
-  <div><div class="label">Proteína</div><div class="value">~195 g</div></div>
-  <div><div class="label">Grasa</div><div class="value">~55 g</div></div>
-  <div><div class="label">Carbos</div><div class="value">~200 g</div></div>
+<div class="topbar">
+  <div>
+    <h1>🍽️ Mi menú</h1>
+    <div class="sub">Bajo en FODMAP · SIBO / IMO</div>
+  </div>
 </div>
 
-<div class="day-grid" id="dayGrid"></div>
+<!-- ============ MENÚ ============ -->
+<section class="view" id="view-menu">
+  <div class="card">
+    <div class="month-nav">
+      <button class="btn small" id="prevMonth" aria-label="Mes anterior">‹</button>
+      <div class="title" id="monthTitle"></div>
+      <button class="btn small" id="nextMonth" aria-label="Mes siguiente">›</button>
+      <button class="btn small" id="todayBtn">Hoy</button>
+    </div>
+    <div class="weekdays"><div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div></div>
+    <div class="day-grid" id="dayGrid"></div>
+    <div class="legend">● verde: menú hecho · ● rojo: diario apuntado · fondo verde: cardio/descanso</div>
+  </div>
 
-<div class="panel">
-  <h2 id="panelTitle">Día 1</h2>
-  <div id="mealRows"></div>
-  <div class="day-total" id="dayTotal"></div>
+  <div class="card">
+    <div class="day-head" id="dayHead">
+      <h2 id="panelTitle"></h2>
+      <span class="mini-total" id="miniTotal"></span>
+    </div>
+    <div class="seg" id="typeSeg"></div>
+    <div id="trainBox"></div>
+  </div>
+
+  <div id="mealCards"></div>
+
+  <div class="card">
+    <span class="label">Total del día</span>
+    <div id="dayTotal"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" id="autofillDayBtn">🔀 Otro menú para este día</button>
+    <button class="btn ghost" id="clearDayBtn">Vaciar día</button>
+  </div>
+  <div class="btn-row" style="margin-top:8px">
+    <button class="btn primary" id="autofillBtn">🔄 Autocompletar el mes</button>
+  </div>
+</section>
+
+<!-- ============ COMPRA ============ -->
+<section class="view" id="view-compra" hidden>
+  <div class="card">
+    <div class="row">
+      <div><label class="label" for="shopFrom">Desde</label><input type="date" id="shopFrom"></div>
+      <div><label class="label" for="shopDays">Para</label>
+        <select id="shopDays"><option value="3">3 días</option><option value="4">4 días</option><option value="7" selected>7 días</option><option value="14">14 días</option></select>
+      </div>
+    </div>
+    <div class="small muted" id="shopInfo" style="margin-top:10px"></div>
+    <div class="btn-row" style="margin-top:10px">
+      <button class="btn" id="copyShopBtn">📋 Copiar lista</button>
+      <button class="btn ghost" id="uncheckShopBtn">Desmarcar todo</button>
+    </div>
+  </div>
+  <div id="shopList"></div>
+  <div class="small muted">Carnes, pescados y cereales: la cantidad grande es lo que compras (en crudo o seco, aproximado) y la pequeña, lo que pesa ya cocinado en los platos. Redondea al alza.</div>
+</section>
+
+<!-- ============ DIARIO ============ -->
+<section class="view" id="view-diario" hidden>
+  <div class="card">
+    <label class="label" for="diaryDate">Día</label>
+    <input type="date" id="diaryDate">
+  </div>
+  <div class="card" id="diarySymptoms"></div>
+  <div class="card" id="diaryBowel"></div>
+  <div class="card" id="diaryHabits"></div>
+  <div class="card" id="diaryNotes"></div>
+  <div class="card">
+    <h2>Últimos 14 días</h2>
+    <div id="diaryHistory"></div>
+  </div>
+  <div class="card">
+    <h2>Platos a vigilar</h2>
+    <div class="small muted">Compara tus síntomas del día y del día siguiente con lo que comiste. Es orientativo: necesitas varias semanas de datos, y lo confirmas quitando el plato y volviendo a probarlo.</div>
+    <div id="diarySuspects"></div>
+  </div>
+</section>
+
+<!-- ============ MÁS ============ -->
+<section class="view" id="view-mas" hidden>
+  <div class="card">
+    <h2>🗓️ Plan semanal de entreno</h2>
+    <div class="small muted" style="margin-bottom:10px">Lo habitual de cada día: el autocompletar lo usa para elegir la comida de antes (pre) y la de después (post) del entreno. Si un día cambia, ajústalo desde el menú.</div>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+  <div class="card">
+    <h2>🌿 Digestión</h2>
+    <label class="switch"><input type="checkbox" id="suaveToggle"><span><strong>Modo digestión suave</strong><br><span class="small muted">El autocompletar prefiere verdura cocinada a ensalada cruda y cenas con menos grasa. Recomendado si notas mucha hinchazón o pesadez.</span></span></label>
+  </div>
+  <div class="card">
+    <h2>🚫 Platos que no te sientan bien</h2>
+    <div class="small muted">No saldrán al autocompletar. Se marcan desde «Receta» en cada plato.</div>
+    <div id="excludedList"></div>
+  </div>
+  <div class="card">
+    <h2>💾 Copia de seguridad</h2>
+    <div class="small muted" style="margin-bottom:10px">Tus datos se guardan en este navegador. Exporta para pasarlos a otro dispositivo o guardar una copia.</div>
+    <div class="btn-row">
+      <button class="btn" id="exportBtn">⬇️ Exportar</button>
+      <button class="btn" id="importBtn">⬆️ Importar</button>
+      <input type="file" id="importInput" accept="application/json" hidden>
+    </div>
+    <div class="btn-row" style="margin-top:8px"><button class="btn ghost" id="resetBtn">Borrar el menú del mes que estás viendo</button></div>
+  </div>
+
+  <div class="card guide">
+    <h2>📖 Guía SIBO / IMO</h2>
+    <p>El IMO (sobrecrecimiento metanogénico intestinal) es una variante del SIBO en la que predominan arqueas productoras de metano. El metano enlentece el tránsito: hinchazón, pesadez y a veces estreñimiento. El tratamiento lo pauta tu médico digestivo; la dieta ayuda con los síntomas mientras tanto, pero no lo sustituye.</p>
+    <h3>Para la hinchazón y la pesadez</h3>
+    <ul>
+      <li><strong>Camina 10–15 minutos después de comer y de cenar.</strong> En un ensayo con personas con hinchazón funcional ayudó tanto o más que la medicación.</li>
+      <li><strong>Separa las comidas 4–5 horas y no piques entre horas.</strong> En ayunas se activa el complejo motor migratorio, el «barrido» del intestino delgado. Los extras y postres, mejor justo después de una comida que sueltos.</li>
+      <li><strong>Verdura cocinada mejor que cruda</strong> en los días malos (activa el modo digestión suave). La ensalada se cambia por calabacín o judías a la plancha.</li>
+      <li><strong>Cenas ligeras y 3 horas antes de acostarte.</strong> Las grasas abundantes vacían el estómago más despacio y aumentan la pesadez.</li>
+      <li><strong>Come despacio y mastica mucho</strong>; evita bebidas con gas, chicles y caramelos sin azúcar (llevan polioles y te hacen tragar aire).</li>
+      <li><strong>Agua: 2–2,5 L al día</strong>, más los días de entreno; repártela entre comidas.</li>
+      <li><strong>Infusiones que sientan bien:</strong> menta poleo y jengibre. La manzanilla y el hinojo, si son fuertes, son altos en FODMAP.</li>
+      <li><strong>Para el estreñimiento:</strong> 2 kiwis verdes al día, moverte a diario e ir al baño a la misma hora (después del desayuno) con los pies en alto sobre un taburete.</li>
+      <li><strong>Si el cansancio no mejora,</strong> coméntalo a tu médico: con SIBO es frecuente revisar vitamina B12, hierro y vitamina D en una analítica.</li>
+    </ul>
+    <h3>Comidas antes y después de entrenar</h3>
+    <ul>
+      <li><strong>Pre-entreno (1–2 h antes):</strong> hidratos fáciles de digerir (arroz, patata, pasta, plátano), algo de proteína y poca grasa y fibra, para no entrenar con pesadez.</li>
+      <li><strong>Post-entreno (hasta 2 h después):</strong> proteína para recuperar músculo e hidratos para reponer energía.</li>
+      <li>Si entrenas más de 4 horas después de la última comida, toma un plátano o 2–3 tortitas de arroz 30–60 min antes.</li>
+    </ul>
+    <h3>Trucos de cocina sin ajo ni cebolla</h3>
+    <ul>
+      <li><strong>Aceite de ajo infusionado:</strong> los fructanos del ajo no pasan al aceite. Dora ajos en AOVE, retíralos y usa el aceite (en nevera, pocos días), o cómpralo hecho.</li>
+      <li>Parte verde de la cebolleta y cebollino para el sabor a cebolla.</li>
+      <li>Especias que sientan bien: comino, cúrcuma, jengibre, pimentón (dulce o ahumado), orégano, laurel, romero, tomillo, perejil, eneldo, canela, azafrán, pimienta.</li>
+      <li>Salsa de soja o tamari (1–2 cucharadas), limón, vinagre y mostaza dan mucho sabor sin calorías.</li>
+    </ul>
+    <h3>Revisa las etiquetas</h3>
+    <div class="chips">
+      <span class="chip no">inulina</span><span class="chip no">fibra de achicoria</span><span class="chip no">FOS</span>
+      <span class="chip no">sorbitol</span><span class="chip no">maltitol</span><span class="chip no">xilitol</span><span class="chip no">manitol</span>
+      <span class="chip no">ajo / cebolla en polvo</span><span class="chip no">jarabe de fructosa</span><span class="chip no">miel / agave</span>
+    </div>
+    <h3>Mejor evitar durante la fase de eliminación</h3>
+    <div class="chips">
+      <span class="chip no">Ajo y cebolla</span><span class="chip no">Puerro (parte blanca)</span><span class="chip no">Legumbres</span>
+      <span class="chip no">Pan y pasta de trigo o centeno</span><span class="chip no">Leche y yogur con lactosa</span>
+      <span class="chip no">Manzana, pera, mango, sandía</span><span class="chip no">Melocotón, ciruela, cerezas</span><span class="chip no">Fruta desecada</span>
+      <span class="chip no">Coliflor, champiñones, espárragos, alcachofa</span><span class="chip no">Anacardos y pistachos</span>
+      <span class="chip no">Plátano muy maduro</span><span class="chip no">Embutidos con ajo</span>
+    </div>
+    <p>Lo bajo en FODMAP es una fase, no una dieta para siempre: lo habitual son 2–6 semanas de eliminación y después reintroducir grupo a grupo con un dietista, para no restringir de más.</p>
+    <h3>Raciones máximas por comida (bajas en FODMAP)</h3>
+    <p style="margin-top:0">Referencia Monash. Por encima, el alimento pasa a moderado o alto. Los platos ya las respetan; no juntes varias raciones límite en la misma comida.</p>
+    <div id="limitsTable"></div>
+    <h3>Libres en cantidades normales</h3>
+    <div class="chips" id="freeFoods"></div>
+    <h3>Cómo están calculados los platos</h3>
+    <p>Carnes, pescado y huevo: peso en cocinado. Arroz, patata, pasta, quinoa y polenta: peso ya cocido. Fruta, verdura cruda, frutos secos y queso: peso en crudo. Las kcal y macros salen de una tabla por 100 g (galletas Triple Zero ~415 kcal; pasta de maíz-arroz cocida ~155 kcal; carne picada de vacuno ~10% grasa cocinada ~217 kcal; proteína de huevo 24 g por scoop de 30 g; skyr sin lactosa ~62 kcal y 10,5 g de proteína). Si tus productos son distintos, compara con la etiqueta. Revisa que galletas, pan, pasta y proteína en polvo no lleven inulina ni polioles.</p>
+    <p>El autocompletar solo usa combinaciones que cumplen el objetivo del día (fuerza: 2.000–2.200 kcal y 190–225 g de hidratos; cardio/descanso: 1.800–2.000 kcal y 140–170 g; siempre 190–215 g de proteína y ≤70 g de grasa), con un máximo de 3 huevos enteros, 40 g de queso curado y 40 g de jamón al día.</p>
+    <p class="small muted">Herramienta de planificación, no consejo médico. No hay una pauta dietética oficial para IMO: prueba tu tolerancia y consúltalo con tu digestivo o dietista-nutricionista, sobre todo antes de tomar suplementos de fibra, magnesio, menta o probióticos.</p>
+  </div>
+</section>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="menu" class="active"><span class="ico">🍽️</span>Menú</button>
+  <button data-tab="compra"><span class="ico">🛒</span>Compra</button>
+  <button data-tab="diario"><span class="ico">📓</span>Diario</button>
+  <button data-tab="mas"><span class="ico">⚙️</span>Más</button>
+</nav>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="sheet-panel" role="dialog" aria-modal="true">
+    <div class="sheet-head">
+      <strong id="sheetTitle"></strong>
+      <button class="btn small" id="sheetClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
 </div>
 
-<div class="actions">
-  <button class="reset" id="autofillBtn">🔄 Autocompletar mes</button>
-  <button class="reset" id="resetBtn">Borrar selección del mes</button>
-  <button class="reset" id="exportBtn">⬇️ Exportar datos</button>
-  <button class="reset" id="importBtn">⬆️ Importar datos</button>
-  <input type="file" id="importInput" accept="application/json" hidden>
-</div>
+<div class="toast" id="toast" hidden></div>
 
-<div class="note">
-  Carnes, pescado y huevo: peso en cocinado. Arroz, patata y pasta: peso ya cocido. Fruta, verdura cruda, nueces y queso: peso en crudo. Cantidades de verdura y fruta ajustadas a raciones bajas en FODMAP (referencia Monash): calabacín ≤65 g, berenjena ≤75 g, judía verde ≤75 g, pimiento verde ≤50 g, piña ≤140 g, kiwi ≤150 g, plátano firme o poco maduro (~95 g; si está muy maduro solo ~35 g). Es una referencia de dieta para intestino irritable: no hay una pauta oficial para IMO, así que prueba tu tolerancia. El autocompletar respeta un máximo de 3 huevos enteros, 40 g de queso curado y 40 g de jamón al día. Usa especias digestivas y aceite de ajo infusionado en vez de ajo o cebolla. La comida pre-entreno evita AOVE y verdura a propósito (menos grasa y fibra = digestión más rápida con margen de 1-2 h). Valores usados: galletas Triple Zero ~415 kcal, 7,7 g proteína, 14,5 g grasa y 50 g carbohidratos por 100 g; pasta de maíz-arroz cocida ~155 kcal y 34 g carbohidratos por 100 g (seca ~350 kcal); carne picada de vacuno magra (~10% grasa) ya cocinada ~217 kcal y 26 g proteína por 100 g; proteína de huevo 24 g por scoop de 30 g. Si tu paquete es distinto (más grasa en la carne picada, otro sabor de galletas, otro polvo), cambia el resultado: compara con la etiqueta. Revisa también que galletas, pasta y proteína en polvo no lleven inulina, sorbitol, maltitol ni xilitol. Es una estimación, no un análisis de laboratorio.
-</div>
-
+<script src="foods.js"></script>
+<script src="data.js"></script>
+<script src="prep.js"></script>
 <script>
-// Platos por franja y rol (kcal/macros calculados sobre tablas por 100 g; ver nota al pie)
-const POOLS = {
-  "desayuno": {
-    "normal": [
-      {
-        "name": "Revuelto de calabacín y cúrcuma — 2 huevos + 120g claras + 60g calabacín salteado (cúrcuma, pimienta) + 1 plátano firme (poco maduro, 95g)",
-        "kcal": 317,
-        "p": 28,
-        "f": 12,
-        "c": 26,
-        "h": 2,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Tortilla de atún y tomate — 1 huevo + 150g claras + 50g atún al natural escurrido + 60g tomate crudo en rodajas (orégano, sal marina) + 100g kiwi crudo",
-        "kcal": 282,
-        "p": 37,
-        "f": 7,
-        "c": 19,
-        "h": 1,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Revuelto de atún y calabacín — 1 huevo + 150g claras + 50g atún al natural escurrido (pimienta) + 60g calabacín salteado + 1 plátano firme (poco maduro, 95g)",
-        "kcal": 310,
-        "p": 37,
-        "f": 7,
-        "c": 26,
-        "h": 1,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Tortilla de claras y queso curado — 1 huevo + 180g claras + 20g queso curado rallado (orégano) + 150g kiwi crudo",
-        "kcal": 339,
-        "p": 33,
-        "f": 13,
-        "c": 25,
-        "h": 1,
-        "q": 20,
-        "j": 0
-      },
-      {
-        "name": "Huevos al horno con tomate — 2 huevos + 100g claras + 70g tomate tamizado bajo en sal (pimentón dulce, comino) + 150g kiwi crudo",
-        "kcal": 316,
-        "p": 26,
-        "f": 12,
-        "c": 27,
-        "h": 2,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Tortilla de espinacas y queso — 1 huevo + 150g claras + 80g espinacas salteadas (pimienta) + 15g queso curado rallado + 100g kiwi crudo + 60g plátano firme",
-        "kcal": 345,
-        "p": 31,
-        "f": 11,
-        "c": 33,
-        "h": 1,
-        "q": 15,
-        "j": 0
-      },
-      {
-        "name": "Revuelto de tomate y jamón — 1 huevo + 150g claras + 65g tomate en dados (orégano) + 20g jamón serrano en tiras + 1 plátano firme (poco maduro, 95g)",
-        "kcal": 300,
-        "p": 31,
-        "f": 9,
-        "c": 26,
-        "h": 1,
-        "q": 0,
-        "j": 20
-      },
-      {
-        "name": "Revuelto de jamón y espinacas — 1 huevo + 150g claras + 25g jamón serrano + 80g espinacas salteadas + 150g kiwi crudo",
-        "kcal": 326,
-        "p": 35,
-        "f": 10,
-        "c": 27,
-        "h": 1,
-        "q": 0,
-        "j": 25
-      }
-    ],
-    "pre": [
-      {
-        "name": "Arroz con leche proteico y canela — 200g arroz basmati cocido + 200ml leche semidesnatada sin lactosa (canela) + 1 scoop de proteína de huevo (añádela al final, fuera del fuego) + 1 plátano firme (poco maduro, 95g)",
-        "kcal": 550,
-        "p": 37,
-        "f": 5,
-        "c": 89,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Tortilla de patata sin aceite — 200g claras + 1 huevo + 250g patata cocida en dados (pimentón dulce, sal marina) + 100g kiwi crudo",
-        "kcal": 463,
-        "p": 35,
-        "f": 7,
-        "c": 68,
-        "h": 1,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Batido de plátano con galletas — 250ml leche semidesnatada sin lactosa + 1 plátano firme (poco maduro, ~95g) batido + 1 scoop de proteína de huevo + 30g galletas Triple Zero",
-        "kcal": 437,
-        "p": 36,
-        "f": 9,
-        "c": 50,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Huevos con patata al pimentón — 2 huevos cocidos + 100g claras cocidas + 300g patata cocida (pimentón dulce, pimienta) + 100g kiwi crudo",
-        "kcal": 532,
-        "p": 31,
-        "f": 12,
-        "c": 78,
-        "h": 2,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Patatas con huevo y pimiento verde — 250g patata cocida en dados (pimentón dulce) + 40g pimiento verde salteado + 2 huevos + 100g claras + 100g kiwi crudo",
-        "kcal": 496,
-        "p": 30,
-        "f": 12,
-        "c": 69,
-        "h": 2,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Puré de patata con huevo y jamón — 300g patata cocida en puré + 100ml leche semidesnatada sin lactosa (pimienta) + 1 huevo cocido picado + 25g jamón serrano",
-        "kcal": 448,
-        "p": 24,
-        "f": 11,
-        "c": 66,
-        "h": 1,
-        "q": 0,
-        "j": 25
-      },
-      {
-        "name": "Arroz con leche proteico y limón — 230g arroz basmati cocido + 200ml leche semidesnatada sin lactosa (canela y piel de limón) + 1 scoop de proteína de huevo (añádela al final, fuera del fuego)",
-        "kcal": 504,
-        "p": 37,
-        "f": 4,
-        "c": 75,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Tortilla de patata y jamón — 200g claras + 1 huevo + 250g patata cocida en dados + 25g jamón serrano + 100g kiwi crudo",
-        "kcal": 523,
-        "p": 42,
-        "f": 10,
-        "c": 68,
-        "h": 1,
-        "q": 0,
-        "j": 25
-      }
-    ]
-  },
-  "comida": {
-    "post": [
-      {
-        "name": "Pollo al limón y comino — 200g pechuga de pollo al horno (limón, comino) + 200g arroz basmati cocido con cúrcuma + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 10g AOVE",
-        "kcal": 729,
-        "p": 69,
-        "f": 18,
-        "c": 67,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo con puré de patata — 180g lomo de cerdo a la plancha (laurel, jengibre) + 300g patata cocida en puré + 100ml leche semidesnatada sin lactosa (puré) + 75g judías verdes cocidas + 8g AOVE",
-        "kcal": 714,
-        "p": 61,
-        "f": 21,
-        "c": 71,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Boloñesa de ternera — 170g carne picada de vacuno cocida (comino, laurel) + 75g tomate tamizado bajo en sal + 150g pasta maíz-arroz cocida + 60g zanahoria rallada en la salsa + 60g calabacín troceado en la salsa + 5g AOVE",
-        "kcal": 704,
-        "p": 50,
-        "f": 27,
-        "c": 63,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pollo al pimentón con patata asada — 200g pechuga de pollo al horno (pimentón dulce, orégano) + 300g patata asada con laurel + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 10g AOVE",
-        "kcal": 733,
-        "p": 70,
-        "f": 18,
-        "c": 72,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Merluza en salsa de tomate con arroz — 220g merluza (laurel, orégano) + 75g tomate tamizado bajo en sal + 220g arroz basmati cocido + 60g calabacín troceado + 8g AOVE",
-        "kcal": 599,
-        "p": 49,
-        "f": 12,
-        "c": 67,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Salmón con arroz de cúrcuma y espinacas — 150g salmón al horno (jengibre, limón) + 200g arroz basmati cocido con cúrcuma + 100g espinacas salteadas + 3g AOVE",
-        "kcal": 619,
-        "p": 41,
-        "f": 22,
-        "c": 60,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo al comino con patata y verduras — 190g lomo de cerdo al horno (comino, pimienta) + 300g patata asada + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 8g AOVE",
-        "kcal": 712,
-        "p": 61,
-        "f": 20,
-        "c": 72,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Guiso de pollo con patata y zanahoria — 200g pechuga de pollo troceada (comino, laurel, pimentón dulce) + 250g patata cocida + 100g zanahoria + 60g tomate tamizado bajo en sal + 8g AOVE",
-        "kcal": 677,
-        "p": 69,
-        "f": 16,
-        "c": 63,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo al pimentón con arroz y verduras — 190g lomo de cerdo a la plancha (pimentón dulce, comino) + 220g arroz basmati cocido con laurel + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 8g AOVE",
-        "kcal": 734,
-        "p": 61,
-        "f": 20,
-        "c": 73,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      }
-    ],
-    "normal": [
-      {
-        "name": "Pollo al limón con arroz y verduras — 180g pechuga de pollo a la plancha (limón, orégano) + 130g arroz basmati cocido con cúrcuma + 60g calabacín salteado + 40g pimiento verde salteado + 8g AOVE",
-        "kcal": 560,
-        "p": 60,
-        "f": 15,
-        "c": 41,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Merluza en salsa de tomate con patata — 200g merluza (laurel, orégano) + 75g tomate tamizado bajo en sal + 200g patata cocida + 60g calabacín troceado + 5g AOVE",
-        "kcal": 444,
-        "p": 44,
-        "f": 9,
-        "c": 46,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pasta con atún y tomate — 150g pasta maíz-arroz cocida + 150g atún al natural escurrido + 75g tomate tamizado bajo en sal (orégano) + 60g calabacín troceado + 5g AOVE",
-        "kcal": 475,
-        "p": 41,
-        "f": 8,
-        "c": 57,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Arroz salteado con ternera — 140g carne picada de vacuno cocida (comino, pimentón dulce) + 160g arroz basmati cocido + 40g pimiento verde + 60g zanahoria rallada + 3g AOVE",
-        "kcal": 571,
-        "p": 42,
-        "f": 20,
-        "c": 53,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo a la plancha con patata y espinacas — 170g lomo de cerdo a la plancha (pimienta, limón) + 200g patata cocida + 100g espinacas salteadas + 6g AOVE",
-        "kcal": 544,
-        "p": 55,
-        "f": 17,
-        "c": 44,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Ensalada templada de arroz y atún — 150g arroz basmati cocido + 130g atún al natural escurrido + 60g tomate crudo + 60g pepino crudo + 50g zanahoria rallada + 8g AOVE (limón, vinagre de vino tinto)",
-        "kcal": 449,
-        "p": 37,
-        "f": 10,
-        "c": 52,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Salmón con arroz y calabacín — 120g salmón al horno (jengibre, limón) + 150g arroz basmati cocido + 60g calabacín a la plancha",
-        "kcal": 457,
-        "p": 31,
-        "f": 15,
-        "c": 44,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pollo con puré de zanahoria y patata — 180g pechuga de pollo al horno (comino, laurel) + 200g patata cocida + 100g zanahoria cocida + 60ml leche semidesnatada sin lactosa (puré) + 5g AOVE",
-        "kcal": 586,
-        "p": 63,
-        "f": 13,
-        "c": 54,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Arroz con lomo y verduras salteadas — 160g lomo de cerdo troceado (comino, pimentón dulce) + 150g arroz basmati cocido + 60g calabacín salteado + 60g zanahoria rallada + 5g AOVE",
-        "kcal": 554,
-        "p": 50,
-        "f": 15,
-        "c": 50,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      }
-    ],
-    "cardio": [
-      {
-        "name": "Pollo al limón y comino — 200g pechuga de pollo al horno (limón, comino) + 120g arroz basmati cocido con cúrcuma + 200g verduras al horno (60g calabacín, 70g berenjena, 70g zanahoria) + 10g AOVE",
-        "kcal": 643,
-        "p": 67,
-        "f": 18,
-        "c": 49,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo con puré de patata — 180g lomo de cerdo a la plancha (laurel, jengibre) + 200g patata cocida en puré + 80ml leche semidesnatada sin lactosa (puré) + 75g judías verdes cocidas + 8g AOVE",
-        "kcal": 616,
-        "p": 58,
-        "f": 20,
-        "c": 50,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Boloñesa de ternera — 160g carne picada de vacuno cocida (comino, laurel) + 75g tomate tamizado bajo en sal + 120g pasta maíz-arroz cocida + 60g zanahoria rallada en la salsa + 60g calabacín troceado en la salsa + 5g AOVE",
-        "kcal": 636,
-        "p": 47,
-        "f": 25,
-        "c": 53,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pollo al pimentón con patata asada — 200g pechuga de pollo al horno (pimentón dulce, orégano) + 180g patata asada con laurel + 200g verduras al horno (60g calabacín, 70g berenjena, 70g zanahoria) + 10g AOVE",
-        "kcal": 645,
-        "p": 68,
-        "f": 18,
-        "c": 52,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Merluza en salsa de tomate con arroz — 220g merluza (laurel, orégano) + 75g tomate tamizado bajo en sal + 130g arroz basmati cocido + 60g calabacín troceado + 80g espinacas salteadas + 8g AOVE",
-        "kcal": 501,
-        "p": 49,
-        "f": 12,
-        "c": 45,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Salmón con patata y espinacas — 150g salmón al horno (jengibre, limón) + 150g patata asada + 100g espinacas salteadas",
-        "kcal": 464,
-        "p": 39,
-        "f": 19,
-        "c": 34,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo al comino con patata y verduras — 180g lomo de cerdo al horno (comino, pimienta) + 170g patata asada + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 8g AOVE",
-        "kcal": 580,
-        "p": 55,
-        "f": 19,
-        "c": 46,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Arroz con atún, tomate y zanahoria — 130g arroz basmati cocido + 130g atún al natural escurrido + 60g tomate tamizado bajo en sal (orégano) + 80g zanahoria rallada + 8g AOVE",
-        "kcal": 431,
-        "p": 36,
-        "f": 10,
-        "c": 47,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo al comino con arroz y verduras — 170g lomo de cerdo a la plancha (comino, pimienta) + 110g arroz basmati cocido + 200g verduras al horno (60g calabacín, 70g berenjena, 70g zanahoria) + 8g AOVE",
-        "kcal": 574,
-        "p": 53,
-        "f": 19,
-        "c": 46,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      }
-    ]
-  },
-  "merienda": {
-    "normal": [
-      {
-        "name": "Huevos rellenos de atún — 2 huevos cocidos + 70g atún al natural escurrido + 5g mayonesa (pimentón dulce)",
-        "kcal": 266,
-        "p": 30,
-        "f": 15,
-        "c": 1,
-        "h": 2,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Ensaladilla de atún y patata — 150g patata cocida + 60g atún al natural escurrido + 1 huevo cocido + 30g zanahoria cocida + 8g mayonesa (limón)",
-        "kcal": 342,
-        "p": 24,
-        "f": 12,
-        "c": 34,
-        "h": 1,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Tortilla francesa de jamón y queso — 1 huevo + 100g claras + 20g jamón serrano + 15g queso curado rallado",
-        "kcal": 235,
-        "p": 27,
-        "f": 13,
-        "c": 1,
-        "h": 1,
-        "q": 15,
-        "j": 20
-      },
-      {
-        "name": "Jamón y queso con tomate aliñado — 30g jamón serrano + 20g queso curado + 65g tomate en rodajas (orégano) + 3g AOVE",
-        "kcal": 187,
-        "p": 15,
-        "f": 13,
-        "c": 3,
-        "h": 0,
-        "q": 20,
-        "j": 30
-      },
-      {
-        "name": "Ensalada de tomate, pepino y atún — 65g tomate + 60g pepino + 100g atún al natural escurrido + 5g AOVE (limón, orégano)",
-        "kcal": 175,
-        "p": 25,
-        "f": 6,
-        "c": 5,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Ensalada de pollo, pepino y tomate — 100g pechuga de pollo cocinada desmenuzada + 75g pepino + 50g tomate + 5g AOVE (limón, pimienta)",
-        "kcal": 229,
-        "p": 32,
-        "f": 9,
-        "c": 5,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Galletas con leche y plátano — 25g galletas Triple Zero + 200ml leche semidesnatada sin lactosa + 1 plátano firme (poco maduro, 95g)",
-        "kcal": 280,
-        "p": 10,
-        "f": 7,
-        "c": 44,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Plátano con nueces y leche — 1 plátano firme (poco maduro, 95g) + 20g nueces + 200ml leche semidesnatada sin lactosa",
-        "kcal": 307,
-        "p": 11,
-        "f": 16,
-        "c": 34,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      }
-    ],
-    "pre": [
-      {
-        "name": "Arroz con pollo al limón — 90g pechuga de pollo desmenuzada (limón, comino) + 250g arroz basmati cocido",
-        "kcal": 474,
-        "p": 35,
-        "f": 4,
-        "c": 70,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Puré de patata con pollo — 100g pechuga de pollo a la plancha + 300g patata cocida en puré + 100ml leche semidesnatada sin lactosa (pimienta)",
-        "kcal": 475,
-        "p": 40,
-        "f": 6,
-        "c": 66,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Arroz con leche proteico y plátano — 200g arroz basmati cocido + 200ml leche semidesnatada sin lactosa (canela) + 1 scoop de proteína de huevo (añádela al final, fuera del fuego) + 1 plátano firme (poco maduro, 95g)",
-        "kcal": 550,
-        "p": 37,
-        "f": 5,
-        "c": 89,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pasta con atún y tomate — 150g pasta maíz-arroz cocida + 100g atún al natural escurrido + 60g tomate tamizado bajo en sal (orégano) + de postre: 1 plátano firme (poco maduro, ~95g)",
-        "kcal": 442,
-        "p": 30,
-        "f": 2,
-        "c": 76,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Arroz con atún y tomate — 250g arroz basmati cocido + 100g atún al natural escurrido + 60g tomate tamizado bajo en sal (orégano)",
-        "kcal": 450,
-        "p": 31,
-        "f": 2,
-        "c": 73,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Patata con merluza al limón — 120g merluza a la plancha (limón, pimienta) + 300g patata cocida",
-        "kcal": 378,
-        "p": 29,
-        "f": 2,
-        "c": 61,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pasta con pollo y tomate — 150g pasta maíz-arroz cocida + 100g pechuga de pollo desmenuzada (orégano) + 60g tomate tamizado bajo en sal + de postre: 1 plátano firme (poco maduro, ~95g)",
-        "kcal": 497,
-        "p": 37,
-        "f": 5,
-        "c": 76,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Batido de plátano con galletas — 250ml leche semidesnatada sin lactosa + 1 plátano firme (poco maduro, ~95g) batido + 1 scoop de proteína de huevo + 30g galletas Triple Zero",
-        "kcal": 437,
-        "p": 36,
-        "f": 9,
-        "c": 50,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Arroz con lomo al limón — 90g lomo de cerdo a la plancha (limón, comino) + 250g arroz basmati cocido",
-        "kcal": 480,
-        "p": 32,
-        "f": 6,
-        "c": 70,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      }
-    ]
-  },
-  "cena": {
-    "normal": [
-      {
-        "name": "Merluza al horno con patata — 220g merluza al horno (limón, laurel) + 150g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 8g AOVE",
-        "kcal": 428,
-        "p": 46,
-        "f": 12,
-        "c": 34,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Tortilla de calabacín y pimiento — 2 huevos + 150g claras + 60g calabacín + 40g pimiento verde + 150g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga)",
-        "kcal": 405,
-        "p": 35,
-        "f": 12,
-        "c": 40,
-        "h": 2,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pollo con verduras a la plancha — 170g pechuga de pollo a la plancha (pimienta, limón) + 60g calabacín a la plancha + 75g berenjena a la plancha + 100g patata asada + 8g AOVE",
-        "kcal": 480,
-        "p": 56,
-        "f": 15,
-        "c": 29,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Salmón con espinacas y arroz — 120g salmón a la plancha (jengibre, limón) + 120g espinacas salteadas + 100g arroz basmati cocido",
-        "kcal": 405,
-        "p": 33,
-        "f": 15,
-        "c": 32,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo a la plancha con patata y ensalada — 150g lomo de cerdo a la plancha (comino) + 150g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 6g AOVE",
-        "kcal": 460,
-        "p": 46,
-        "f": 15,
-        "c": 34,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Merluza con puré de zanahoria — 220g merluza a la plancha (limón, pimienta) + 150g zanahoria cocida en puré (jengibre) + 100g patata cocida + 6g AOVE",
-        "kcal": 412,
-        "p": 45,
-        "f": 10,
-        "c": 35,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Ensalada templada de atún y patata — 130g atún al natural escurrido + 200g patata cocida + 60g tomate crudo + 60g pepino crudo + 30g lechuga + 8g AOVE (vinagre de vino tinto)",
-        "kcal": 414,
-        "p": 37,
-        "f": 10,
-        "c": 46,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pollo al limón con arroz y espinacas — 170g pechuga de pollo al horno (limón, orégano) + 100g arroz basmati cocido + 100g espinacas salteadas + 5g AOVE",
-        "kcal": 478,
-        "p": 58,
-        "f": 12,
-        "c": 32,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo a la plancha con arroz y espinacas — 150g lomo de cerdo a la plancha (pimienta, limón) + 100g arroz basmati cocido + 100g espinacas salteadas + 5g AOVE",
-        "kcal": 455,
-        "p": 48,
-        "f": 15,
-        "c": 32,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      }
-    ],
-    "post": [
-      {
-        "name": "Merluza al horno con patata — 220g merluza al horno (laurel, pimentón dulce) + 350g patata asada + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 10g AOVE",
-        "kcal": 622,
-        "p": 50,
-        "f": 14,
-        "c": 75,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Salmón con arroz de cúrcuma — 150g salmón al horno (jengibre, limón) + 250g arroz basmati cocido con cúrcuma + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 3g AOVE",
-        "kcal": 677,
-        "p": 41,
-        "f": 22,
-        "c": 74,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Boloñesa de ternera — 170g carne picada de vacuno cocida (comino, laurel) + 75g tomate tamizado bajo en sal + 150g pasta maíz-arroz cocida + 60g calabacín troceado en la salsa + 5g AOVE",
-        "kcal": 679,
-        "p": 50,
-        "f": 26,
-        "c": 57,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo con arroz y ensalada — 200g lomo de cerdo a la plancha (comino) + 220g arroz basmati cocido + ensalada cruda (50g tomate, 30g pepino, 20g lechuga) + 8g AOVE",
-        "kcal": 717,
-        "p": 63,
-        "f": 21,
-        "c": 65,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pollo asado con patatas al pimentón — 200g pechuga de pollo al horno (pimentón dulce, orégano) + 300g patata asada + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 8g AOVE",
-        "kcal": 715,
-        "p": 70,
-        "f": 16,
-        "c": 72,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Merluza con arroz y verduras — 220g merluza al horno (limón, laurel) + 250g arroz basmati cocido + 60g calabacín + 60g zanahoria + 8g AOVE",
-        "kcal": 644,
-        "p": 50,
-        "f": 12,
-        "c": 78,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Salmón con patata asada y espinacas — 140g salmón al horno (jengibre, limón) + 300g patata asada + 100g espinacas salteadas + 3g AOVE",
-        "kcal": 602,
-        "p": 40,
-        "f": 21,
-        "c": 65,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo en salsa de tomate con patata — 200g lomo de cerdo troceado (comino, laurel) + 75g tomate tamizado bajo en sal + 300g patata cocida + 60g zanahoria + 8g AOVE",
-        "kcal": 722,
-        "p": 63,
-        "f": 21,
-        "c": 70,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo con arroz de cúrcuma y verduras — 200g lomo de cerdo al horno (comino, laurel) + 210g arroz basmati cocido con cúrcuma + 60g calabacín + 60g zanahoria + 8g AOVE",
-        "kcal": 727,
-        "p": 63,
-        "f": 21,
-        "c": 67,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      }
-    ],
-    "cardio": [
-      {
-        "name": "Merluza al horno con patata — 220g merluza al horno (limón, laurel) + 170g patata asada + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 10g AOVE",
-        "kcal": 471,
-        "p": 47,
-        "f": 14,
-        "c": 40,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Salmón con arroz y ensalada — 130g salmón al horno (jengibre, limón) + 100g arroz basmati cocido + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 4g AOVE",
-        "kcal": 458,
-        "p": 33,
-        "f": 20,
-        "c": 33,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Tortilla de calabacín y pimiento — 2 huevos + 150g claras + 60g calabacín + 40g pimiento verde + 150g patata asada + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 5g AOVE",
-        "kcal": 457,
-        "p": 35,
-        "f": 17,
-        "c": 42,
-        "h": 2,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pollo con verduras a la plancha — 190g pechuga de pollo a la plancha (pimienta, limón) + 60g calabacín a la plancha + 75g berenjena a la plancha + 120g patata asada + 8g AOVE",
-        "kcal": 531,
-        "p": 63,
-        "f": 15,
-        "c": 33,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo a la plancha con patata y ensalada — 160g lomo de cerdo a la plancha (comino) + 140g patata asada + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 6g AOVE",
-        "kcal": 476,
-        "p": 49,
-        "f": 16,
-        "c": 34,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Merluza en salsa de tomate con patata — 220g merluza (laurel, orégano) + 75g tomate tamizado bajo en sal + 150g patata cocida + 60g calabacín troceado + 5g AOVE",
-        "kcal": 419,
-        "p": 46,
-        "f": 9,
-        "c": 36,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Pollo al limón con espinacas y arroz — 180g pechuga de pollo al horno (limón, orégano) + 120g espinacas salteadas + 100g arroz basmati cocido + 6g AOVE",
-        "kcal": 508,
-        "p": 62,
-        "f": 13,
-        "c": 32,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Ensalada templada de atún y patata — 140g atún al natural escurrido + 170g patata cocida + 60g tomate crudo + 60g pepino crudo + 40g lechuga + 8g AOVE (vinagre de vino tinto)",
-        "kcal": 400,
-        "p": 39,
-        "f": 10,
-        "c": 40,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      },
-      {
-        "name": "Lomo a la plancha con arroz y ensalada — 150g lomo de cerdo a la plancha (comino) + 110g arroz basmati cocido + ensalada cruda (65g tomate, 45g pepino, 40g lechuga) + 6g AOVE",
-        "kcal": 478,
-        "p": 46,
-        "f": 16,
-        "c": 36,
-        "h": 0,
-        "q": 0,
-        "j": 0
-      }
-    ]
-  }
+// ---------- Macros de cada plato a partir de sus ingredientes ----------
+const RAW_SALAD = ["lechuga", "pepino", "canonigos"];
+function calcIngredients(ing) {
+  const t = { kcal: 0, p: 0, f: 0, c: 0, h: 0, q: 0, j: 0 };
+  ing.forEach(([key, amount]) => {
+    const food = FOODS[key];
+    const mult = food.unit ? amount : amount / 100;
+    t.kcal += food.kcal * mult;
+    t.p += food.p * mult;
+    t.f += food.f * mult;
+    t.c += food.c * mult;
+    if (key === "huevo") t.h += amount;
+    if (key === "queso") t.q += amount;
+    if (key === "jamon") t.j += amount;
+  });
+  ["kcal", "p", "f", "c"].forEach(k => { t[k] = Math.round(t[k]); });
+  t.raw = ing.some(([k]) => RAW_SALAD.includes(k)); // lleva ensalada cruda
+  return t;
+}
+Object.values(POOLS).forEach(roles => Object.values(roles).forEach(list => list.forEach(r => Object.assign(r, calcIngredients(r.i)))));
+EXTRAS.forEach(e => Object.assign(e, calcIngredients(e.i)));
+
+const SLOTS = ["desayuno", "comida", "merienda", "cena"];
+const SLOT_LABELS = { desayuno: "Desayuno", comida: "Comida", merienda: "Merienda", cena: "Cena" };
+const ROLE_LABELS = { pre: "Pre-entreno", post: "Post-entreno" };
+const MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+const WEEKDAYS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+const STORAGE_KEY = "menu-mensual-nicolas";
+const TARGETS = {
+  fuerza: { kcal: [2000, 2200], p: [190, 215], f: [0, 70], c: [190, 225] },
+  cardio: { kcal: [1800, 2000], p: [190, 215], f: [0, 70], c: [140, 170] }
 };
+function toMin(t) { const [h, m] = (t || "00:00").split(":").map(Number); return h * 60 + m; }
+// Qué conviene en cada comida según el entreno
+const ROLE_GUIDE = {
+  pre: { check: m => m.c >= 45 && m.f <= 13, ok: "Buen pre-entreno: hidratos y poca grasa", bad: "Para antes de entrenar, mejor más hidratos y menos grasa" },
+  post: { check: m => m.p >= 30 && m.c >= 45, ok: "Buen post-entreno: proteína + hidratos", bad: "Para después de entrenar, mejor más proteína e hidratos" }
+};
+// Cuándo entrenas respecto a tus comidas (el horario cambia cada día, así que no se usan horas)
+const WHEN = {
+  ayunas: { label: "🌅 En ayunas", long: "Antes del desayuno", pre: null, post: "desayuno" },
+  dc: { label: "☀️ Desayuno → comida", long: "Entre desayuno y comida", pre: "desayuno", post: "comida" },
+  cm: { label: "🌤️ Comida → merienda", long: "Entre comida y merienda", pre: "comida", post: "merienda" },
+  mc: { label: "🌙 Merienda → cena", long: "Entre merienda y cena", pre: "merienda", post: "cena" }
+};
+const DEFAULT_WEEKLY = {
+  1: { type: "fuerza", when: "dc" }, 2: { type: "fuerza", when: "dc" }, 3: { type: "fuerza", when: "dc" },
+  4: { type: "cardio", when: "dc" }, 5: { type: "fuerza", when: "dc" }, 6: { type: "fuerza", when: "dc" },
+  0: { type: "cardio", when: "dc" }
+};
+// Equivalencias de versiones anteriores: selector mañana/noche y hora de entreno
+const LEGACY_WHEN = { manana: "dc", noche: "mc" };
+const whenFromTime = (t) => { const m = toMin(t); return m < 540 ? "ayunas" : m < 780 ? "dc" : m < 1020 ? "cm" : "mc"; };
 
-const EXTRAS = [
-  { label: "Sin extra", kcal: 0, p: 0, f: 0, c: 0 },
-  { label: "Batido: 1 scoop proteína + 250ml leche semidesnatada sin lactosa", kcal: 228, p: 33, f: 5, c: 13 },
-  { label: "Batido: 2 scoops proteína + 250ml leche semidesnatada sin lactosa", kcal: 341, p: 57, f: 5, c: 14 },
-  { label: "Postre proteico: 180ml leche semidesnatada sin lactosa + 1 scoop proteína + 2 láminas de gelatina neutra", kcal: 196, p: 33, f: 2, c: 9 }
-];
+// ---------- Fechas y utilidades ----------
+const pad = (n) => String(n).padStart(2, "0");
+const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const fromIso = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
+const longDate = (s) => { const d = fromIso(s); const w = WEEKDAYS[d.getDay()]; return `${w[0].toUpperCase() + w.slice(1)} ${d.getDate()} de ${MONTHS[d.getMonth()]}`; };
+const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+const titleOf = (meal) => meal.name.split(" — ")[0];
+const descOf = (meal) => meal.name.split(" — ").slice(1).join(" — ");
 
-
-// Determina qué rol juega cada comida según el tipo de día y el momento del entreno
-function getSlotRole(slot, type, momento) {
-  if (type !== "fuerza") return null; // en días de cardio no aplica el reparto pre/post
-  const isMorning = momento !== "noche";
-  if (isMorning) {
-    if (slot === "desayuno") return "pre";
-    if (slot === "comida") return "post";
-    return "normal"; // merienda, cena
-  } else {
-    if (slot === "merienda") return "pre";
-    if (slot === "cena") return "post";
-    return "normal"; // desayuno, comida
-  }
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
 }
 
-const SLOT_LABELS = { desayuno: "Desayuno", comida: "Comida", merienda: "Merienda", cena: "Cena" };
-const DAYS = 30;
-const STORAGE_KEY = "menu-mensual-nicolas";
+// ---------- Estado ----------
+function defaultState() {
+  return {
+    v: 4, selections: {}, weekly: JSON.parse(JSON.stringify(DEFAULT_WEEKLY)),
+    prefs: { suave: true }, excluded: [], diary: {}, shopChecked: {}
+  };
+}
+const normalizeWhen = (o) => {
+  if (!WHEN[o.when]) o.when = o.train ? whenFromTime(o.train) : (LEGACY_WHEN[o.momento] || "dc");
+  delete o.train;
+  delete o.momento;
+};
+// Acepta datos de versiones anteriores: días 1..30 sin fecha (v1), mañana/noche (v2) y hora de entreno (v3)
+function normalizeState(s) {
+  if (!s || typeof s !== "object" || !s.selections) return null;
+  const out = Object.assign(defaultState(), s);
+  if (!s.v) {
+    const now = new Date();
+    const dim = daysInMonth(now.getFullYear(), now.getMonth());
+    out.selections = {};
+    Object.keys(s.selections).forEach(k => {
+      const d = parseInt(k, 10);
+      if (d >= 1 && d <= dim) out.selections[iso(new Date(now.getFullYear(), now.getMonth(), d))] = s.selections[k];
+    });
+  }
+  Object.values(out.selections).forEach(normalizeWhen);
+  Object.keys(out.weekly).forEach(wd => {
+    const w = out.weekly[wd];
+    if (typeof w === "string") out.weekly[wd] = { type: w === "c" ? "cardio" : "fuerza", when: w === "fn" ? "mc" : "dc" };
+    else normalizeWhen(w);
+  });
+  delete out.mealTimes;
+  out.prefs = Object.assign({ suave: true }, s.prefs);
+  out.v = 4;
+  return out;
+}
 
-let state = { selections: {} }; // { "1": {desayuno: 0, comida: -1, ...}, ... }
-let currentDay = 1;
+let state = defaultState();
+const today = iso(new Date());
+let currentDate = today;
+let viewYear = new Date().getFullYear();
+let viewMonth = new Date().getMonth();
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) state = JSON.parse(raw);
+    if (raw) state = normalizeState(JSON.parse(raw)) || defaultState();
   } catch (e) { /* localStorage no disponible, seguimos con estado en memoria */ }
 }
 function saveState() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignorar */ }
 }
 
-function getDaySelection(day) {
-  if (!state.selections[day]) {
-    state.selections[day] = { type: "fuerza", momento: "manana", desayuno: -1, comida: -1, merienda: -1, cena: -1, extra: 0 };
+const weeklyFor = (dateIso) => ({ ...(state.weekly[fromIso(dateIso).getDay()] || DEFAULT_WEEKLY[1]) });
+
+function getDaySelection(dateIso) {
+  if (!state.selections[dateIso]) {
+    const w = weeklyFor(dateIso);
+    state.selections[dateIso] = { type: w.type, when: w.when, desayuno: -1, comida: -1, merienda: -1, cena: -1, extra: 0 };
   }
-  if (state.selections[day].extra === undefined) state.selections[day].extra = 0;
-  if (state.selections[day].type === undefined) state.selections[day].type = "fuerza";
-  if (state.selections[day].momento === undefined) state.selections[day].momento = "manana";
-  return state.selections[day];
+  const sel = state.selections[dateIso];
+  if (sel.extra === undefined) sel.extra = 0;
+  if (!sel.type) sel.type = "fuerza";
+  if (!WHEN[sel.when]) sel.when = "dc";
+  return sel;
 }
 
-function getMealsForSlot(slot, type, momento) {
-  if (type !== "fuerza") {
-    if (slot === "desayuno" || slot === "merienda") return POOLS[slot].normal;
-    return POOLS[slot].cardio;
-  }
-  const role = getSlotRole(slot, type, momento) || "normal";
-  return POOLS[slot][role];
+const isDayFilled = (dateIso) => { const sel = state.selections[dateIso]; return !!sel && SLOTS.some(s => sel[s] >= 0); };
+
+// ---------- Entreno: qué comida va antes y cuál después ----------
+// Pre = la comida justo antes de entrenar. Post = la primera comida después.
+function dayRoles(day) {
+  const roles = { desayuno: null, comida: null, merienda: null, cena: null };
+  if (day.type !== "fuerza") return roles;
+  const w = WHEN[day.when] || WHEN.dc;
+  SLOTS.forEach(s => { roles[s] = "normal"; });
+  if (w.pre) roles[w.pre] = "pre";
+  roles[w.post] = "post";
+  return roles;
 }
 
-function isDayFilled(day) {
-  const sel = state.selections[day];
-  if (!sel) return false;
-  return Object.values(sel).some(v => v >= 0);
+function getMealsForSlot(slot, day) {
+  if (day.type !== "fuerza") return (slot === "desayuno" || slot === "merienda") ? POOLS[slot].normal : POOLS[slot].cardio;
+  return POOLS[slot][dayRoles(day)[slot]] || POOLS[slot].normal;
 }
 
+// Al cambiar el momento del entreno o el tipo de día, vacía solo las comidas cuyo tipo (pre/post/normal) ha cambiado
+const poolsOf = (sel) => Object.fromEntries(SLOTS.map(s => [s, getMealsForSlot(s, sel)]));
+function resetChangedSlots(sel, before) {
+  SLOTS.forEach(s => { if (getMealsForSlot(s, sel) !== before[s]) sel[s] = -1; });
+}
+
+const excludeKey = (slot, meal) => slot + "|" + titleOf(meal);
+const isExcluded = (slot, meal) => state.excluded.includes(excludeKey(slot, meal));
+
+function dayTotals(sel, override) {
+  const t = { kcal: 0, p: 0, f: 0, c: 0, h: 0, q: 0, j: 0 };
+  const add = (m) => { if (m) Object.keys(t).forEach(k => { t[k] += m[k] || 0; }); };
+  const pick = Object.assign({}, sel, override);
+  SLOTS.forEach(slot => { if (pick[slot] >= 0) add(getMealsForSlot(slot, sel)[pick[slot]]); });
+  add(EXTRAS[pick.extra] || EXTRAS[0]);
+  return t;
+}
+const inTarget = (t, type) => ["kcal", "p", "f", "c"].every(k => t[k] >= TARGETS[type][k][0] && t[k] <= TARGETS[type][k][1]);
+
+// ---------- Pestañas ----------
+let currentTab = "menu";
+document.getElementById("tabs").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-tab]");
+  if (!btn) return;
+  currentTab = btn.dataset.tab;
+  if (currentTab === "diario") document.getElementById("diaryDate").value = currentDate;
+  renderAll();
+  window.scrollTo(0, 0);
+});
+
+// ---------- Menú ----------
 function renderDayGrid() {
+  document.getElementById("monthTitle").textContent = `${MONTHS[viewMonth][0].toUpperCase() + MONTHS[viewMonth].slice(1)} ${viewYear}`;
   const grid = document.getElementById("dayGrid");
   grid.innerHTML = "";
-  for (let d = 1; d <= DAYS; d++) {
+  const offset = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7;
+  for (let i = 0; i < offset; i++) grid.appendChild(document.createElement("div"));
+  for (let d = 1; d <= daysInMonth(viewYear, viewMonth); d++) {
+    const key = iso(new Date(viewYear, viewMonth, d));
+    const sel = state.selections[key];
+    const type = sel ? sel.type : weeklyFor(key).type;
     const btn = document.createElement("button");
-    btn.className = "day-btn" + (d === currentDay ? " active" : "") + (isDayFilled(d) ? " filled" : "");
+    btn.className = "day-btn" + (key === currentDate ? " active" : "") + (isDayFilled(key) ? " filled" : "")
+      + (key === today ? " today" : "") + (type === "cardio" ? " cardio" : "") + (state.diary[key] ? " diary" : "");
     btn.textContent = d;
-    btn.addEventListener("click", () => { currentDay = d; renderAll(); });
+    btn.addEventListener("click", () => {
+      currentDate = key;
+      renderAll();
+      document.getElementById("dayHead").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
     grid.appendChild(btn);
   }
 }
 
-function renderPanel() {
-  document.getElementById("panelTitle").textContent = "Día " + currentDay;
-  const sel = getDaySelection(currentDay);
-  const rowsEl = document.getElementById("mealRows");
-  rowsEl.innerHTML = "";
-
-  // Selector de tipo de día
-  const typeRow = document.createElement("div");
-  typeRow.className = "meal-row";
-  const typeLabel = document.createElement("label");
-  typeLabel.textContent = "Tipo de día";
-  typeRow.appendChild(typeLabel);
-  const typeToggle = document.createElement("div");
-  typeToggle.style.display = "flex";
-  typeToggle.style.gap = "8px";
-  [["fuerza", "💪 Fuerza"], ["cardio", "🏃 Cardio"]].forEach(([val, label]) => {
+function makeSeg(el, options, current, onPick) {
+  el.innerHTML = "";
+  options.forEach(([val, label]) => {
     const btn = document.createElement("button");
     btn.type = "button";
+    btn.className = current === val ? "on" : "";
     btn.textContent = label;
-    btn.className = "reset";
-    btn.style.flex = "1";
-    if (sel.type === val) {
-      btn.style.background = "var(--accent)";
-      btn.style.color = "#fff";
-      btn.style.borderColor = "var(--accent)";
-    }
-    btn.addEventListener("click", () => {
-      sel.type = val;
-      sel.desayuno = -1; sel.comida = -1; sel.merienda = -1; sel.cena = -1;
-      saveState();
-      renderAll();
-    });
-    typeToggle.appendChild(btn);
+    btn.addEventListener("click", () => onPick(val));
+    el.appendChild(btn);
   });
-  typeRow.appendChild(typeToggle);
-  rowsEl.appendChild(typeRow);
+}
 
-  // Selector de momento del entreno (solo tiene sentido en día de fuerza)
-  if (sel.type === "fuerza") {
-    const momentoRow = document.createElement("div");
-    momentoRow.className = "meal-row";
-    const momentoLabel = document.createElement("label");
-    momentoLabel.textContent = "Momento del entreno";
-    momentoRow.appendChild(momentoLabel);
-    const momentoToggle = document.createElement("div");
-    momentoToggle.style.display = "flex";
-    momentoToggle.style.gap = "8px";
-    [["manana", "🌅 Mañana"], ["noche", "🌙 Noche"]].forEach(([val, label]) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.textContent = label;
-      btn.className = "reset";
-      btn.style.flex = "1";
-      if (sel.momento === val) {
-        btn.style.background = "var(--accent)";
-        btn.style.color = "#fff";
-        btn.style.borderColor = "var(--accent)";
-      }
-      btn.addEventListener("click", () => {
-        sel.momento = val;
-        sel.desayuno = -1; sel.comida = -1; sel.merienda = -1; sel.cena = -1;
-        saveState();
-        renderAll();
-      });
-      momentoToggle.appendChild(btn);
-    });
-    momentoRow.appendChild(momentoToggle);
-    rowsEl.appendChild(momentoRow);
-  }
+function ingredientList(ing) {
+  return ing.map(([k, a]) => {
+    const food = FOODS[k];
+    const qty = food.unit ? `${a} ud.` : (k === "leche" ? `${a} ml` : `${a} g`);
+    return `<li>${esc(food.n.replace(" (ml)", ""))}: ${qty}</li>`;
+  }).join("");
+}
 
-  let totals = { kcal: 0, p: 0, f: 0, c: 0, h: 0 };
+const macroChips = (m) => `<span class="chip">${m.kcal} kcal</span><span class="chip">P ${m.p} g</span><span class="chip">G ${m.f} g</span><span class="chip">H ${m.c} g</span>`;
 
+function renderPanel() {
+  document.getElementById("panelTitle").textContent = longDate(currentDate);
+  const sel = getDaySelection(currentDate);
 
-  const roleTag = { pre: " · Pre-entreno", post: " · Post-entreno", normal: "" };
-
-  ["desayuno", "comida", "merienda", "cena"].forEach(slot => {
-    const options = getMealsForSlot(slot, sel.type, sel.momento);
-    const role = getSlotRole(slot, sel.type, sel.momento);
-    const row = document.createElement("div");
-    row.className = "meal-row";
-    const label = document.createElement("label");
-    label.textContent = SLOT_LABELS[slot] + (role ? roleTag[role] : "");
-    row.appendChild(label);
-
-    const select = document.createElement("select");
-    const emptyOpt = document.createElement("option");
-    emptyOpt.value = -1;
-    emptyOpt.textContent = "— Elegir —";
-    select.appendChild(emptyOpt);
-
-    options.forEach((meal, idx) => {
-      const opt = document.createElement("option");
-      opt.value = idx;
-      opt.textContent = `${meal.name} (${meal.kcal} kcal)`;
-      if (sel[slot] === idx) opt.selected = true;
-      select.appendChild(opt);
-    });
-
-    select.addEventListener("change", (e) => {
-      sel[slot] = parseInt(e.target.value, 10);
-      saveState();
-      renderAll();
-    });
-
-    row.appendChild(select);
-    rowsEl.appendChild(row);
-
-    if (sel[slot] >= 0) {
-      const meal = options[sel[slot]];
-      totals.kcal += meal.kcal;
-      totals.p += meal.p;
-      totals.f += meal.f;
-      totals.c += meal.c;
-      totals.h += meal.h || 0;
-    }
-  });
-
-  // Fila extra: batido de proteína o postre proteico
-  const extraRow = document.createElement("div");
-  extraRow.className = "meal-row";
-  const extraLabel = document.createElement("label");
-  extraLabel.textContent = "Extra";
-  extraRow.appendChild(extraLabel);
-
-  const extraSelect = document.createElement("select");
-  EXTRAS.forEach((ex, idx) => {
-    const opt = document.createElement("option");
-    opt.value = idx;
-    opt.textContent = idx === 0 ? ex.label : `${ex.label} (${ex.kcal} kcal, ${ex.p}g P)`;
-    if (sel.extra === idx) opt.selected = true;
-    extraSelect.appendChild(opt);
-  });
-  extraSelect.addEventListener("change", (e) => {
-    sel.extra = parseInt(e.target.value, 10);
+  makeSeg(document.getElementById("typeSeg"), [["fuerza", "💪 Fuerza"], ["cardio", "🏃 Cardio / descanso"]], sel.type, (val) => {
+    if (val === sel.type) return;
+    const before = poolsOf(sel);
+    sel.type = val;
+    resetChangedSlots(sel, before);
     saveState();
     renderAll();
   });
-  extraRow.appendChild(extraSelect);
-  rowsEl.appendChild(extraRow);
 
-  const chosenExtra = EXTRAS[sel.extra] || EXTRAS[0];
-  totals.kcal += chosenExtra.kcal;
-  totals.p += chosenExtra.p;
-  totals.f += chosenExtra.f;
-  totals.c += chosenExtra.c;
+  const roles = dayRoles(sel);
+  const trainBox = document.getElementById("trainBox");
+  if (sel.type === "fuerza") {
+    const w = WHEN[sel.when];
+    const items = SLOTS.map(s => {
+      const r = roles[s] === "pre" || roles[s] === "post" ? roles[s] : "";
+      return `<span class="tl ${r}">${SLOT_LABELS[s]}${r ? " · " + r : ""}</span>`;
+    });
+    items.splice(w.pre ? SLOTS.indexOf(w.pre) + 1 : 0, 0, '<span class="tl train">🏋️ Entreno</span>');
+    const tip = w.pre
+      ? `Come la ${SLOT_LABELS[w.pre].toLowerCase()} 1–2 h antes de entrenar. Si al final pasan más de 3–4 h, toma un plátano o 2–3 tortitas de arroz 30–60 min antes.`
+      : "Si en ayunas te cuesta, toma un plátano o 2 tortitas de arroz 30 min antes. El desayuno será tu comida post-entreno.";
+    trainBox.innerHTML = `
+      <span class="label" style="margin-top:14px">¿Cuándo entrenas hoy?</span>
+      <div class="when-grid">${Object.entries(WHEN).map(([k, o]) => `<button type="button" class="when${sel.when === k ? " on" : ""}" data-when="${k}">${o.label}</button>`).join("")}</div>
+      <div class="timeline">${items.join('<span class="arrow">→</span>')}</div>
+      <div class="tip">💡 ${tip}</div>`;
+    trainBox.querySelectorAll("button[data-when]").forEach(b => b.addEventListener("click", () => {
+      if (b.dataset.when === sel.when) return;
+      const before = poolsOf(sel);
+      sel.when = b.dataset.when;
+      resetChangedSlots(sel, before);
+      saveState();
+      renderAll();
+    }));
+  } else {
+    trainBox.innerHTML = '<div class="tip">Día de cardio suave o descanso: menos hidratos y calorías, la misma proteína.</div>';
+  }
 
-  const totalEl = document.getElementById("dayTotal");
-  const rangeMin = sel.type === "fuerza" ? 2000 : 1800;
-  const rangeMax = sel.type === "fuerza" ? 2200 : 2000;
-  const inRange = totals.kcal >= rangeMin && totals.kcal <= rangeMax;
-  const anySelected = totals.kcal > 0;
-  totalEl.innerHTML = `
-    <div><span class="value">${totals.kcal}</span> kcal</div>
-    <div><span class="value">${totals.p}</span> P</div>
-    <div><span class="value">${totals.f}</span> G</div>
-    <div><span class="value">${totals.c}</span> C</div>
-    <div style="${totals.h > 3 ? 'color:var(--accent);font-weight:700' : ''}"><span class="value">${Math.round(totals.h * 10) / 10}</span> huevos</div>
-    <span class="status-pill ${anySelected ? (inRange ? 'ok' : 'warn') : ''}">
-      ${anySelected ? (inRange ? 'En rango' : 'Fuera de rango') : 'Sin elegir'}
-    </span>
-  `;
+  const cards = document.getElementById("mealCards");
+  cards.innerHTML = "";
+  SLOTS.forEach(slot => cards.appendChild(mealCard(slot, sel, roles[slot])));
+  cards.appendChild(extraCard(sel));
+  renderTotals(sel);
 }
 
-function renderAll() {
-  renderDayGrid();
-  renderPanel();
+function mealCard(slot, sel, role) {
+  const meal = getMealsForSlot(slot, sel)[sel[slot]];
+  const card = document.createElement("div");
+  card.className = "card meal";
+  const badge = ROLE_LABELS[role] ? `<span class="badge">${ROLE_LABELS[role]}</span>` : "";
+  const top = `<div class="meal-top"><span class="slot">${SLOT_LABELS[slot]}</span>${badge}${meal ? '<button class="btn small change">Cambiar</button>' : ""}</div>`;
+  if (!meal) {
+    card.innerHTML = top + `<button class="btn meal-empty">＋ Elegir ${SLOT_LABELS[slot].toLowerCase()}</button>`;
+    card.querySelector(".meal-empty").addEventListener("click", () => openPicker(slot));
+    return card;
+  }
+  const guide = ROLE_GUIDE[role];
+  const guideChip = guide ? (guide.check(meal) ? `<span class="chip ok">✓ ${guide.ok}</span>` : `<span class="chip warn">⚠ ${guide.bad}</span>`) : "";
+  const excluded = isExcluded(slot, meal);
+  card.innerHTML = top + `
+    <div class="meal-title">${excluded ? "🚫 " : ""}${esc(titleOf(meal))}</div>
+    <div class="meal-desc">${esc(descOf(meal))}</div>
+    <div class="chips">${macroChips(meal)}${meal.raw && state.prefs.suave ? '<span class="chip">🥗 lleva crudo</span>' : ""}</div>
+    ${guideChip ? `<div class="chips">${guideChip}</div>` : ""}
+    <details class="recipe"><summary>👩‍🍳 Receta</summary>
+      <p>${esc(PREP[titleOf(meal)] || "")}</p>
+      <ul>${ingredientList(meal.i)}</ul>
+      <button class="link" type="button">${excluded ? "✅ Volver a usar este plato" : "🚫 No me sienta bien (no usarlo al autocompletar)"}</button>
+    </details>`;
+  card.querySelector(".change").addEventListener("click", () => openPicker(slot));
+  card.querySelector("details .link").addEventListener("click", () => {
+    const key = excludeKey(slot, meal);
+    state.excluded = excluded ? state.excluded.filter(k => k !== key) : [...state.excluded, key];
+    combosCache = {};
+    saveState();
+    renderAll();
+    toast(excluded ? "Plato recuperado" : "Hecho: no saldrá al autocompletar");
+  });
+  return card;
 }
 
-document.getElementById("resetBtn").addEventListener("click", () => {
-  state = { selections: {} };
+function extraCard(sel) {
+  const extra = EXTRAS[sel.extra] || EXTRAS[0];
+  const card = document.createElement("div");
+  card.className = "card meal";
+  const top = `<div class="meal-top"><span class="slot">Extra / postre</span><span class="time">tras una comida</span>${sel.extra ? '<button class="btn small change">Cambiar</button>' : ""}</div>`;
+  if (!sel.extra) {
+    card.innerHTML = top + '<button class="btn meal-empty">＋ Añadir postre proteico o batido</button>';
+    card.querySelector(".meal-empty").addEventListener("click", () => openPicker("extra"));
+    return card;
+  }
+  card.innerHTML = top + `
+    <div class="meal-title">${esc(extra.label)}</div>
+    <div class="chips">${macroChips(extra)}</div>
+    ${extra.prep ? `<details class="recipe"><summary>👩‍🍳 Cómo se hace</summary><p>${esc(extra.prep)}</p></details>` : ""}`;
+  card.querySelector(".change").addEventListener("click", () => openPicker("extra"));
+  return card;
+}
+
+function renderTotals(sel) {
+  const t = dayTotals(sel);
+  const target = TARGETS[sel.type] || TARGETS.fuerza;
+  const anySelected = SLOTS.some(s => sel[s] >= 0);
+  const ok = inTarget(t, sel.type);
+  const mini = document.getElementById("miniTotal");
+  mini.className = "mini-total" + (anySelected ? (ok ? " ok" : " warn") : "");
+  mini.textContent = anySelected ? `${t.kcal} kcal${ok ? " ✓" : ""}` : "Sin menú";
+  const rows = [["Kcal", "kcal", ""], ["Proteína", "p", " g"], ["Grasa", "f", " g"], ["Hidratos", "c", " g"]];
+  const bars = rows.map(([label, k, unit]) => {
+    const [min, max] = target[k];
+    const pct = Math.min(100, (t[k] / max) * 100);
+    const cls = t[k] > max ? "over" : (t[k] >= min ? "ok" : "");
+    return `<div>${label}</div><div class="bar"><span class="${cls}" style="width:${pct}%"></span></div><div class="num">${t[k]}${unit} <small>/ ${min ? `${min}–${max}` : `≤${max}`}</small></div>`;
+  }).join("");
+  const lim = (v, max, text) => `<span class="${v > max ? "over" : ""}">${text}</span>`;
+  document.getElementById("dayTotal").innerHTML = `
+    <div class="bars">${bars}</div>
+    <div class="limits">${lim(t.h, 3, `🥚 ${t.h}/3 huevos`)}${lim(t.q, 40, `🧀 ${t.q}/40 g queso`)}${lim(t.j, 40, `🍖 ${t.j}/40 g jamón`)}</div>`;
+}
+
+// ---------- Selector de platos ----------
+function openPicker(slot) {
+  const sel = getDaySelection(currentDate);
+  const body = document.getElementById("sheetBody");
+  const isExtra = slot === "extra";
+  const role = isExtra ? null : dayRoles(sel)[slot];
+  document.getElementById("sheetTitle").innerHTML = isExtra
+    ? `Extra / postre<span class="sub">Mejor justo después de una comida</span>`
+    : `${SLOT_LABELS[slot]}${ROLE_LABELS[role] ? ` · ${ROLE_LABELS[role]}` : ""}<span class="sub">«Día» indica cómo quedaría el total con cada plato</span>`;
+  const options = isExtra ? EXTRAS : getMealsForSlot(slot, sel);
+  const items = options.map((meal, idx) => ({ meal, idx, excluded: !isExtra && isExcluded(slot, meal) }))
+    .sort((a, b) => a.excluded - b.excluded);
+  body.innerHTML = "";
+  if (!isExtra && sel[slot] >= 0) {
+    const clear = document.createElement("button");
+    clear.className = "btn ghost";
+    clear.style.width = "100%";
+    clear.style.marginBottom = "10px";
+    clear.textContent = "Quitar este plato";
+    clear.addEventListener("click", () => choose(slot, -1));
+    body.appendChild(clear);
+  }
+  const guide = ROLE_GUIDE[role];
+  items.forEach(({ meal, idx, excluded }) => {
+    const current = isExtra ? sel.extra === idx : sel[slot] === idx;
+    const proj = dayTotals(sel, { [slot]: idx });
+    const fits = inTarget(proj, sel.type);
+    const btn = document.createElement("button");
+    btn.className = "opt" + (current ? " current" : "") + (excluded ? " excluded" : "");
+    btn.innerHTML = `
+      <div class="t">${excluded ? "🚫 " : ""}${esc(isExtra ? meal.label : titleOf(meal))}</div>
+      ${isExtra ? "" : `<div class="d">${esc(descOf(meal))}</div>`}
+      <div class="chips">${idx || !isExtra ? macroChips(meal) : ""}
+        <span class="chip ${fits ? "ok" : ""}">Día: ${proj.kcal} kcal · P ${proj.p}${fits ? " ✓" : ""}</span>
+        ${guide && !guide.check(meal) ? '<span class="chip warn">⚠ no ideal</span>' : ""}
+        ${meal.raw && state.prefs.suave ? '<span class="chip">🥗 crudo</span>' : ""}</div>`;
+    btn.addEventListener("click", () => choose(slot, idx));
+    body.appendChild(btn);
+  });
+  document.getElementById("sheet").hidden = false;
+  document.body.style.overflow = "hidden";
+  body.scrollTop = 0;
+}
+function closePicker() {
+  document.getElementById("sheet").hidden = true;
+  document.body.style.overflow = "";
+}
+function choose(slot, idx) {
+  const sel = getDaySelection(currentDate);
+  sel[slot] = idx;
+  saveState();
+  closePicker();
+  renderAll();
+}
+document.getElementById("sheetClose").addEventListener("click", closePicker);
+document.getElementById("sheetBackdrop").addEventListener("click", closePicker);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePicker(); });
+
+// ---------- Autocompletar ----------
+let combosCache = {};
+function generateValidCombos(day) {
+  const roles = dayRoles(day);
+  const cacheKey = day.type + "|" + SLOTS.map(s => roles[s]).join(",");
+  if (combosCache[cacheKey]) return combosCache[cacheKey];
+  const lists = SLOTS.map(slot => getMealsForSlot(slot, day).map((meal, idx) => ({ meal, idx })).filter(o => !isExcluded(slot, o.meal)));
+  const [d, c, m, n] = lists;
+  const t = TARGETS[day.type];
+  const combos = [];
+  for (const a of d) for (const b of c) for (const e of m) for (const g of n) {
+    const kcal0 = a.meal.kcal + b.meal.kcal + e.meal.kcal + g.meal.kcal;
+    if (kcal0 > t.kcal[1]) continue;
+    // máx. 3 huevos enteros, 40 g de queso curado y 40 g de jamón al día
+    const h0 = a.meal.h + b.meal.h + e.meal.h + g.meal.h;
+    if (h0 > 3) continue;
+    if (a.meal.q + b.meal.q + e.meal.q + g.meal.q > 40) continue;
+    if (a.meal.j + b.meal.j + e.meal.j + g.meal.j > 40) continue;
+    for (let ex = 0; ex < EXTRAS.length; ex++) {
+      const x = EXTRAS[ex];
+      const kcal = kcal0 + x.kcal;
+      const p = a.meal.p + b.meal.p + e.meal.p + g.meal.p + x.p;
+      const f = a.meal.f + b.meal.f + e.meal.f + g.meal.f + x.f;
+      const ch = a.meal.c + b.meal.c + e.meal.c + g.meal.c + x.c;
+      if (kcal >= t.kcal[0] && kcal <= t.kcal[1] && p >= t.p[0] && p <= t.p[1] && f <= t.f[1] && ch >= t.c[0] && ch <= t.c[1] && h0 + x.h <= 3) {
+        combos.push({ desayuno: a.idx, comida: b.idx, merienda: e.idx, cena: g.idx, extra: ex });
+      }
+    }
+  }
+  combosCache[cacheKey] = combos;
+  return combos;
+}
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// Entre las combinaciones válidas, elige la que menos repite platos (y no repite los de ayer)
+function pickCombo(day, usage, prev, rand) {
+  const pool = generateValidCombos(day);
+  if (!pool.length) return null;
+  let best = null, bestScore = Infinity;
+  for (let i = 0; i < 800; i++) {
+    const cmb = pool[Math.floor(rand() * pool.length)];
+    let score = rand();
+    SLOTS.forEach(sl => {
+      const meal = getMealsForSlot(sl, day)[cmb[sl]];
+      const title = titleOf(meal);
+      score += (usage[title] || 0) * 10;
+      if (prev && prev.includes(title)) score += 100;
+      if (state.prefs.suave) {
+        if (meal.raw) score += 4;                     // verdura cocinada mejor que ensalada cruda
+        if (sl === "cena" && meal.f > 15) score += 4; // cenas con menos grasa
+      }
+    });
+    if (cmb.extra) score += 1;
+    if (score < bestScore) { bestScore = score; best = cmb; }
+  }
+  return best;
+}
+
+function titlesOfDay(sel) {
+  if (!sel) return [];
+  return SLOTS.filter(s => sel[s] >= 0).map(s => {
+    const meal = getMealsForSlot(s, sel)[sel[s]];
+    return meal ? titleOf(meal) : null;
+  }).filter(Boolean);
+}
+
+function applyCombo(dateIso, day, cmb) {
+  state.selections[dateIso] = { type: day.type, when: day.when, desayuno: cmb.desayuno, comida: cmb.comida, merienda: cmb.merienda, cena: cmb.cena, extra: cmb.extra };
+}
+
+document.getElementById("autofillBtn").addEventListener("click", () => {
+  const dim = daysInMonth(viewYear, viewMonth);
+  const keys = Array.from({ length: dim }, (_, i) => iso(new Date(viewYear, viewMonth, i + 1)));
+  if (keys.some(isDayFilled) && !confirm(`¿Rehacer el menú de ${MONTHS[viewMonth]}? Se sustituirán los días ya elegidos y se aplicará tu plan semanal.`)) return;
+  const rand = mulberry32(Date.now() % 100000); // cada pulsación da un mes distinto
+  const usage = {};
+  let prev = titlesOfDay(state.selections[iso(addDays(fromIso(keys[0]), -1))]);
+  let failed = 0;
+  keys.forEach(key => {
+    const day = weeklyFor(key);
+    const cmb = pickCombo(day, usage, prev, rand);
+    if (!cmb) { failed++; return; }
+    applyCombo(key, day, cmb);
+    prev = titlesOfDay(state.selections[key]);
+    prev.forEach(t => { usage[t] = (usage[t] || 0) + 1; });
+  });
+  saveState();
+  renderAll();
+  if (failed) alert(`No hay combinaciones válidas para ${failed} días: quizá has descartado demasiados platos.`);
+  else toast(`Menú de ${MONTHS[viewMonth]} listo ✓`);
+});
+
+document.getElementById("autofillDayBtn").addEventListener("click", () => {
+  const sel = getDaySelection(currentDate);
+  const usage = {};
+  // cuenta lo usado en los días de alrededor para variar
+  for (let i = -3; i <= 3; i++) {
+    if (i) titlesOfDay(state.selections[iso(addDays(fromIso(currentDate), i))]).forEach(t => { usage[t] = (usage[t] || 0) + 1; });
+  }
+  titlesOfDay(sel).forEach(t => { usage[t] = (usage[t] || 0) + 3; }); // que cambie respecto a lo que hay
+  const prev = titlesOfDay(state.selections[iso(addDays(fromIso(currentDate), -1))]);
+  const cmb = pickCombo(sel, usage, prev, mulberry32(Date.now() % 100000));
+  if (!cmb) { alert("No hay combinaciones válidas para este tipo de día."); return; }
+  applyCombo(currentDate, sel, cmb);
   saveState();
   renderAll();
 });
 
+document.getElementById("clearDayBtn").addEventListener("click", () => {
+  const sel = getDaySelection(currentDate);
+  SLOTS.forEach(s => { sel[s] = -1; });
+  sel.extra = 0;
+  saveState();
+  renderAll();
+});
+
+function moveMonth(delta) {
+  const d = new Date(viewYear, viewMonth + delta, 1);
+  viewYear = d.getFullYear();
+  viewMonth = d.getMonth();
+  currentDate = iso(d);
+  renderAll();
+}
+document.getElementById("prevMonth").addEventListener("click", () => moveMonth(-1));
+document.getElementById("nextMonth").addEventListener("click", () => moveMonth(1));
+document.getElementById("todayBtn").addEventListener("click", () => {
+  currentDate = today;
+  viewYear = new Date().getFullYear();
+  viewMonth = new Date().getMonth();
+  renderAll();
+});
+
+// ---------- Lista de la compra ----------
+const CAT_ORDER = ["Fruta y verdura", "Carne y pescado", "Huevos y lácteos", "Conservas", "Despensa"];
+const fmtWeight = (g) => g >= 1000 ? `${(g / 1000).toFixed(2).replace(".", ",").replace(/0$/, "")} kg` : `${Math.ceil(g / 10) * 10} g`;
+
+function buildShopping() {
+  const from = document.getElementById("shopFrom").value || today;
+  const days = parseInt(document.getElementById("shopDays").value, 10);
+  const totals = {};
+  let missing = 0;
+  for (let i = 0; i < days; i++) {
+    const key = iso(addDays(fromIso(from), i));
+    const sel = state.selections[key];
+    if (!isDayFilled(key)) { missing++; continue; }
+    const add = (ing) => ing.forEach(([k, a]) => { totals[k] = (totals[k] || 0) + a; });
+    SLOTS.forEach(slot => {
+      const meal = sel[slot] >= 0 && getMealsForSlot(slot, sel)[sel[slot]];
+      if (meal) add(meal.i);
+    });
+    add((EXTRAS[sel.extra] || EXTRAS[0]).i);
+  }
+  const items = Object.entries(totals).filter(([, a]) => a > 0).map(([k, a]) => {
+    const food = FOODS[k];
+    let qty, sub = "";
+    if (food.unit) qty = `${Math.ceil(a)} ud.`;
+    else if (k === "leche") qty = `${(a / 1000).toFixed(1).replace(".", ",")} L`;
+    else if (food.raw) { qty = fmtWeight(a * food.raw); sub = `${fmtWeight(a)} cocinado`; }
+    else qty = fmtWeight(a);
+    return { key: k, name: food.n.replace(" (ml)", ""), cat: food.cat, qty, sub };
+  });
+  return { items, missing, days, from };
+}
+
+function renderShopping() {
+  const input = document.getElementById("shopFrom");
+  if (!input.value) input.value = today;
+  const { items, missing, days, from } = buildShopping();
+  const to = iso(addDays(fromIso(from), days - 1));
+  document.getElementById("shopInfo").textContent = `Del ${longDate(from).toLowerCase()} al ${longDate(to).toLowerCase()}.` +
+    (missing ? ` ⚠️ ${missing} día(s) sin menú: autocompleta el mes para incluirlos.` : "");
+  const list = document.getElementById("shopList");
+  if (!items.length) { list.innerHTML = '<div class="card empty">No hay comidas elegidas en estas fechas.</div>'; return; }
+  list.innerHTML = CAT_ORDER.map(cat => {
+    const its = items.filter(i => i.cat === cat).sort((a, b) => a.name.localeCompare(b.name, "es"));
+    if (!its.length) return "";
+    return `<div class="card shop-cat"><h3>${cat}</h3>` + its.map(i => `
+      <label class="shop-item${state.shopChecked[i.key] ? " done" : ""}">
+        <input type="checkbox" data-key="${i.key}"${state.shopChecked[i.key] ? " checked" : ""}>
+        <span class="name">${esc(i.name)}</span>
+        <span class="qty">${i.qty}${i.sub ? `<small>${i.sub}</small>` : ""}</span>
+      </label>`).join("") + "</div>";
+  }).join("");
+  list.querySelectorAll("input[data-key]").forEach(cb => cb.addEventListener("change", () => {
+    if (cb.checked) state.shopChecked[cb.dataset.key] = true; else delete state.shopChecked[cb.dataset.key];
+    saveState();
+    renderShopping();
+  }));
+}
+
+document.getElementById("shopFrom").addEventListener("change", renderShopping);
+document.getElementById("shopDays").addEventListener("change", renderShopping);
+document.getElementById("uncheckShopBtn").addEventListener("click", () => { state.shopChecked = {}; saveState(); renderShopping(); });
+document.getElementById("copyShopBtn").addEventListener("click", async () => {
+  const { items } = buildShopping();
+  const text = "🛒 Lista de la compra\n" + CAT_ORDER.map(cat => {
+    const its = items.filter(i => i.cat === cat && !state.shopChecked[i.key]);
+    return its.length ? `\n${cat}\n` + its.map(i => `- ${i.name}: ${i.qty}`).join("\n") : "";
+  }).join("");
+  try { await navigator.clipboard.writeText(text); toast("Lista copiada: pégala en notas o WhatsApp"); }
+  catch (e) { prompt("Copia la lista:", text); }
+});
+
+// ---------- Diario ----------
+const SYMPTOMS = [["hinchazon", "Hinchazón"], ["malestar", "Pesadez / malestar"], ["cansancio", "Cansancio"], ["gases", "Gases"], ["dolor", "Dolor abdominal"]];
+const SYMPTOM_MAX = SYMPTOMS.length * 3;
+const LEVELS = ["No", "Leve", "Medio", "Fuerte"];
+const HABITS = [
+  ["paseo", "🚶 Paseo de 10–15 min tras comer o cenar"],
+  ["espaciar", "⏱️ Sin picar entre comidas (4–5 h)"],
+  ["despacio", "🍽️ He comido despacio, masticando"],
+  ["agua", "💧 2 L de agua o más"],
+  ["cena", "🌙 Cena ligera, 3 h antes de dormir"],
+  ["kiwi", "🥝 2 kiwis (si hay estreñimiento)"]
+];
+const BRISTOL = [
+  "—",
+  "1 · Bolitas duras separadas (estreñimiento fuerte)",
+  "2 · Salchicha con grumos (estreñimiento)",
+  "3 · Salchicha con grietas (normal)",
+  "4 · Lisa y blanda (ideal)",
+  "5 · Trozos blandos (algo suelta)",
+  "6 · Pastosa (diarrea leve)",
+  "7 · Líquida (diarrea)"
+];
+const symptomScore = (e) => e ? SYMPTOMS.reduce((sum, [k]) => sum + (e[k] || 0), 0) : null;
+const emptyEntry = () => ({ hinchazon: 0, malestar: 0, cansancio: 0, gases: 0, dolor: 0, deposiciones: 0, bristol: 0, habits: {}, notas: "" });
+
+function renderDiary() {
+  const dateInput = document.getElementById("diaryDate");
+  if (!dateInput.value) dateInput.value = currentDate;
+  const key = dateInput.value;
+  const entry = Object.assign(emptyEntry(), state.diary[key]);
+  const save = (field, value) => {
+    state.diary[key] = Object.assign(emptyEntry(), state.diary[key], { [field]: value });
+    saveState();
+  };
+
+  const symptoms = document.getElementById("diarySymptoms");
+  symptoms.innerHTML = `<h2>¿Cómo te has sentido?</h2>${state.diary[key] ? "" : '<div class="small muted" style="margin:-6px 0 12px">Toca cualquier valor para guardar el día.</div>'}`;
+  SYMPTOMS.forEach(([field, label]) => {
+    const wrap = document.createElement("div");
+    wrap.className = "field";
+    wrap.innerHTML = `<span class="label">${label}</span>`;
+    const scale = document.createElement("div");
+    scale.className = "scale";
+    LEVELS.forEach((l, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = `l${i}` + (state.diary[key] && entry[field] === i ? " on" : "");
+      b.textContent = l;
+      b.addEventListener("click", () => { save(field, i); renderDiary(); });
+      scale.appendChild(b);
+    });
+    wrap.appendChild(scale);
+    symptoms.appendChild(wrap);
+  });
+
+  const bowel = document.getElementById("diaryBowel");
+  bowel.innerHTML = `
+    <h2>Deposiciones</h2>
+    <div class="field"><span class="label">Veces hoy</span>
+      <div class="stepper"><button class="btn" data-d="-1" aria-label="Una menos">−</button><span class="val">${entry.deposiciones}</span><button class="btn" data-d="1" aria-label="Una más">＋</button></div></div>
+    <div><label class="label" for="bristol">Tipo (escala de Bristol)</label>
+      <select id="bristol">${BRISTOL.map((b, i) => `<option value="${i}"${entry.bristol === i ? " selected" : ""}>${b}</option>`).join("")}</select></div>`;
+  bowel.querySelectorAll("button[data-d]").forEach(b => b.addEventListener("click", () => {
+    save("deposiciones", Math.max(0, entry.deposiciones + Number(b.dataset.d)));
+    renderDiary();
+  }));
+  bowel.querySelector("#bristol").addEventListener("change", (e) => { save("bristol", parseInt(e.target.value, 10)); renderDiaryHistory(); });
+
+  const habits = document.getElementById("diaryHabits");
+  habits.innerHTML = "<h2>Hábitos que ayudan</h2>" + HABITS.map(([k, l]) =>
+    `<label class="habit"><input type="checkbox" data-h="${k}"${entry.habits[k] ? " checked" : ""}><span>${l}</span></label>`).join("");
+  habits.querySelectorAll("input[data-h]").forEach(cb => cb.addEventListener("change", () => {
+    save("habits", Object.assign({}, entry.habits, { [cb.dataset.h]: cb.checked }));
+    renderDiary();
+  }));
+
+  const notes = document.getElementById("diaryNotes");
+  notes.innerHTML = `<label class="label" for="notesArea">Notas</label><textarea id="notesArea" placeholder="Comidas fuera del menú, estrés, sueño, medicación…">${esc(entry.notas || "")}</textarea>`;
+  notes.querySelector("textarea").addEventListener("input", (e) => save("notas", e.target.value));
+  notes.querySelector("textarea").addEventListener("change", renderDiaryHistory);
+
+  renderDiaryHistory();
+}
+
+function renderDiaryHistory() {
+  const rows = [];
+  for (let i = 0; i < 14; i++) {
+    const key = iso(addDays(fromIso(today), -i));
+    const e = state.diary[key];
+    if (!e) continue;
+    const s = symptomScore(e);
+    const habitsDone = Object.values(e.habits || {}).filter(Boolean).length;
+    rows.push(`<div class="hist"><span class="score ${s <= 3 ? "ok" : (s >= 8 ? "bad" : "")}">${s}/${SYMPTOM_MAX}</span>
+      <div><strong>${longDate(key)}</strong><div class="small muted">💩 ${e.deposiciones || 0}${e.bristol ? ` · Bristol ${e.bristol}` : ""} · ✅ ${habitsDone} hábitos${e.notas ? ` · ${esc(e.notas)}` : ""}</div></div></div>`);
+  }
+  document.getElementById("diaryHistory").innerHTML = rows.length ? rows.join("") : '<div class="empty">Todavía no has apuntado nada.</div>';
+  renderSuspects();
+}
+
+function renderSuspects() {
+  const stats = {};
+  let total = 0, n = 0;
+  Object.keys(state.diary).forEach(key => {
+    const sToday = symptomScore(state.diary[key]);
+    const sNext = symptomScore(state.diary[iso(addDays(fromIso(key), 1))]);
+    const score = sNext === null ? sToday : Math.max(sToday, sNext);
+    total += score; n++;
+    titlesOfDay(state.selections[key]).forEach(t => {
+      stats[t] = stats[t] || { sum: 0, n: 0 };
+      stats[t].sum += score;
+      stats[t].n++;
+    });
+  });
+  const el = document.getElementById("diarySuspects");
+  if (n < 5) { el.innerHTML = `<div class="empty">Apunta al menos 5 días (llevas ${n}) para ver comparaciones.</div>`; return; }
+  const avg = total / n;
+  const list = Object.entries(stats)
+    .filter(([, s]) => s.n >= 2 && s.sum / s.n >= avg + 1)
+    .sort((a, b) => b[1].sum / b[1].n - a[1].sum / a[1].n)
+    .slice(0, 6);
+  el.innerHTML = `<div class="small muted" style="margin-top:8px">Tu media: ${avg.toFixed(1)}/${SYMPTOM_MAX}.</div>` + (list.length
+    ? list.map(([t, s]) => `<div class="hist"><span class="score bad">${(s.sum / s.n).toFixed(1)}</span><div><strong>${esc(t)}</strong><div class="small muted">${s.n} veces</div></div></div>`).join("")
+    : '<div class="empty">Ningún plato destaca por encima de tu media. 👍</div>');
+}
+
+document.getElementById("diaryDate").addEventListener("change", (e) => {
+  if (e.target.value) currentDate = e.target.value;
+  renderDiary();
+});
+
+// ---------- Más: ajustes ----------
+function renderSettings() {
+  const grid = document.getElementById("weekGrid");
+  grid.innerHTML = "";
+  [1, 2, 3, 4, 5, 6, 0].forEach(wd => {
+    const w = state.weekly[wd];
+    const label = document.createElement("div");
+    label.textContent = WEEKDAYS[wd][0].toUpperCase() + WEEKDAYS[wd].slice(1);
+    const select = document.createElement("select");
+    select.setAttribute("aria-label", "Entreno del " + WEEKDAYS[wd]);
+    const current = w.type === "cardio" ? "cardio" : w.when;
+    select.innerHTML = Object.entries(WHEN).map(([k, o]) => `<option value="${k}"${current === k ? " selected" : ""}>💪 ${o.long}</option>`).join("")
+      + `<option value="cardio"${current === "cardio" ? " selected" : ""}>🏃 Cardio suave / descanso</option>`;
+    select.addEventListener("change", (e) => {
+      if (e.target.value === "cardio") w.type = "cardio";
+      else { w.type = "fuerza"; w.when = e.target.value; }
+      saveState();
+    });
+    grid.append(label, select);
+  });
+
+  const suave = document.getElementById("suaveToggle");
+  suave.checked = !!state.prefs.suave;
+  suave.onchange = () => { state.prefs.suave = suave.checked; saveState(); };
+
+  const list = document.getElementById("excludedList");
+  if (!state.excluded.length) list.innerHTML = '<div class="empty">Ninguno por ahora.</div>';
+  else {
+    list.innerHTML = state.excluded.map((k, i) => {
+      const [slot, title] = k.split("|");
+      return `<div class="shop-item"><span class="name">${esc(SLOT_LABELS[slot] || slot)}: ${esc(title)}</span><span class="qty"><button class="link" data-i="${i}">Quitar</button></span></div>`;
+    }).join("");
+    list.querySelectorAll("button[data-i]").forEach(btn => btn.addEventListener("click", () => {
+      state.excluded.splice(Number(btn.dataset.i), 1);
+      combosCache = {};
+      saveState();
+      renderSettings();
+    }));
+  }
+
+  const limited = Object.values(FOODS).filter(f => f.lim).sort((a, b) => a.n.localeCompare(b.n, "es"));
+  document.getElementById("limitsTable").innerHTML = `<table><tr><th>Alimento</th><th>Máx. por toma</th></tr>${limited.map(f => `<tr><td>${esc(f.n)}</td><td>${f.lim} g</td></tr>`).join("")}</table>`;
+  document.getElementById("freeFoods").innerHTML = Object.entries(FOODS)
+    .filter(([k, f]) => !f.lim && !["limon", "gelatina", "proteina", "galletas", "mayonesa", "sirope", "maicena"].includes(k))
+    .map(([, f]) => `<span class="chip">${esc(f.n.replace(" (ml)", ""))}</span>`).join("");
+}
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (!confirm(`¿Borrar el menú de ${MONTHS[viewMonth]} ${viewYear}? El diario no se toca.`)) return;
+  const prefix = `${viewYear}-${pad(viewMonth + 1)}-`;
+  Object.keys(state.selections).forEach(k => { if (k.startsWith(prefix)) delete state.selections[k]; });
+  saveState();
+  toast("Menú del mes borrado");
+});
+
 document.getElementById("exportBtn").addEventListener("click", () => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY) || JSON.stringify(state);
-    const blob = new Blob([raw], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(state)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    const fecha = new Date().toISOString().slice(0, 10);
     a.href = url;
-    a.download = `menu-mensual-${fecha}.json`;
+    a.download = `menu-mensual-${today}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -1382,15 +1392,13 @@ document.getElementById("importInput").addEventListener("change", (e) => {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      const parsed = JSON.parse(reader.result);
-      if (!parsed || typeof parsed !== "object" || !parsed.selections) {
-        throw new Error("El archivo no tiene el formato esperado");
-      }
+      const parsed = normalizeState(JSON.parse(reader.result));
+      if (!parsed) throw new Error("El archivo no tiene el formato esperado");
       state = parsed;
+      combosCache = {};
       saveState();
-      currentDay = 1;
       renderAll();
-      alert("Datos importados correctamente.");
+      toast("Datos importados ✓");
     } catch (err) {
       alert("No se pudo importar: " + err.message);
     } finally {
@@ -1401,100 +1409,16 @@ document.getElementById("importInput").addEventListener("change", (e) => {
   reader.readAsText(file);
 });
 
-function generateValidCombos(type, momento) {
-  const d = getMealsForSlot("desayuno", type, momento);
-  const c = getMealsForSlot("comida", type, momento);
-  const m = getMealsForSlot("merienda", type, momento);
-  const n = getMealsForSlot("cena", type, momento);
-  const fuerza = type === "fuerza";
-  const kMin = fuerza ? 2000 : 1800, kMax = fuerza ? 2200 : 2000;
-  const cMin = fuerza ? 190 : 140, cMax = fuerza ? 225 : 170;
-  const combos = [];
-  for (let di = 0; di < d.length; di++)
-    for (let ci = 0; ci < c.length; ci++)
-      for (let mi = 0; mi < m.length; mi++)
-        for (let ni = 0; ni < n.length; ni++)
-          for (let ex = 0; ex < EXTRAS.length; ex++) {
-            const x = EXTRAS[ex];
-            const kcal = d[di].kcal + c[ci].kcal + m[mi].kcal + n[ni].kcal + x.kcal;
-            const p = d[di].p + c[ci].p + m[mi].p + n[ni].p + x.p;
-            const f = d[di].f + c[ci].f + m[mi].f + n[ni].f + x.f;
-            const ch = d[di].c + c[ci].c + m[mi].c + n[ni].c + x.c;
-            const h = d[di].h + c[ci].h + m[mi].h + n[ni].h;
-            const q = d[di].q + c[ci].q + m[mi].q + n[ni].q;
-            const j = d[di].j + c[ci].j + m[mi].j + n[ni].j;
-            // Solo combinaciones que cumplen TODOS los objetivos del día
-            // (máx. 3 huevos enteros, 40 g de queso curado y 40 g de jamón al día)
-            if (kcal >= kMin && kcal <= kMax && p >= 190 && p <= 215 && f <= 70 && ch >= cMin && ch <= cMax && h <= 3 && q <= 40 && j <= 40) {
-              combos.push({ desayuno: di, comida: ci, merienda: mi, cena: ni, extra: ex });
-            }
-          }
-  return combos;
+function renderAll() {
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === currentTab));
+  document.querySelectorAll(".view").forEach(v => { v.hidden = v.id !== "view-" + currentTab; });
+  if (currentTab === "menu") {
+    renderDayGrid();
+    renderPanel();
+  } else if (currentTab === "compra") renderShopping();
+  else if (currentTab === "diario") renderDiary();
+  else if (currentTab === "mas") renderSettings();
 }
-
-function mulberry32(a) {
-  return function () {
-    a |= 0; a = a + 0x6D2B79F5 | 0;
-    let t = Math.imul(a ^ a >>> 15, 1 | a);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-
-document.getElementById("autofillBtn").addEventListener("click", () => {
-  const rand = mulberry32(Date.now() % 100000); // cada pulsación da un mes distinto
-  const shuffle = (arr) => {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  };
-  const pools = {
-    fuerza: shuffle(generateValidCombos("fuerza", "manana")), // Mañana es el patrón habitual por defecto
-    cardio: shuffle(generateValidCombos("cardio", null))
-  };
-  const slots = ["desayuno", "comida", "merienda", "cena"];
-  const titleOf = (slot, type, momento, idx) => getMealsForSlot(slot, type, momento)[idx].name.split(" — ")[0];
-  const usage = {};
-  let prev = null;
-  for (let d = 1; d <= DAYS; d++) {
-    const type = d % 4 === 0 ? "cardio" : "fuerza";
-    const momento = "manana";
-    const pool = pools[type];
-    if (pool.length === 0) continue;
-    // Entre las combinaciones válidas, elige la que menos repite platos (y no repite el de ayer)
-    let best = null, bestScore = Infinity;
-    const limit = Math.min(pool.length, 600);
-    for (let i = 0; i < limit; i++) {
-      const cmb = pool[i];
-      let score = 0;
-      slots.forEach(sl => {
-        const t = titleOf(sl, type, momento, cmb[sl]);
-        score += (usage[sl + t] || 0) * 10;
-        if (prev && prev[sl] === t) score += 100;
-      });
-      if (score < bestScore) { bestScore = score; best = cmb; }
-    }
-    prev = {};
-    slots.forEach(sl => {
-      const t = titleOf(sl, type, momento, best[sl]);
-      usage[sl + t] = (usage[sl + t] || 0) + 1;
-      prev[sl] = t;
-    });
-    state.selections[d] = {
-      type: type,
-      momento: momento,
-      desayuno: best.desayuno,
-      comida: best.comida,
-      merienda: best.merienda,
-      cena: best.cena,
-      extra: best.extra
-    };
-  }
-  saveState();
-  renderAll();
-});
 
 loadState();
 renderAll();

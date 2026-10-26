@@ -5,12 +5,22 @@ App de menú mensual interactivo (dieta con macros) en HTML/CSS/JS puro, sin dep
 ## Estructura
 
 ```
-index.html              # app completa (UI + lógica)
+index.html              # app (UI + lógica): Menú, Compra, Diario y Guía
+foods.js                 # tabla de alimentos (macros por 100 g, pasillo, ración máx. baja en FODMAP)
+data.js                  # platos por franja/rol (con ingredientes) y extras/postres proteicos
+prep.js                  # «Cómo se hace» de cada plato (por título)
 manifest.webmanifest     # metadatos de instalación (PWA)
-service-worker.js        # cache offline (cache-first)
-icons/icon-192.png       # icono de instalación
-icons/icon-512.png       # icono de instalación
+service-worker.js        # caché offline (red primero, caché si no hay conexión)
+icons/                   # iconos de instalación
 ```
+
+## Funciones
+
+- **Menú** (pensado para móvil): calendario por meses, tarjetas por comida con receta, selector a pantalla completa que muestra cómo quedaría el total del día con cada plato, autocompletar mes o día y barras de objetivo diario.
+- **Cuándo entrenas**: cada día eliges entre qué comidas entrenas (en ayunas, desayuno→comida, comida→merienda o merienda→cena), sin horas fijas. La app marca la comida pre-entreno y la post-entreno, usa platos adecuados para cada una y avisa si un plato no es ideal.
+- **Compra**: lista agrupada por pasillo para N días, con cantidades en crudo para carnes, pescados y cereales; se puede marcar y copiar.
+- **Diario**: hinchazón, pesadez, cansancio, gases y dolor (0-3), deposiciones y escala de Bristol, hábitos (paseo tras comer, no picar, agua…), notas, historial de 14 días y «platos a vigilar».
+- **Más**: plan semanal de entreno, modo digestión suave, platos descartados, copia de seguridad y guía SIBO/IMO.
 
 ## Cómo desplegar
 
@@ -28,16 +38,12 @@ icons/icon-512.png       # icono de instalación
 
 Abre la URL desplegada en Chrome/Safari → menú del navegador → "Añadir a pantalla de inicio" / "Instalar app". Con el service worker activo, la app sigue funcionando sin conexión tras la primera carga.
 
-## Cómo editar los alimentos y macros
+## Cómo editar los alimentos y platos
 
-Todo el contenido nutricional vive en `index.html`, dentro de la etiqueta `<script>`, en estos objetos:
-
-- `MEALS_COMMON.desayuno` / `MEALS_COMMON.merienda`: opciones de desayuno y merienda para días normales/cardio.
-- `MEALS_BY_TYPE.fuerza.comida` / `.cena` y `MEALS_BY_TYPE.cardio.comida` / `.cena`: comidas y cenas según el tipo de día.
-- `PRE_POOL`: comidas ligeras pre-entreno (días de fuerza).
-- `EXTRAS`: batidos/postres proteicos opcionales.
-
-Cada plato es un objeto `{ name, kcal, p, f, c }` (nombre, kilocalorías, proteína, grasa, carbohidratos en gramos). Para añadir, editar o quitar un plato, modifica el array correspondiente respetando ese formato.
+- `foods.js`: cada alimento lleva `kcal, p, f, c` por 100 g (o por unidad si `unit: true`), `cat` (pasillo), `lim` (ración máxima baja en FODMAP) y `raw` (factor cocinado→crudo para la compra).
+- `data.js`: `POOLS[franja][rol]` con roles `normal`, `pre`, `post` y `cardio` (desayuno, comida y merienda tienen `pre` y `post`; la cena, `post`). Cada plato es `{ name, i: [[alimento, cantidad], ...] }`; las kcal y macros se calculan solas. Añade platos **al final** de cada lista: los días guardados se referencian por posición.
+- `EXTRAS`: batidos y postres proteicos; `prep` es el texto de «Cómo se hace».
+- `prep.js`: receta corta de cada plato, por su título. Si añades un plato nuevo, añade aquí su receta.
 
 ## Exportar / importar datos
 
