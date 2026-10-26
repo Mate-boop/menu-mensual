@@ -2172,9 +2172,20 @@ renderAll();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js").catch((err) => {
+    navigator.serviceWorker.register("./service-worker.js").then((reg) => {
+      // Al volver a la app (sigue abierta en segundo plano) busca si hay versión nueva
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") reg.update(); });
+    }).catch((err) => {
       console.error("Error al registrar el service worker:", err);
     });
+  });
+  // Cuando se instala una versión nueva, recarga para verla sin tener que cerrar la app
+  let reloading = false;
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloading) return;
+    reloading = true;
+    location.reload();
   });
 }
 </script>
