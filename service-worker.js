@@ -1,4 +1,4 @@
-const CACHE_NAME = "menu-mensual-cache-v3";
+const CACHE_NAME = "menu-mensual-cache-v4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,6 +6,8 @@ const ASSETS = [
   "./data.js",
   "./prep.js",
   "./manifest.webmanifest",
+  "./icons/logo.svg",
+  "./icons/apple-touch-icon.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];
