@@ -132,6 +132,7 @@
     display: flex;
     justify-content: center;
     gap: 4px;
+    background: var(--surface); /* respaldo para navegadores sin color-mix */
     background: color-mix(in srgb, var(--surface) 92%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -371,7 +372,7 @@
     cursor: pointer;
     font-family: inherit;
   }
-  .opt.current { border-color: var(--primary); background: color-mix(in srgb, var(--primary-soft) 45%, var(--surface)); }
+  .opt.current { border-color: var(--primary); background: var(--surface); background: color-mix(in srgb, var(--primary-soft) 45%, var(--surface)); }
   .opt.excluded { opacity: 0.55; }
   .opt .t { font-weight: 800; font-size: 0.96rem; line-height: 1.3; }
   .opt .d { font-size: 0.78rem; color: var(--muted); margin-top: 3px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -404,7 +405,7 @@
   .scale button.on { color: #fff; border-color: transparent; }
   .scale button.on.l0 { background: var(--primary); color: var(--on-primary); }
   .scale button.on.l1 { background: var(--warn); }
-  .scale button.on.l2 { background: color-mix(in srgb, var(--accent) 80%, var(--warn)); }
+  .scale button.on.l2 { background: var(--accent); background: color-mix(in srgb, var(--accent) 80%, var(--warn)); }
   .scale button.on.l3 { background: var(--accent); }
   .habit { display: flex; align-items: center; gap: 12px; min-height: 48px; border-bottom: 1px solid var(--border); font-size: 0.92rem; cursor: pointer; }
   .habit:last-child { border-bottom: none; }
@@ -613,7 +614,7 @@
     <h3>Libres en cantidades normales</h3>
     <div class="chips" id="freeFoods"></div>
     <h3>Cómo están calculados los platos</h3>
-    <p>Carnes, pescado y huevo: peso en cocinado. Arroz, patata, pasta, quinoa y polenta: peso ya cocido. Fruta, verdura cruda, frutos secos y queso: peso en crudo. Las kcal y macros salen de una tabla por 100 g (galletas Triple Zero ~415 kcal; pasta de maíz-arroz cocida ~155 kcal; carne picada de vacuno ~10% grasa cocinada ~217 kcal; proteína de huevo 24 g por scoop de 30 g; skyr sin lactosa ~62 kcal y 10,5 g de proteína). Si tus productos son distintos, compara con la etiqueta. Revisa que galletas, pan, pasta y proteína en polvo no lleven inulina ni polioles.</p>
+    <p>Carnes, pescado y huevo: peso en cocinado. Arroz, patata, pasta, quinoa y polenta: peso ya cocido. Fruta, verdura cruda, frutos secos y queso: peso en crudo. Las kcal y macros salen de una tabla por 100 g revisada con USDA FoodData Central, BEDCA y etiquetas de productos españoles. Los hidratos se cuentan sin fibra, igual que en las etiquetas europeas. Referencias: pechuga de pollo cocinada 165 kcal y 31 g de proteína; lomo de cerdo cocinado 205 kcal, 28,5 g de proteína y 9,5 g de grasa; arroz cocido 130 kcal y 28 g de hidratos; patata cocida 86 kcal; huevo M-L (~55 g) 79 kcal; pasta de maíz-arroz cocida ~155 kcal; carne picada de vacuno ~10% grasa cocinada ~217 kcal; proteína de huevo 24 g por scoop de 30 g; skyr sin lactosa ~62 kcal y 10,5 g de proteína; galletas Triple Zero ~415 kcal (dato de tu paquete). La precisión real es de ±5–10 %: varía según la marca, el corte y cuánta agua pierde al cocinarse. Si tus productos son distintos, compara con la etiqueta. Revisa que galletas, pan, pasta y proteína en polvo no lleven inulina ni polioles.</p>
     <p>El autocompletar solo usa combinaciones que cumplen el objetivo del día (fuerza: 2.000–2.200 kcal y 190–225 g de hidratos; cardio/descanso: 1.800–2.000 kcal y 140–170 g; siempre 190–215 g de proteína y ≤70 g de grasa), con un máximo de 3 huevos enteros, 40 g de queso curado y 40 g de jamón al día.</p>
     <p class="small muted">Herramienta de planificación, no consejo médico. No hay una pauta dietética oficial para IMO: prueba tu tolerancia y consúltalo con tu digestivo o dietista-nutricionista, sobre todo antes de tomar suplementos de fibra, magnesio, menta o probióticos.</p>
   </div>

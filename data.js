@@ -37,12 +37,12 @@ const POOLS = {
       { name: "Arroz a la cubana ligero — 250g arroz basmati cocido + 1 huevo a la plancha (sin aceite) + 150g claras a la plancha + 60g tomate tamizado bajo en sal (orégano)", i: [["arroz",250],["huevo",1],["claras",150],["tamizado",60]] }
     ],
     post: [
-      { name: "Tostadas de espelta con huevos revueltos y jamón — 52g pan de masa madre 100% espelta + 2 tortitas de arroz + 2 huevos + 150g claras revueltas + 30g jamón serrano + 150g kiwi", i: [["panespelta",52],["tortitas",16],["huevo",2],["claras",150],["jamon",30],["kiwi",150]] },
+      { name: "Tostadas de espelta con huevos revueltos y jamón — 52g pan de masa madre 100% espelta + 4 tortitas de arroz + 2 huevos + 150g claras revueltas + 30g jamón serrano + 150g kiwi", i: [["panespelta",52],["tortitas",32],["huevo",2],["claras",150],["jamon",30],["kiwi",150]] },
       { name: "Porridge proteico de plátano y cacao — 50g copos de avena + 250ml leche semidesnatada sin lactosa + 45g proteína de huevo (fuera del fuego) + 1 plátano firme (95g) + 5g cacao puro", i: [["avena",50],["leche",250],["proteina",45],["platano",95],["cacao",5]] },
       { name: "Pancakes proteicos con fresas y sirope — 50g copos de avena + 1 huevo + 200g claras + 60g plátano firme + 65g fresas + 10g sirope de arce", i: [["avena",50],["huevo",1],["claras",200],["platano",60],["fresas",65],["sirope",10]] },
       { name: "Bol de skyr con avena, plátano y cacahuete — 300g skyr sin lactosa natural + 40g copos de avena + 1 plátano firme (95g) + 10g crema de cacahuete 100%", i: [["skyr",300],["avena",40],["platano",95],["cacahuete",10]] },
-      { name: "Tostadas de pavo y tomate con batido de proteína — 52g pan de masa madre 100% espelta + 2 tortitas de arroz + 80g pechuga de pavo en lonchas + 50g tomate rallado + 5g AOVE + batido (250ml leche sin lactosa + 1 scoop)", i: [["panespelta",52],["tortitas",16],["pavofiambre",80],["tomate",50],["aove",5],["leche",250],["proteina",30]] },
-      { name: "Tortilla de patata y jamón — 200g claras + 1 huevo + 250g patata cocida en dados + 25g jamón serrano + 100g kiwi", i: [["claras",200],["huevo",1],["patata",250],["jamon",25],["kiwi",100]] }
+      { name: "Tostadas de pavo y tomate con batido de proteína — 52g pan de masa madre 100% espelta + 2 tortitas de arroz + 80g pechuga de pavo en lonchas + 50g tomate rallado + 5g AOVE + batido (250ml leche sin lactosa + 1 scoop + 1 plátano firme)", i: [["panespelta",52],["tortitas",16],["pavofiambre",80],["tomate",50],["aove",5],["leche",250],["proteina",30],["platano",95]] },
+      { name: "Tortilla de patata y jamón — 200g claras + 1 huevo + 300g patata cocida en dados + 25g jamón serrano + 100g kiwi", i: [["claras",200],["huevo",1],["patata",300],["jamon",25],["kiwi",100]] }
     ]
   },
   comida: {
@@ -52,7 +52,7 @@ const POOLS = {
       { name: "Patata cocida con merluza y huevo — 350g patata cocida + 200g merluza + 1 huevo cocido + 3g AOVE (pimentón, perejil)", i: [["patata",350],["merluza",200],["huevo",1],["aove",3]] },
       { name: "Arroz con gambas al pimentón — 250g arroz basmati cocido + 180g gambas peladas + 50g tomate tamizado + 5g aceite de ajo infusionado (pimentón, perejil)", i: [["arroz",250],["gambas",180],["tamizado",50],["aove",5]] },
       { name: "Pasta con atún y tomate — 220g pasta maíz-arroz cocida + 120g atún al natural escurrido + 75g tomate tamizado (orégano) + 3g AOVE", i: [["pasta",220],["atun",120],["tamizado",75],["aove",3]] },
-      { name: "Arroz con lomo al limón y tomillo — 140g lomo de cerdo a la plancha + 250g arroz basmati cocido + 3g AOVE (limón, tomillo)", i: [["lomo",140],["arroz",250],["aove",3]] }
+      { name: "Arroz con lomo al limón y tomillo — 120g lomo de cerdo a la plancha sin aceite + 250g arroz basmati cocido (limón, tomillo)", i: [["lomo",120],["arroz",250]] }
     ],
     post: [
       { name: "Pollo al limón y comino — 200g pechuga de pollo al horno (limón, comino) + 200g arroz basmati cocido con cúrcuma + 150g verduras al horno (50g calabacín, 50g berenjena, 50g zanahoria) + 10g AOVE", i: [["pollo",200],["arroz",200],["calabacin",50],["berenjena",50],["zanahoria",50],["aove",10]] },

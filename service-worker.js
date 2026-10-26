@@ -1,4 +1,4 @@
-const CACHE_NAME = "menu-mensual-cache-v4";
+const CACHE_NAME = "menu-mensual-cache-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -32,7 +32,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    fetch(event.request).then((response) => {
+    fetch(event.request, { cache: "no-cache" }).then((response) => {
       if (response.ok) {
         const clone = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
