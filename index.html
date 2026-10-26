@@ -604,6 +604,10 @@
     <label class="switch"><input type="checkbox" id="suaveToggle"><span><strong>Modo digestión suave</strong><br><span class="small muted">El autocompletar prefiere verdura cocinada a ensalada cruda y cenas con menos grasa. Recomendado si notas mucha hinchazón o pesadez.</span></span></label>
   </div>
   <div class="card">
+    <h2>💶 Presupuesto</h2>
+    <label class="switch"><input type="checkbox" id="budgetToggle"><span><strong>Presupuesto ajustado</strong><br><span class="small muted">El autocompletar no usa platos caros (salmón, gambas, dorada, bacalao, filete de ternera, sepia…) y prefiere los más baratos. Los precios son orientativos de supermercado.</span></span></label>
+  </div>
+  <div class="card">
     <h2>🚫 Platos que no te sientan bien</h2>
     <div class="small muted">No saldrán al autocompletar. Se marcan desde «Receta» en cada plato.</div>
     <div id="excludedList"></div>
@@ -736,11 +740,19 @@ const PROTEIN_FOODS = ["pollo", "pavo", "lomo", "ternera", "solomillo", "merluza
   "atun", "sardinas", "caballa", "sepia", "conejo", "claras", "pavofiambre", "tofu", "skyr", "proteina", "leche"];
 const isFixedFood = (k) => FIXED_FOODS.includes(k) || !!FOODS[k].lim;
 const foodGroup = (k) => isFixedFood(k) ? "fx" : PROTEIN_FOODS.includes(k) ? "pr" : "cb";
+// Coste aproximado (precios de foods.js, en crudo tal como se compra)
+const dishCost = (ing) => ing.reduce((a, [k, q]) => { const f = FOODS[k]; return a + (f.unit ? q * f.eur : q * (f.raw || 1) / 1000 * f.eur); }, 0);
+// Plato caro: lleva un ingrediente de 12 €/kg o más en cantidad (pescados y carnes caras) o pasa de 3,60 €
+const PRICEY_DISH = 3.6;
+const isPricey = (ing) => dishCost(ing) > PRICEY_DISH || ing.some(([k, q]) => { const f = FOODS[k]; return !f.unit && f.eur >= 12 && q * (f.raw || 1) >= 40; });
+const eur = (v) => `${v.toFixed(2).replace(".", ",")} €`;
 Object.values(POOLS).forEach(roles => Object.values(roles).forEach(list => list.forEach(r => {
   Object.assign(r, calcIngredients(r.i));
+  r.cost = dishCost(r.i);
+  r.pricey = isPricey(r.i);
   ["fx", "pr", "cb"].forEach(g => { r[g] = calcIngredients(r.i.filter(([k]) => foodGroup(k) === g)); });
 })));
-EXTRAS.forEach(e => Object.assign(e, calcIngredients(e.i)));
+EXTRAS.forEach(e => { Object.assign(e, calcIngredients(e.i)); e.cost = dishCost(e.i); });
 
 function roundAmount(k, a) {
   if (FOODS[k].unit) return a;
@@ -766,7 +778,7 @@ function solveScale(K, P, T) {
 function scaledMeal(meal, f) {
   if (f === 1 || (f.p === 1 && f.c === 1)) return meal;
   const i = scaledIngredients(meal, f);
-  return Object.assign({}, meal, calcIngredients(i), { i });
+  return Object.assign({}, meal, calcIngredients(i), { i, cost: dishCost(i) });
 }
 
 const SLOTS = ["desayuno", "comida", "merienda", "cena"];
@@ -891,7 +903,7 @@ function toast(msg) {
 function defaultState() {
   return {
     v: 4, selections: {}, weekly: JSON.parse(JSON.stringify(DEFAULT_WEEKLY)),
-    prefs: { suave: true }, excluded: [], diary: {}, shopChecked: {}, profile: defaultProfile(), weights: {}
+    prefs: { suave: true, budget: true }, excluded: [], diary: {}, shopChecked: {}, profile: defaultProfile(), weights: {}
   };
 }
 const normalizeWhen = (o) => {
@@ -920,7 +932,7 @@ function normalizeState(s) {
     else normalizeWhen(w);
   });
   delete out.mealTimes;
-  out.prefs = Object.assign({ suave: true }, s.prefs);
+  out.prefs = Object.assign({ suave: true, budget: true }, s.prefs);
   out.profile = Object.assign(defaultProfile(), s.profile);
   out.weights = s.weights || {};
   out.v = 4;
@@ -1013,6 +1025,11 @@ function dayScale(sel, override) {
   });
   const f = solveScale(K, P, T);
   return { p: Math.round(f.p * 100) / 100, c: Math.round(f.c * 100) / 100 };
+}
+
+function dayCost(sel) {
+  const f = dayScale(sel);
+  return SLOTS.reduce((a, s) => a + (sel[s] >= 0 ? scaledMeal(getMealsForSlot(s, sel)[sel[s]], f).cost : 0), 0) + (EXTRAS[sel.extra] || EXTRAS[0]).cost;
 }
 
 function dayTotals(sel, override) {
@@ -1162,7 +1179,7 @@ function mealCard(slot, sel, role, f = 1) {
     <div class="meal-title">${excluded ? "🚫 " : ""}${esc(titleOf(meal))}</div>
     <div class="meal-desc">${esc(f === 1 ? descOf(meal) : ingredientSummary(meal.i))}</div>
     ${slot === "desayuno" && state.profile.levo && state.profile.thyroid !== "no" ? '<div class="tip">💊 Levotiroxina en ayunas, solo con agua, 30–60 min antes de desayunar.</div>' : ""}
-    <div class="chips">${macroChips(meal)}${meal.raw && state.prefs.suave ? '<span class="chip">🥗 lleva crudo</span>' : ""}</div>
+    <div class="chips">${macroChips(meal)}<span class="chip">💶 ≈ ${eur(meal.cost)}</span>${base.pricey ? '<span class="chip warn">caro</span>' : ""}${meal.raw && state.prefs.suave ? '<span class="chip">🥗 lleva crudo</span>' : ""}</div>
     ${guideChip ? `<div class="chips">${guideChip}</div>` : ""}
     <details class="recipe"><summary>👩‍🍳 Receta e ingredientes</summary>
       <p>${esc(PREP[titleOf(meal)] || "")}</p>
@@ -1237,7 +1254,7 @@ function renderTotals(sel) {
   document.getElementById("dayTotal").innerHTML = `
     ${missing && anySelected ? `<div class="tip" style="margin:0 0 12px">Faltan ${missing} ${missing === 1 ? "comida" : "comidas"} por elegir: el total subirá al añadirlas.</div>` : ""}
     <div class="bars">${bars}</div>
-    <div class="limits">${lim(t.h, 3, `🥚 ${t.h}/3 huevos`)}${lim(t.q, 40, `🧀 ${t.q}/40 g queso`)}${lim(t.j, 40, `🍖 ${t.j}/40 g jamón`)}</div>`;
+    <div class="limits"><span>💶 ≈ ${eur(dayCost(sel))} el día</span>${lim(t.h, 3, `🥚 ${t.h}/3 huevos`)}${lim(t.q, 40, `🧀 ${t.q}/40 g queso`)}${lim(t.j, 40, `🍖 ${t.j}/40 g jamón`)}</div>`;
 }
 
 // ---------- Selector de platos ----------
@@ -1251,7 +1268,7 @@ function openPicker(slot) {
     : `${SLOT_LABELS[slot]}${ROLE_LABELS[role] ? ` · ${ROLE_LABELS[role]}` : ""}<span class="sub">«Día» indica cómo quedaría el total con cada plato</span>`;
   const options = isExtra ? EXTRAS : getMealsForSlot(slot, sel);
   const items = options.map((meal, idx) => ({ meal, idx, excluded: !isExtra && isExcluded(slot, meal) }))
-    .sort((a, b) => a.excluded - b.excluded);
+    .sort((a, b) => a.excluded - b.excluded || (state.prefs.budget ? (a.meal.pricey || false) - (b.meal.pricey || false) : 0));
   body.innerHTML = "";
   if (!isExtra && sel[slot] >= 0) {
     const clear = document.createElement("button");
@@ -1275,6 +1292,7 @@ function openPicker(slot) {
       ${isExtra ? "" : `<div class="d">${esc(descOf(meal))}</div>`}
       <div class="chips">${idx || !isExtra ? macroChips(meal) : ""}
         <span class="chip ${fits ? "ok" : ""}">Día: ${proj.kcal} kcal · P ${proj.p} · H ${proj.c}${fits ? " ✓" : ""}</span>
+        ${idx || !isExtra ? `<span class="chip">💶 ≈ ${eur(meal.cost)}</span>` : ""}${base.pricey ? '<span class="chip warn">caro</span>' : ""}
         ${guide && !guide.check(meal) ? '<span class="chip warn">⚠ no ideal</span>' : ""}
         ${meal.raw && state.prefs.suave ? '<span class="chip">🥗 crudo</span>' : ""}</div>`;
     btn.addEventListener("click", () => choose(slot, idx));
@@ -1305,10 +1323,11 @@ const MAX_COMBOS = 20000;
 function generateValidCombos(day) {
   const roles = dayRoles(day);
   const T = targetRanges(day.type);
-  const cacheKey = day.type + "|" + SLOTS.map(s => roles[s]).join(",") + "|" + JSON.stringify(T);
+  const cacheKey = day.type + "|" + SLOTS.map(s => roles[s]).join(",") + "|" + JSON.stringify(T) + "|" + state.prefs.budget;
   if (combosCache[cacheKey]) return combosCache[cacheKey];
   // Por plato: parte fija (FODMAP, huevos, queso, jamón), parte proteica y parte de hidratos/grasas
-  const lists = SLOTS.map(slot => getMealsForSlot(slot, day).map((meal, idx) => ({ idx, meal })).filter(o => !isExcluded(slot, o.meal)));
+  const lists = SLOTS.map(slot => getMealsForSlot(slot, day).map((meal, idx) => ({ idx, meal }))
+    .filter(o => !isExcluded(slot, o.meal) && !(state.prefs.budget && o.meal.pricey)));
   const [d, c, m, n] = lists;
   const scaled = T.scale[0] !== T.scale[1];
   // Margen por el redondeo de las raciones (las kcal ya se ajustan solas al centro del rango)
@@ -1367,6 +1386,7 @@ function pickCombo(day, usage, prev, rand) {
       const title = titleOf(meal);
       score += (usage[title] || 0) * 10;
       if (prev && prev.includes(title)) score += 100;
+      if (state.prefs.budget) score += meal.cost * 2;  // con presupuesto ajustado, mejor lo más barato
       if (state.prefs.suave) {
         if (meal.raw) score += 4;                     // verdura cocinada mejor que ensalada cruda
         if (sl === "cena" && meal.f > 15) score += 4; // cenas con menos grasa
@@ -1479,17 +1499,19 @@ function buildShopping() {
     else if (k === "leche") qty = `${(a / 1000).toFixed(1).replace(".", ",")} L`;
     else if (food.raw) { qty = fmtWeight(a * food.raw); sub = `${fmtWeight(a)} cocinado`; }
     else qty = fmtWeight(a);
-    return { key: k, name: food.n.replace(" (ml)", ""), cat: food.cat, qty, sub };
+    const cost = food.unit ? a * food.eur : a * (food.raw || 1) / 1000 * food.eur;
+    return { key: k, name: food.n.replace(" (ml)", ""), cat: food.cat, qty, sub, cost };
   });
-  return { items, missing, days, from };
+  return { items, missing, days, from, cost: items.reduce((t, i) => t + i.cost, 0) };
 }
 
 function renderShopping() {
   const input = document.getElementById("shopFrom");
   if (!input.value) input.value = today;
-  const { items, missing, days, from } = buildShopping();
+  const { items, missing, days, from, cost } = buildShopping();
   const to = iso(addDays(fromIso(from), days - 1));
   document.getElementById("shopInfo").textContent = `Del ${longDate(from).toLowerCase()} al ${longDate(to).toLowerCase()}.` +
+    (items.length ? ` Coste aproximado: ${eur(cost)} (${eur(cost / (days - missing || 1))} al día).` : "") +
     (missing ? ` ⚠️ ${missing} día(s) sin menú: autocompleta el mes para incluirlos.` : "");
   const list = document.getElementById("shopList");
   if (!items.length) { list.innerHTML = '<div class="card empty">No hay comidas elegidas en estas fechas.</div>'; return; }
@@ -1674,6 +1696,9 @@ function renderSettings() {
     grid.append(label, select);
   });
 
+  const budget = document.getElementById("budgetToggle");
+  budget.checked = !!state.prefs.budget;
+  budget.onchange = () => { state.prefs.budget = budget.checked; combosCache = {}; saveState(); };
   const suave = document.getElementById("suaveToggle");
   suave.checked = !!state.prefs.suave;
   suave.onchange = () => { state.prefs.suave = suave.checked; saveState(); };
