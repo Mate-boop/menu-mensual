@@ -940,7 +940,7 @@ function toast(msg) {
   el.textContent = msg;
   el.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
+  toastTimer = setTimeout(() => { el.hidden = true; }, Math.max(2600, msg.length * 60)); // los avisos largos duran más
 }
 
 // ---------- Estado ----------
@@ -1218,7 +1218,7 @@ function renderPanel() {
   cards.innerHTML = "";
   const f = dayScale(sel);
   if (!computePlan()) cards.innerHTML = '<div class="card tip" style="margin-top:0">👤 Rellena tu perfil en «Yo» y la app calculará tus calorías y ajustará las raciones de cada plato a tu objetivo.</div>';
-  else if (f !== 1) cards.innerHTML = `<div class="tip" style="margin:0 0 12px">⚖️ Raciones ajustadas a tu objetivo: proteína ×${nf(f.p, 2)} · hidratos y grasas ×${nf(f.c, 2)}. Las verduras y frutas se quedan en su ración baja en FODMAP.</div>`;
+  else if (f !== 1) cards.innerHTML = `<div class="tip" style="margin:0 0 12px">⚖️ Raciones ajustadas a tu objetivo: proteína ×${nf(f.p, 2)} · hidratos y grasas ×${nf(f.c, 2)}. Se recalculan con cada plato que eliges, quitas o cambias (también con el postre o batido): si un plato trae mucha proteína, los demás bajan un poco. Por eso el total del día no sube lo mismo que el plato. Las verduras y frutas se quedan en su ración baja en FODMAP.</div>`;
   SLOTS.forEach(slot => cards.appendChild(mealCard(slot, sel, roles[slot], f)));
   cards.appendChild(extraCard(sel));
   renderTotals(sel);
@@ -1360,6 +1360,10 @@ function openPicker(slot) {
     clear.addEventListener("click", () => choose(slot, -1));
     body.appendChild(clear);
   }
+  const scaled = !!computePlan();
+  if (scaled) body.insertAdjacentHTML("beforeend", '<div class="tip" style="margin:0 0 10px">⚖️ Al elegir, las raciones de los demás platos se reajustan para que el día cuadre con tu objetivo. Por eso el total del día cambia menos que lo que trae el plato: mira el <strong>«Día»</strong> de cada opción.</div>');
+  const cur = dayTotals(sel);
+  const delta = (v) => `${v >= 0 ? "+" : "−"}${Math.abs(v)}`;
   const guide = ROLE_GUIDE[role];
   items.forEach(({ meal: base, idx, excluded }) => {
     const current = isExtra ? sel.extra === idx : sel[slot] === idx;
@@ -1373,7 +1377,7 @@ function openPicker(slot) {
       <div class="t">${excluded ? "🚫 " : ""}${esc(isExtra ? meal.label : titleOf(meal))}</div>
       ${isExtra ? "" : `<div class="d">${esc(descOf(meal).split(" + ").join(" · "))}</div>`}
       <div class="chips">${idx || !isExtra ? macroChips(meal) : ""}
-        <span class="chip ${fits ? "ok" : ""}">Día: ${proj.kcal} kcal · P ${proj.p} · H ${proj.c}${fits ? " ✓" : ""}</span>
+        <span class="chip ${fits ? "ok" : ""}">Día: ${proj.kcal} kcal (${delta(proj.kcal - cur.kcal)}) · P ${proj.p} (${delta(proj.p - cur.p)}) · H ${proj.c}${fits ? " ✓" : ""}</span>
         ${idx || !isExtra ? `<span class="chip">💶 ≈ ${eur(meal.cost)}</span>` : ""}${base.pricey ? '<span class="chip warn">caro</span>' : ""}
         ${guide && !guide.check(meal) ? '<span class="chip warn">⚠ no ideal</span>' : ""}
         ${meal.raw && state.prefs.suave ? '<span class="chip">🥗 crudo</span>' : ""}</div>`;
@@ -1390,10 +1394,16 @@ function closePicker() {
 }
 function choose(slot, idx) {
   const sel = getDaySelection(currentDate);
-  sel[slot] = idx;
+  const before = dayTotals(sel);
+  if (slot === "extra") sel.extra = idx; else sel[slot] = idx;
   saveState();
   closePicker();
   renderAll();
+  if (!computePlan()) return;
+  const after = dayTotals(sel);
+  const dish = slot === "extra" ? EXTRAS[idx] : idx >= 0 ? scaledMeal(getMealsForSlot(slot, sel)[idx], dayScale(sel)) : null;
+  const sign = (v) => `${v >= 0 ? "+" : "−"}${Math.abs(v)}`;
+  if (dish && dish.p) toast(`Día ${sign(after.kcal - before.kcal)} kcal y ${sign(after.p - before.p)} g de proteína. El plato trae ${dish.p} g; el resto de raciones se ha reajustado.`);
 }
 document.getElementById("sheetClose").addEventListener("click", closePicker);
 document.getElementById("sheetBackdrop").addEventListener("click", closePicker);
