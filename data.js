@@ -291,7 +291,19 @@ const EXTRAS = [
   { label: "🌰 Nueces (30g) con 1 kiwi", i: [["nueces",30],["kiwi",100]],
     prep: "Un puñado de nueces y un kiwi de postre, justo después de comer." },
   { label: "🍌 Tortitas con crema de cacahuete (25g) y plátano", i: [["tortitas",24],["cacahuete",25],["platano",95]],
-    prep: "Unta 3 tortitas de arroz con la crema de cacahuete y pon el plátano en rodajas con canela." }
+    prep: "Unta 3 tortitas de arroz con la crema de cacahuete y pon el plátano en rodajas con canela." },
+  { label: "🍌 Yogur proteico con plátano y cacao: 200g yogur proteico + 1 plátano firme + 5g cacao", i: [["skyr", 200], ["platano", 100], ["cacao", 5]],
+    prep: "Corta el plátano en rodajas sobre el yogur y espolvorea el cacao y canela. Listo en 1 minuto." },
+  { label: "🥞 Tortitas de plátano y avena: 80g plátano firme + 1 huevo + 30g avena + 15g proteína", i: [["platano", 80], ["huevo", 1], ["avena", 30], ["proteina", 15]],
+    prep: "Chafa el plátano con un tenedor y mézclalo con el huevo, la avena y la proteína (y canela). Haz 3-4 tortitas en sartén antiadherente a fuego medio, 2 min por lado." },
+  { label: "🥤 Batido de plátano y cacao: 250ml leche sin lactosa + 1 scoop proteína + 90g plátano firme + 5g cacao", i: [["leche", 250], ["proteina", 30], ["platano", 90], ["cacao", 5]],
+    prep: "Tritura todo con hielo. Sabe a batido de chocolate y plátano." },
+  { label: "🍮 Natillas de plátano: 250ml leche sin lactosa + 15g proteína + 10g maicena + 60g plátano firme", i: [["leche", 250], ["proteina", 15], ["maicena", 10], ["platano", 60]],
+    prep: "Disuelve la maicena en un poco de leche fría. Calienta el resto con canela, añade la maicena y remueve 3-4 min hasta que espese. Fuera del fuego mezcla la proteína. Sirve con el plátano en rodajas por encima y deja enfriar." },
+  { label: "🍌 Plátano asado con yogur proteico: 100g plátano firme + 150g yogur proteico + 5g sirope de arce", i: [["platano", 100], ["skyr", 150], ["sirope", 5]],
+    prep: "Abre el plátano a lo largo, pon canela y hornéalo 10 min a 200 °C (o 2 min al microondas). Sírvelo caliente con el yogur frío y el sirope." },
+  { label: "🥣 Avena de la noche con plátano: 150ml leche sin lactosa + 30g avena + 100g yogur proteico + 60g plátano firme", i: [["leche", 150], ["avena", 30], ["skyr", 100], ["platano", 60]],
+    prep: "Por la noche mezcla en un tarro la leche, la avena, el yogur y canela. Por la mañana añade el plátano en rodajas. Se come frío y aguanta 2 días en la nevera." }
 ];
 
 if (typeof module !== "undefined") module.exports = { POOLS, EXTRAS };
