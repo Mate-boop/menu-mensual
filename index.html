@@ -310,6 +310,10 @@
   ul.ing li::before { content: ""; position: absolute; left: 3px; top: 0.85em; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); opacity: 0.55; }
   ul.ing .q { font-weight: 700; font-variant-numeric: tabular-nums; }
   .meal-empty { width: 100%; text-align: center; border: 1.5px dashed var(--border); background: none; color: var(--primary); }
+  .skip-btn { width: 100%; margin-top: 8px; color: var(--muted); font-weight: 600; }
+  .sheet-body .skip-btn { margin: 0 0 10px; }
+  .meal.skipped { opacity: 0.85; border-style: dashed; }
+  .skip-note { font-size: 0.93rem; color: var(--muted); margin: 0 0 12px; line-height: 1.5; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .chip { font-size: 0.82rem; padding: 5px 10px; border-radius: 999px; background: var(--surface-2); font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
   .chip.kcal { background: var(--text); color: var(--surface); }
@@ -1023,6 +1027,10 @@ function getDaySelection(dateIso) {
   return sel;
 }
 
+// Comida descartada ese día («hoy no desayuno»): no cuenta y sus macros se reparten entre las demás
+const SKIP = -2;
+const NO_MEAL = (() => { const z = { kcal: 0, p: 0, f: 0, c: 0 }; return { ...z, h: 0, q: 0, j: 0, fx: z, pr: z, cb: z }; })();
+const skippedSlots = (sel) => SLOTS.filter(s => sel && sel[s] === SKIP);
 const isDayFilled = (dateIso) => { const sel = state.selections[dateIso]; return !!sel && SLOTS.some(s => sel[s] >= 0); };
 
 // ---------- Entreno: qué comida va antes y cuál después ----------
@@ -1045,7 +1053,7 @@ function getMealsForSlot(slot, day) {
 // Al cambiar el momento del entreno o el tipo de día, vacía solo las comidas cuyo tipo (pre/post/normal) ha cambiado
 const poolsOf = (sel) => Object.fromEntries(SLOTS.map(s => [s, getMealsForSlot(s, sel)]));
 function resetChangedSlots(sel, before) {
-  SLOTS.forEach(s => { if (getMealsForSlot(s, sel) !== before[s]) sel[s] = -1; });
+  SLOTS.forEach(s => { if (getMealsForSlot(s, sel) !== before[s] && sel[s] !== SKIP) sel[s] = -1; });
 }
 
 const excludeKey = (slot, meal) => slot + "|" + titleOf(meal);
@@ -1074,7 +1082,7 @@ function dayScale(sel, override) {
   const K = { fx: extra.kcal, pr: 0, cb: 0 }, P = { fx: extra.p, pr: 0, cb: 0 };
   SLOTS.forEach(s => {
     const list = getMealsForSlot(s, sel);
-    const m = pick[s] >= 0 ? list[pick[s]] : poolAverage(list);
+    const m = pick[s] >= 0 ? list[pick[s]] : pick[s] === SKIP ? null : poolAverage(list);
     if (m) ["fx", "pr", "cb"].forEach(g => { K[g] += m[g].kcal; P[g] += m[g].p; });
   });
   const f = solveScale(K, P, T);
@@ -1180,7 +1188,9 @@ function renderPanel() {
       return `<span class="tl ${r}">${SLOT_LABELS[s]}${r ? " · " + r : ""}</span>`;
     });
     items.splice(w.pre ? SLOTS.indexOf(w.pre) + 1 : 0, 0, '<span class="tl train">🏋️ Entreno</span>');
-    const tip = w.pre
+    const tip = w.pre && sel[w.pre] === SKIP
+      ? `Hoy no haces ${SLOT_LABELS[w.pre].toLowerCase()}: si llegas al entreno con hambre o sin energía, toma un plátano o 2–3 tortitas de arroz 30–60 min antes.`
+      : w.pre
       ? `Come ${w.pre === "desayuno" ? "el" : "la"} ${SLOT_LABELS[w.pre].toLowerCase()} 1–2 h antes de entrenar. Si al final pasan más de 3–4 h, toma un plátano o 2–3 tortitas de arroz 30–60 min antes.`
       : "Si en ayunas te cuesta, toma un plátano o 2 tortitas de arroz 30 min antes. El desayuno será tu comida post-entreno.";
     trainBox.innerHTML = `
@@ -1233,12 +1243,21 @@ function mealCard(slot, sel, role, f = 1) {
   const meal = base && scaledMeal(base, f);
   const card = document.createElement("div");
   card.className = "card meal";
-  const hasRole = !!ROLE_LABELS[role];
+  const hasRole = !!ROLE_LABELS[role] && sel[slot] !== SKIP;
   const badge = hasRole ? `<span class="badge">${ROLE_LABELS[role]}</span>` : "";
   const top = `<div class="meal-top"><span class="meal-ico${hasRole ? " role" : ""}" aria-hidden="true">${SLOT_ICONS[slot]}</span><div><span class="slot">${SLOT_LABELS[slot]}</span>${badge}</div>${meal ? '<button class="btn small soft change">Cambiar</button>' : ""}</div>`;
+  if (sel[slot] === SKIP) {
+    card.classList.add("skipped");
+    card.innerHTML = top + `<div class="skip-note">🚫 Hoy no haces esta comida. Sus macros se reparten entre las demás.</div>
+      <button class="btn soft" style="width:100%">Volver a añadir ${SLOT_LABELS[slot].toLowerCase()}</button>`;
+    card.querySelector("button").addEventListener("click", () => choose(slot, -1));
+    return card;
+  }
   if (!meal) {
-    card.innerHTML = top + `<button class="btn meal-empty">＋ Elegir ${SLOT_LABELS[slot].toLowerCase()}</button>`;
+    card.innerHTML = top + `<button class="btn meal-empty">＋ Elegir ${SLOT_LABELS[slot].toLowerCase()}</button>
+      <button class="btn ghost skip-btn">🚫 Hoy no hago ${SLOT_LABELS[slot].toLowerCase()}</button>`;
     card.querySelector(".meal-empty").addEventListener("click", () => openPicker(slot));
+    card.querySelector(".skip-btn").addEventListener("click", () => choose(slot, SKIP));
     return card;
   }
   const guide = ROLE_GUIDE[role];
@@ -1303,6 +1322,11 @@ function extraCard(sel) {
   return card;
 }
 
+// Si sin esa comida no llegas a tus kcal, propone un extra que sí te haga llegar
+function skipHint(sel) {
+  const fit = EXTRAS.map((e, i) => i).filter(i => i && i !== sel.extra && inTarget(dayTotals(sel, { extra: i }), sel.type));
+  return fit.length ? ` Para llegar a tus calorías, añade de extra: <strong>${esc(EXTRAS[fit[0]].label.split(":")[0])}</strong>.` : " Con estos platos no llegas a tus calorías: pulsa «🔀 Otro menú para este día» y elegirá platos que sí lleguen.";
+}
 function renderTotals(sel) {
   const t = dayTotals(sel);
   const target = targetRanges(sel.type);
@@ -1319,9 +1343,11 @@ function renderTotals(sel) {
     return `<div class="lbl">${dot(k)}${label}</div><div class="bar"><span class="${cls}" style="width:${pct}%;background:${MACRO_COLORS[k]}"></span></div><div class="num">${t[k]}${unit} <small>/ ${min ? `${min}–${max}` : `≤${max}`}</small></div>`;
   }).join("");
   const lim = (v, max, text) => `<span class="${v > max ? "over" : ""}">${text}</span>`;
-  const missing = SLOTS.filter(s => !(sel[s] >= 0)).length;
+  const missing = SLOTS.filter(s => !(sel[s] >= 0) && sel[s] !== SKIP).length;
+  const skipped = skippedSlots(sel);
   document.getElementById("dayTotal").innerHTML = `
     ${missing && anySelected ? `<div class="tip" style="margin:0 0 12px">Faltan ${missing} ${missing === 1 ? "comida" : "comidas"} por elegir: el total subirá al añadirlas.</div>` : ""}
+    ${skipped.length ? `<div class="tip" style="margin:0 0 12px">🚫 Hoy sin ${skipped.map(x => SLOT_LABELS[x].toLowerCase()).join(" ni ")}: sus macros se reparten entre las demás comidas.${!missing && t.kcal < target.kcal[0] ? skipHint(sel) : ""}</div>` : ""}
     <div class="bars">${bars}</div>
     <div class="limits"><span>💶 ≈ ${eur(dayCost(sel))} el día</span>${lim(t.h, 3, `🥚 ${t.h}/3 huevos`)}${lim(t.q, 40, `🧀 ${t.q}/40 g queso`)}${lim(t.j, 40, `🍖 ${t.j}/40 g jamón`)}</div>`;
 }
@@ -1350,6 +1376,13 @@ function openPicker(slot) {
       body.querySelectorAll(".opt").forEach(o => { o.hidden = !!q && !o.dataset.q.includes(q); });
     });
     body.appendChild(search);
+  }
+  if (!isExtra) {
+    const skip = document.createElement("button");
+    skip.className = "btn ghost skip-btn";
+    skip.textContent = `🚫 Hoy no hago ${SLOT_LABELS[slot].toLowerCase()}`;
+    skip.addEventListener("click", () => choose(slot, SKIP));
+    body.appendChild(skip);
   }
   if (!isExtra && sel[slot] >= 0) {
     const clear = document.createElement("button");
@@ -1403,7 +1436,8 @@ function choose(slot, idx) {
   const after = dayTotals(sel);
   const dish = slot === "extra" ? EXTRAS[idx] : idx >= 0 ? scaledMeal(getMealsForSlot(slot, sel)[idx], dayScale(sel)) : null;
   const sign = (v) => `${v >= 0 ? "+" : "−"}${Math.abs(v)}`;
-  if (dish && dish.p) toast(`Día ${sign(after.kcal - before.kcal)} kcal y ${sign(after.p - before.p)} g de proteína. El plato trae ${dish.p} g; el resto de raciones se ha reajustado.`);
+  if (idx === SKIP) toast(`Hoy sin ${SLOT_LABELS[slot].toLowerCase()}: las demás comidas se han ajustado para llegar a tus macros.`);
+  else if (dish && dish.p) toast(`Día ${sign(after.kcal - before.kcal)} kcal y ${sign(after.p - before.p)} g de proteína. El plato trae ${dish.p} g; el resto de raciones se ha reajustado.`);
 }
 document.getElementById("sheetClose").addEventListener("click", closePicker);
 document.getElementById("sheetBackdrop").addEventListener("click", closePicker);
@@ -1415,10 +1449,11 @@ const MAX_COMBOS = 20000;
 function generateValidCombos(day) {
   const roles = dayRoles(day);
   const T = targetRanges(day.type);
-  const cacheKey = day.type + "|" + SLOTS.map(s => roles[s]).join(",") + "|" + JSON.stringify(T) + "|" + state.prefs.budget;
+  const skip = day.skip || [];
+  const cacheKey = day.type + "|" + SLOTS.map(s => roles[s]).join(",") + "|" + JSON.stringify(T) + "|" + state.prefs.budget + "|" + skip.join(",");
   if (combosCache[cacheKey]) return combosCache[cacheKey];
   // Por plato: parte fija (FODMAP, huevos, queso, jamón), parte proteica y parte de hidratos/grasas
-  const lists = SLOTS.map(slot => getMealsForSlot(slot, day).map((meal, idx) => ({ idx, meal }))
+  const lists = SLOTS.map(slot => skip.includes(slot) ? [{ idx: SKIP, meal: NO_MEAL }] : getMealsForSlot(slot, day).map((meal, idx) => ({ idx, meal }))
     .filter(o => !isExcluded(slot, o.meal) && !(state.prefs.budget && o.meal.pricey)));
   const [d, c, m, n] = lists;
   const scaled = T.scale[0] !== T.scale[1];
@@ -1487,6 +1522,7 @@ function pickCombo(day, usage, prev, rand, tup) {
     let score = rand();
     const titles = {};
     SLOTS.forEach(sl => {
+      if (cmb[sl] === SKIP) return;
       const meal = getMealsForSlot(sl, day)[cmb[sl]];
       const title = titleOf(meal);
       titles[sl] = title;
@@ -1545,7 +1581,7 @@ document.getElementById("autofillBtn").addEventListener("click", () => {
     }
   };
   keys.forEach(key => {
-    const day = trainingFor(key);
+    const day = { ...trainingFor(key), skip: skippedSlots(state.selections[key]) };
     if (state.prefs.tupper) {
       if (!tup || blockStart(key) !== tup.start) startBlock(key);
       tup.offset = fromIso(key).getDay();
@@ -1557,7 +1593,7 @@ document.getElementById("autofillBtn").addEventListener("click", () => {
     if (custom) state.selections[key].custom = true;
     prev = titlesOfDay(state.selections[key]);
     prev.forEach(t => { usage[t] = (usage[t] || 0) + 1; });
-    if (tup) TUPPER_SLOTS.forEach(sl => { const t = titleOf(getMealsForSlot(sl, day)[cmb[sl]]); tup.counts[t] = (tup.counts[t] || 0) + 1; });
+    if (tup) TUPPER_SLOTS.forEach(sl => { if (cmb[sl] === SKIP) return; const t = titleOf(getMealsForSlot(sl, day)[cmb[sl]]); tup.counts[t] = (tup.counts[t] || 0) + 1; });
   });
   saveState();
   renderAll();
@@ -1574,8 +1610,8 @@ document.getElementById("autofillDayBtn").addEventListener("click", () => {
   }
   titlesOfDay(sel).forEach(t => { usage[t] = (usage[t] || 0) + 3; }); // que cambie respecto a lo que hay
   const prev = titlesOfDay(state.selections[iso(addDays(fromIso(currentDate), -1))]);
-  const cmb = pickCombo(sel, usage, prev, mulberry32(Date.now() % 100000));
-  if (!cmb) { alert("No hay combinaciones válidas para este tipo de día."); return; }
+  const cmb = pickCombo({ ...sel, skip: skippedSlots(sel) }, usage, prev, mulberry32(Date.now() % 100000));
+  if (!cmb) { alert(skippedSlots(sel).length ? "Sin esa comida no hay combinaciones que lleguen a tus macros. Prueba a elegir los platos a mano o añade un batido." : "No hay combinaciones válidas para este tipo de día."); return; }
   const custom = sel.custom;
   applyCombo(currentDate, sel, cmb);
   if (custom) state.selections[currentDate].custom = true;
