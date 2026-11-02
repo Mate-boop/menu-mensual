@@ -206,7 +206,7 @@
   .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn-row .btn { flex: 1; }
   .link { background: none; border: none; color: var(--primary); cursor: pointer; padding: 6px 0; font-size: 0.85rem; font-weight: 600; text-align: left; }
-  select, input[type="date"], input[type="time"], input[type="number"], input[type="search"], textarea {
+  select, input[type="date"], input[type="time"], input[type="number"], input[type="search"], input[type="text"], textarea {
     width: 100%;
     min-height: 44px;
     padding: 10px 12px;
@@ -474,6 +474,25 @@
   .prec-list .tick { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; color: var(--on-primary); }
   .prec-list li.ok .tick { background: var(--primary); border-color: var(--primary); }
   .manual-box { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); }
+  .manual-box .help { font-size: 0.8rem; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+  input.invalid, select.invalid { border: 2px solid var(--accent); background: var(--accent-soft); }
+  .field-err { color: var(--accent); font-size: 0.82rem; font-weight: 600; margin-top: 4px; line-height: 1.35; }
+  .field-err:empty { display: none; }
+  .savebar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h) + 8px + env(safe-area-inset-bottom, 0px)); z-index: 25;
+    width: calc(100% - 24px); max-width: 696px; display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 14px;
+    background: var(--surface); border: 1.5px solid var(--warn); border-radius: 16px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18); }
+  .savebar[hidden] { display: none; }
+  .savebar .msg { flex: 1; font-size: 0.88rem; font-weight: 700; color: var(--warn); line-height: 1.3; }
+  body.has-savebar { padding-bottom: calc(var(--nav-h) + 96px + env(safe-area-inset-bottom, 0px)); }
+  .save-status { font-weight: 700; font-size: 0.95rem; margin-bottom: 10px; }
+  .save-status.pending { color: var(--warn); }
+  .save-status.ok { color: var(--primary-ink); }
+  .btn:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+  .hero-note { background: rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 8px 10px; font-size: 0.85rem; font-weight: 600; margin-bottom: 10px; }
+  .hero-note[hidden] { display: none; }
+  .ask-text p { margin: 0 0 10px; line-height: 1.5; }
+  .ask-text ul { margin: 0 0 10px; padding-left: 20px; line-height: 1.6; }
+  .ask-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
 
   /* Más */
   .week-grid { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; align-items: center; font-size: 0.95rem; font-weight: 600; }
@@ -630,7 +649,17 @@
     <h2>🦋 Tiroides</h2>
     <div id="thyroidForm"></div>
   </div>
+  <div class="card save-card">
+    <div class="save-status" id="yoSaveStatus"></div>
+    <button class="btn primary" id="yoSaveBtn" style="width:100%">💾 Guardar cambios</button>
+    <div class="small muted" style="margin-top:8px">Guarda a la vez tu objetivo, tus datos, la actividad y la tiroides. El peso se guarda aparte con «Guardar peso».</div>
+  </div>
 </section>
+<div class="savebar" id="yoSaveBar" hidden>
+  <span class="msg">Cambios sin guardar</span>
+  <button class="btn small ghost" id="yoDiscardBtn">Descartar</button>
+  <button class="btn small primary" id="yoSaveBarBtn">Guardar cambios</button>
+</div>
 
 <!-- ============ MÁS ============ -->
 <section class="view" id="view-mas" hidden>
@@ -1197,11 +1226,23 @@ let currentTab = "menu";
 document.getElementById("tabs").addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-tab]");
   if (!btn) return;
-  currentTab = btn.dataset.tab;
-  if (currentTab === "diario") document.getElementById("diaryDate").value = currentDate;
-  renderAll();
-  window.scrollTo(0, 0);
+  const go = () => {
+    currentTab = btn.dataset.tab;
+    if (currentTab === "diario") document.getElementById("diaryDate").value = currentDate;
+    renderAll();
+    window.scrollTo(0, 0);
+  };
+  if (currentTab === "yo" && btn.dataset.tab !== "yo" && isDirty()) {
+    askSheet("Tienes cambios sin guardar", "<p>Has cambiado datos en «Yo» que aún no se han guardado. ¿Qué quieres hacer?</p>", [
+      ["Guardar y salir", "primary", () => saveProfile(go)],
+      ["Descartar cambios", "danger", () => { startDraft(); go(); }],
+      ["Seguir editando", "ghost", null]
+    ]);
+    return;
+  }
+  go();
 });
+window.addEventListener("beforeunload", (e) => { if (isDirty()) { e.preventDefault(); e.returnValue = ""; } });
 
 // ---------- Menú ----------
 function renderDayGrid() {
@@ -2090,6 +2131,7 @@ document.getElementById("importInput").addEventListener("change", (e) => {
       if (!parsed) throw new Error("El archivo no tiene el formato esperado");
       state = parsed;
       combosCache = {};
+      draft = null; // el borrador de «Yo» era de los datos anteriores
       saveState();
       renderAll();
       toast("Datos importados ✓");
@@ -2106,77 +2148,202 @@ document.getElementById("importInput").addEventListener("change", (e) => {
 // ---------- Yo: perfil, objetivo y peso ----------
 const nf = (v, d = 0) => Number(v).toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
 
+// Los cambios de «Yo» van a un borrador y solo se guardan al pulsar «Guardar cambios».
+// El resumen de arriba usa siempre los datos guardados. El peso se guarda aparte, con su botón.
+const PROFILE_RULES = {
+  age: [14, 99, "Escribe una edad entre 14 y 99 años"],
+  height: [120, 230, "Escribe una altura entre 120 y 230 cm"],
+  bf: [4, 60, "El % de grasa va de 4 a 60 (o déjalo vacío)", true],
+  stepsAvg: [500, 40000, "Escribe entre 500 y 40.000 pasos (o déjalo vacío)", true],
+  strengthSessions: [0, 7, "Entre 0 y 7 días"],
+  strengthMin: [0, 240, "Entre 0 y 240 minutos"],
+  cardioSessions: [0, 14, "Entre 0 y 14 sesiones"],
+  cardioMin: [0, 240, "Entre 0 y 240 minutos"],
+  kcalOverride: [1200, 6000, "Entre 1.200 y 6.000 kcal (o déjalo vacío para el cálculo automático)", true]
+};
+const EDIT_KEYS = () => Object.keys(defaultProfile()).filter(k => k !== "adjust"); // la corrección por peso va con su propio botón
+let draft = null, draftRaw = {}, draftErr = {}, savedAt = null;
+function startDraft() { draft = JSON.parse(JSON.stringify(state.profile)); draftRaw = {}; draftErr = {}; }
+const isDirty = () => !!draft && (Object.keys(draftRaw).length > 0
+  || EDIT_KEYS().some(k => JSON.stringify(draft[k] ?? null) !== JSON.stringify(state.profile[k] ?? null)));
+
+function validateField(key, raw) {
+  const [min, max, msg, optional] = PROFILE_RULES[key];
+  const t = String(raw).trim().replace(",", ".");
+  delete draftErr[key];
+  delete draftRaw[key];
+  if (t === "") {
+    if (optional) draft[key] = null;
+    else { draftErr[key] = "Este dato es necesario para calcular tus calorías"; draftRaw[key] = raw; }
+    return;
+  }
+  const n = Number(t);
+  if (!Number.isFinite(n) || n < min || n > max) { draftErr[key] = msg; draftRaw[key] = raw; return; }
+  draft[key] = n;
+}
+function showFieldError(key) {
+  const input = document.getElementById("pf-" + key), err = document.getElementById("err-" + key);
+  if (input) { input.classList.toggle("invalid", !!draftErr[key]); input.setAttribute("aria-invalid", draftErr[key] ? "true" : "false"); }
+  if (err) err.textContent = draftErr[key] || "";
+}
+
 function profileField(spec) {
-  const p = state.profile;
   const wrap = document.createElement("div");
   if (spec.full) wrap.className = "full";
   const id = "pf-" + spec.key;
+  const val = spec.key in draftRaw ? draftRaw[spec.key] : (draft[spec.key] ?? "");
   const input = spec.options
-    ? `<select id="${id}">${Object.entries(spec.options).map(([v, l]) => `<option value="${v}"${String(p[spec.key]) === v ? " selected" : ""}>${l}</option>`).join("")}</select>`
-    : `<input type="number" id="${id}" inputmode="decimal" step="${spec.step || 1}" min="${spec.min}" max="${spec.max}" value="${p[spec.key] ?? ""}" placeholder="${spec.ph || ""}">`;
-  wrap.innerHTML = `<label class="label" for="${id}">${spec.label}</label>${input}${spec.help ? `<div class="help">${spec.help}</div>` : ""}`;
-  wrap.querySelector("#" + id).addEventListener("change", (e) => {
-    const v = e.target.value;
-    p[spec.key] = spec.options ? (spec.num ? Number(v) : v) : (v === "" ? null : Math.min(spec.max, Math.max(spec.min, Number(v))));
-    saveState();
-    renderProfile();
-  });
+    ? `<select id="${id}">${Object.entries(spec.options).map(([v, l]) => `<option value="${v}"${String(draft[spec.key]) === v ? " selected" : ""}>${l}</option>`).join("")}</select>`
+    : `<input type="text" id="${id}" inputmode="decimal" value="${esc(String(val))}" placeholder="${spec.ph || ""}" autocomplete="off"${draftErr[spec.key] ? ' class="invalid" aria-invalid="true"' : ""} aria-describedby="err-${spec.key}">`;
+  wrap.innerHTML = `<label class="label" for="${id}">${spec.label}</label>${input}<div class="field-err" id="err-${spec.key}" role="alert">${draftErr[spec.key] || ""}</div>${spec.help ? `<div class="help">${spec.help}</div>` : ""}`;
+  const el = wrap.querySelector("#" + id);
+  if (spec.options) {
+    el.addEventListener("change", () => {
+      draft[spec.key] = spec.num ? Number(el.value) : el.value;
+      refreshSaveUi();
+      if (spec.rerender) renderYoForms();
+    });
+  } else {
+    el.addEventListener("input", () => { validateField(spec.key, el.value); showFieldError(spec.key); refreshSaveUi(); });
+    if (spec.rerender) el.addEventListener("change", renderYoForms);
+  }
   return wrap;
 }
 
 function renderProfile() {
-  const p = state.profile;
+  if (!draft) startDraft();
+  renderYoForms();
+  renderPlanHero();
+  renderPrecision();
+  renderPlanCard();
+  renderWeights();
+  refreshSaveUi();
+}
+
+// Objetivo, datos, actividad y tiroides (todo sobre el borrador)
+function renderYoForms() {
   document.getElementById("goalGrid").innerHTML = Object.entries(GOALS).map(([k, g]) =>
-    `<button type="button" class="goal${p.goal === k ? " on" : ""}" data-goal="${k}"><strong>${g.label}</strong><span>${g.desc}</span></button>`).join("");
+    `<button type="button" class="goal${draft.goal === k ? " on" : ""}" data-goal="${k}" aria-pressed="${draft.goal === k}"><strong>${g.label}</strong><span>${g.desc}</span></button>`).join("");
   document.querySelectorAll("#goalGrid [data-goal]").forEach(b => b.addEventListener("click", () => {
-    if (p.goal !== b.dataset.goal) p.adjust = 0; // la corrección por peso era para el objetivo anterior
-    p.goal = b.dataset.goal;
-    saveState();
-    renderProfile();
+    draft.goal = b.dataset.goal;
+    renderYoForms();
+    refreshSaveUi();
   }));
 
   const form = document.getElementById("profileForm");
   form.innerHTML = "";
   [
     { key: "sex", label: "Sexo", options: { h: "Hombre", m: "Mujer" } },
-    { key: "age", label: "Edad", min: 14, max: 99, ph: "30" },
-    { key: "height", label: "Altura (cm)", min: 120, max: 230, ph: "178" },
-    { key: "bf", label: "% de grasa (opcional)", min: 4, max: 60, step: 0.5, ph: "18", help: "Si lo sabes (báscula de bioimpedancia, plicómetro o DEXA), el cálculo es más preciso." },
+    { key: "age", label: "Edad", ph: "30" },
+    { key: "height", label: "Altura (cm)", ph: "178" },
+    { key: "bf", label: "% de grasa (opcional)", ph: "18", help: "Si lo sabes (báscula de bioimpedancia, plicómetro o DEXA), el cálculo es más preciso." },
     { key: "exp", label: "Experiencia entrenando", options: EXPERIENCE, full: true, help: "Cuanta más experiencia, más despacio se gana músculo y menor es el superávit que conviene." }
   ].forEach(spec => form.appendChild(profileField(spec)));
 
   const act = document.getElementById("activityForm");
   act.innerHTML = "";
   [
-    { key: "stepsAvg", label: "Pasos al día (media del móvil o reloj)", min: 500, max: 40000, step: 100, ph: "7500", full: true,
+    { key: "stepsAvg", label: "Pasos al día (media del móvil o reloj)", ph: "7500", full: true, rerender: true,
       help: "Lo más preciso: mira la media semanal en la app de Salud o Google Fit. Si lo dejas vacío, se usa la opción de abajo." },
-    ...(state.profile.stepsAvg ? [] : [{ key: "steps", label: "Actividad diaria aproximada", options: Object.fromEntries(Object.entries(STEPS).map(([k, v]) => [k, v[0]])), num: true, full: true }]),
+    ...(draft.stepsAvg ? [] : [{ key: "steps", label: "Actividad diaria aproximada", options: Object.fromEntries(Object.entries(STEPS).map(([k, v]) => [k, v[0]])), num: true, full: true }]),
     { key: "job", label: "Tu trabajo o día a día", options: Object.fromEntries(Object.entries(JOB).map(([k, v]) => [k, v[0]])), full: true },
-    { key: "strengthSessions", label: "Días de pesas por semana", min: 0, max: 7 },
-    { key: "strengthMin", label: "Minutos por sesión", min: 0, max: 240, step: 5 },
+    { key: "strengthSessions", label: "Días de pesas por semana" },
+    { key: "strengthMin", label: "Minutos por sesión" },
     { key: "strengthInt", label: "Cómo son tus sesiones de pesas", options: Object.fromEntries(Object.entries(STRENGTH_INT).map(([k, v]) => [k, v[0]])), full: true },
-    { key: "cardioSessions", label: "Sesiones de cardio por semana", min: 0, max: 14 },
-    { key: "cardioMin", label: "Minutos por sesión", min: 0, max: 240, step: 5 },
+    { key: "cardioSessions", label: "Sesiones de cardio por semana" },
+    { key: "cardioMin", label: "Minutos por sesión" },
     { key: "cardioInt", label: "Intensidad del cardio", options: { suave: "Suave (andar rápido, bici tranquila)", moderado: "Moderada (correr suave, elíptica)", intenso: "Intensa (correr rápido, HIIT)" }, full: true }
   ].forEach(spec => act.appendChild(profileField(spec)));
 
   const thy = document.getElementById("thyroidForm");
   thy.innerHTML = "";
-  thy.appendChild(profileField({ key: "thyroid", label: "Situación", options: Object.fromEntries(Object.entries(THYROID).map(([k, v]) => [k, v[1]])), full: true,
+  thy.appendChild(profileField({ key: "thyroid", label: "Situación", options: Object.fromEntries(Object.entries(THYROID).map(([k, v]) => [k, v[1]])), full: true, rerender: true,
     help: "Con el hipotiroidismo bien controlado el metabolismo es prácticamente normal. Si aún no está controlado, la app resta un 5 % al metabolismo basal; el registro de peso afinará el resto." }));
-  if (p.thyroid !== "no") {
+  if (draft.thyroid !== "no") {
     const levo = document.createElement("label");
     levo.className = "switch";
     levo.style.marginTop = "12px";
-    levo.innerHTML = `<input type="checkbox" id="levoToggle"${p.levo ? " checked" : ""}><span><strong>Tomo levotiroxina (Eutirox u otra)</strong><br><span class="small muted">Muestra un recordatorio en el desayuno.</span></span>`;
-    levo.querySelector("input").addEventListener("change", (e) => { p.levo = e.target.checked; saveState(); });
+    levo.innerHTML = `<input type="checkbox" id="levoToggle"${draft.levo ? " checked" : ""}><span><strong>Tomo levotiroxina (Eutirox u otra)</strong><br><span class="small muted">Muestra un recordatorio en el desayuno.</span></span>`;
+    levo.querySelector("input").addEventListener("change", (e) => { draft.levo = e.target.checked; refreshSaveUi(); });
     thy.appendChild(levo);
   }
+}
 
-  renderPlanHero();
-  renderPrecision();
-  renderPlanCard();
-  renderWeights();
+// Barra «Cambios sin guardar» (fija sobre las pestañas) y botón del final del formulario
+function refreshSaveUi() {
+  const dirty = currentTab === "yo" && isDirty();
+  const bar = document.getElementById("yoSaveBar");
+  bar.hidden = !dirty;
+  document.body.classList.toggle("has-savebar", dirty);
+  const errs = Object.keys(draftErr).length;
+  bar.querySelector(".msg").textContent = errs ? `Sin guardar · ${errs} por revisar` : "Cambios sin guardar";
+  const btn = document.getElementById("yoSaveBtn"), status = document.getElementById("yoSaveStatus");
+  btn.disabled = !isDirty();
+  status.className = "save-status" + (isDirty() ? " pending" : " ok");
+  status.textContent = isDirty() ? "● Cambios sin guardar" : savedAt ? `✓ Cambios guardados a las ${savedAt}` : "✓ Todo guardado";
+  const note = document.getElementById("heroDraftNote");
+  if (note) note.hidden = !isDirty();
+}
+
+// Diálogo con varias opciones (reutiliza la hoja inferior)
+function askSheet(title, html, buttons) {
+  document.getElementById("sheetTitle").innerHTML = title;
+  const body = document.getElementById("sheetBody");
+  body.innerHTML = `<div class="ask-text">${html}</div><div class="ask-btns"></div>`;
+  buttons.forEach(([label, cls, fn]) => {
+    const b = document.createElement("button");
+    b.className = "btn " + cls;
+    b.textContent = label;
+    b.addEventListener("click", () => { closePicker(); if (fn) fn(); });
+    body.querySelector(".ask-btns").appendChild(b);
+  });
+  document.getElementById("sheet").hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function saveProfile(after) {
+  if (!isDirty()) { if (after) after(); return; }
+  const errKeys = Object.keys(draftErr);
+  if (errKeys.length) {
+    errKeys.forEach(showFieldError);
+    const first = document.getElementById("pf-" + errKeys[0]);
+    if (first) { first.scrollIntoView({ behavior: "smooth", block: "center" }); first.focus({ preventScroll: true }); }
+    toast("Revisa los campos marcados en rojo");
+    return;
+  }
+  const next = Object.assign({}, state.profile);
+  EDIT_KEYS().forEach(k => { next[k] = draft[k]; });
+  if (next.kcalOverride) next.kcalOverride = Math.round(next.kcalOverride / 10) * 10;
+  if (next.goal !== state.profile.goal) next.adjust = 0; // la corrección por peso era para el objetivo anterior
+  // ¿Cambian las raciones de los menús ya planificados?
+  const oldPlan = computePlan(), old = state.profile;
+  state.profile = next; planCache = undefined;
+  const newPlan = computePlan();
+  state.profile = old; planCache = undefined;
+  const planned = Object.keys(state.selections).filter(k => k >= today && isDayFilled(k)).length;
+  const changed = (oldPlan && newPlan) ? ["fuerza", "cardio"].some(t => oldPlan.days[t].kcal !== newPlan.days[t].kcal || oldPlan.days[t].p !== newPlan.days[t].p) : !!oldPlan !== !!newPlan;
+  const commit = () => {
+    state.profile = next;
+    saveState();
+    startDraft();
+    savedAt = new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+    renderProfile();
+    toast("Cambios guardados ✓");
+    if (after) after();
+  };
+  if (!planned || !changed) { commit(); return; }
+  const line = (t, label) => oldPlan && newPlan ? `<li>${label}: ${nf(oldPlan.days[t].kcal)} → <strong>${nf(newPlan.days[t].kcal)} kcal</strong> · proteína ${oldPlan.days[t].p} → <strong>${newPlan.days[t].p} g</strong></li>` : "";
+  askSheet("Tus raciones van a cambiar", `
+    <p>Con estos datos, tu objetivo cambia:</p>
+    <ul>${line("fuerza", "💪 Fuerza")}${newPlan && newPlan.nF < 7 ? line("cardio", "🏃 Cardio / descanso") : ""}</ul>
+    <p>Tienes <strong>${planned} ${planned === 1 ? "día planificado" : "días planificados"}</strong> desde hoy. Sus platos se mantienen, pero las cantidades de cada ingrediente se recalcularán para el objetivo nuevo (y la lista de la compra con ellas).</p>
+    <p class="small muted">Los días pasados conservan lo que tenías registrado para medir tu gasto real.</p>`,
+    [["Guardar y ajustar raciones", "primary", commit], ["Seguir editando", "ghost", null]]);
+}
+function discardProfile() {
+  startDraft();
+  renderProfile();
+  toast("Cambios descartados");
 }
 
 // Objetivo del día en grande, arriba del todo
@@ -2194,7 +2361,8 @@ function renderPlanHero() {
   const box = (t, title) => `<div class="hero-day"><span>${title}</span><strong>${nf(t.kcal)} kcal</strong>
     <small>P ${t.p} · G ${t.f} · H ${t.c} g</small></div>`;
   const rate = Math.abs(plan.weekly) < 0.02 ? "mantener el peso" : `${plan.weekly > 0 ? "+" : "−"}${nf(Math.abs(plan.weekly), 2)} kg por semana`;
-  el.innerHTML = `<span class="hero-label">Tu objetivo diario (media)</span>
+  el.innerHTML = `<div class="hero-note" id="heroDraftNote" hidden>✏️ Tienes cambios sin guardar: esto muestra tus datos guardados.</div>
+    <span class="hero-label">Tu objetivo diario (media)</span>
     <div class="hero-num">${nf(plan.avg)}<span> kcal</span></div>
     <div class="hero-badges"><span class="hero-badge">${plan.mode === "medido" ? "📏" : plan.mode === "manual" ? "✏️" : "🧮"} ${mode}${err ? ` · ${err}` : ""}</span><span class="hero-badge">Ritmo: ${rate}</span></div>
     <div class="hero-days">${box(plan.days.fuerza, "💪 Fuerza")}${plan.nF < 7 ? box(plan.days.cardio, "🏃 Cardio / descanso") : ""}</div>`;
@@ -2222,7 +2390,7 @@ function renderPrecision() {
     calHtml = `<div class="advice act">📏 Tu gasto medido sale ${nf(cal.tdee)} kcal, muy lejos del estimado (${nf(plan.est)}). Suele ser porque no comiste lo del menú: apunta en «Diario» los días que comiste más, menos o fuera del menú.</div>`;
   } else if (cal.sane) {
     calHtml = `<div class="advice good">📏 <strong>Gasto real medido: ${nf(cal.tdee)} kcal/día</strong> (comes de media ${nf(cal.intake)} kcal y tu peso va a ${cal.perWeek >= 0 ? "+" : "−"}${nf(Math.abs(cal.perWeek), 2)} kg/semana). El estimado era ${nf(plan.est)} kcal.${cal.conf === "media" ? " Con menos de 3 semanas de datos se combina con el estimado." : ""}
-      <label class="switch" style="margin-top:10px"><input type="checkbox" id="useMeasured"${p.useMeasured ? " checked" : ""}><span>Usar mi gasto medido para el objetivo</span></label></div>`;
+      <label class="switch" style="margin-top:10px"><input type="checkbox" id="useMeasured"${draft.useMeasured ? " checked" : ""}><span>Usar mi gasto medido para el objetivo</span></label></div>`;
   }
   el.innerHTML = `<h2>🎚️ Precisión del cálculo</h2>
     <div class="prec-head"><div class="prec-meter">${[1, 2, 3, 4, 5, 6].map(i => `<span class="${i <= score ? "on" : ""}"></span>`).join("")}</div>
@@ -2230,7 +2398,7 @@ function renderPrecision() {
     <ul class="prec-list">${items.map(([ok, t, h]) => `<li class="${ok ? "ok" : ""}"><span class="tick">${ok ? "✓" : ""}</span><div>${t}${ok || !h ? "" : `<div class="small muted">${h}</div>`}</div></li>`).join("")}</ul>
     ${calHtml}`;
   const um = el.querySelector("#useMeasured");
-  if (um) um.addEventListener("change", () => { p.useMeasured = um.checked; saveState(); renderProfile(); });
+  if (um) um.addEventListener("change", () => { draft.useMeasured = um.checked; refreshSaveUi(); });
 }
 
 function renderPlanCard() {
@@ -2261,21 +2429,12 @@ function renderPlanCard() {
     </div>
     <div class="small muted" style="margin-top:10px">Proteína: ${nf(GOALS[p.goal].protein, 1)} g por kg. Grasa: 27 % de las kcal. El resto, hidratos. Los días de fuerza llevan un 5 % más y los de descanso un poco menos.</div>
     ${plan.fix && !plan.manual ? '<button class="btn ghost small" id="resetAdjust" style="margin-top:10px">Quitar la corrección por peso</button>' : ""}
-    <div class="manual-box">
-      <label class="label" for="kcalOverride">✏️ Fijar las calorías a mano (media diaria)</label>
-      <div class="row"><div><input type="number" id="kcalOverride" inputmode="numeric" min="1200" max="6000" step="50" placeholder="${nf(Math.round((plan.manual ? plan.tdee * (1 + plan.adj) : plan.avg) / 50) * 50)}" value="${p.kcalOverride || ""}"></div>
-        <div style="flex:0 0 auto"><button class="btn${p.kcalOverride ? "" : " primary"}" id="overrideSave">${p.kcalOverride ? "Quitar" : "Fijar"}</button></div></div>
-      <div class="help small muted" style="margin-top:6px">Por ejemplo, si te lo ha pautado un nutricionista. La proteína y el reparto de días se calculan igual.</div>
-    </div>`;
+    <div class="manual-box" id="manualBox"></div>`;
   const reset = el.querySelector("#resetAdjust");
   if (reset) reset.addEventListener("click", () => { p.adjust = 0; saveState(); renderProfile(); });
-  el.querySelector("#overrideSave").addEventListener("click", () => {
-    if (p.kcalOverride) { p.kcalOverride = null; saveState(); renderProfile(); toast("Vuelves al cálculo automático"); return; }
-    const v = parseInt(el.querySelector("#kcalOverride").value, 10);
-    if (!(v >= 1200 && v <= 6000)) { toast("Escribe unas calorías entre 1.200 y 6.000"); return; }
-    p.kcalOverride = Math.round(v / 10) * 10;
-    saveState(); renderProfile(); toast("Calorías fijadas ✓");
-  });
+  const box = el.querySelector("#manualBox");
+  box.appendChild(profileField({ key: "kcalOverride", label: "✏️ Fijar las calorías a mano (media diaria)", ph: `Vacío = automático (${nf(Math.round(plan.tdee * (1 + plan.adj) / 50) * 50)})`,
+    help: "Por ejemplo, si te lo ha pautado un nutricionista. Déjalo vacío para usar el cálculo automático. La proteína y el reparto de días se calculan igual." }));
 }
 
 // Tendencia de peso: regresión lineal de los últimos 28 días (kg por semana)
@@ -2358,6 +2517,10 @@ function renderWeights() {
   }));
 }
 
+document.getElementById("yoSaveBtn").addEventListener("click", () => saveProfile());
+document.getElementById("yoSaveBarBtn").addEventListener("click", () => saveProfile());
+document.getElementById("yoDiscardBtn").addEventListener("click", discardProfile);
+
 document.getElementById("weightSave").addEventListener("click", () => {
   const kg = parseFloat(String(document.getElementById("weightKg").value).replace(",", "."));
   const date = document.getElementById("weightDate").value || today;
@@ -2379,6 +2542,7 @@ function renderAll() {
   else if (currentTab === "diario") renderDiary();
   else if (currentTab === "mas") renderSettings();
   else if (currentTab === "yo") renderProfile();
+  if (currentTab !== "yo") { document.getElementById("yoSaveBar").hidden = true; document.body.classList.remove("has-savebar"); }
 }
 
 loadState();
