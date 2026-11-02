@@ -452,6 +452,29 @@
   .advice.act { background: var(--warn-soft); }
   .advice.good { background: var(--primary-soft); }
 
+  .hero-target { background: var(--hero); color: #fff; border: none; }
+  .hero-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; opacity: 0.9; }
+  .hero-num { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin: 4px 0 8px; font-variant-numeric: tabular-nums; }
+  .hero-num span { font-size: 1.1rem; font-weight: 700; opacity: 0.85; }
+  .hero-sub { font-size: 0.95rem; line-height: 1.5; opacity: 0.95; }
+  .hero-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .hero-badge { font-size: 0.82rem; font-weight: 700; padding: 5px 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); }
+  .hero-days { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .hero-day { background: rgba(255, 255, 255, 0.13); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .hero-day span { font-size: 0.82rem; opacity: 0.9; }
+  .hero-day strong { font-size: 1.2rem; }
+  .hero-day small { font-size: 0.8rem; opacity: 0.9; }
+  .prec-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .prec-meter { display: flex; gap: 4px; }
+  .prec-meter span { width: 10px; height: 26px; border-radius: 4px; background: var(--surface-2); }
+  .prec-meter span.on { background: var(--primary); }
+  .prec-list { list-style: none; margin: 0; padding: 0; }
+  .prec-list li { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.95rem; align-items: flex-start; }
+  .prec-list li:last-child { border-bottom: none; }
+  .prec-list .tick { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; color: var(--on-primary); }
+  .prec-list li.ok .tick { background: var(--primary); border-color: var(--primary); }
+  .manual-box { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); }
+
   /* Más */
   .week-grid { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px; align-items: center; font-size: 0.95rem; font-weight: 600; }
   .switch { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 1rem; line-height: 1.45; }
@@ -559,6 +582,7 @@
   </div>
   <div class="card" id="diarySymptoms"></div>
   <div class="card" id="diaryBowel"></div>
+  <div class="card" id="diaryAdherence"></div>
   <div class="card" id="diaryHabits"></div>
   <div class="card" id="diaryNotes"></div>
   <div class="card">
@@ -574,14 +598,15 @@
 
 <!-- ============ YO ============ -->
 <section class="view" id="view-yo" hidden>
+  <div class="card hero-target" id="planHero"></div>
   <div class="card">
     <h2>🎯 Tu objetivo</h2>
     <div class="goal-grid" id="goalGrid"></div>
   </div>
-  <div class="card" id="planCard"></div>
+  <div class="card" id="precisionCard"></div>
   <div class="card">
     <h2>⚖️ Peso</h2>
-    <div class="small muted" style="margin-bottom:10px">Pésate 2–3 veces por semana, por la mañana, después de ir al baño y antes de comer. Con 2 semanas de datos la app comprueba si tu peso va al ritmo esperado y te propone ajustar las calorías.</div>
+    <div class="small muted" style="margin-bottom:10px">Pésate 2–3 veces por semana, por la mañana, después de ir al baño y antes de comer. Con tus pesadas y lo que comes, la app mide tu gasto real.</div>
     <div class="row">
       <div><label class="label" for="weightDate">Fecha</label><input type="date" id="weightDate"></div>
       <div><label class="label" for="weightKg">Peso (kg)</label><input type="number" id="weightKg" inputmode="decimal" step="0.1" min="30" max="250" placeholder="75,0"></div>
@@ -589,8 +614,9 @@
     <button class="btn primary" id="weightSave" style="width:100%;margin-top:10px">Guardar peso</button>
     <div id="weightChart"></div>
     <div id="weightAdvice"></div>
-    <div id="weightList"></div>
+    <details class="recipe"><summary>Últimas pesadas</summary><div id="weightList"></div></details>
   </div>
+  <div class="card" id="planCard"></div>
   <div class="card">
     <h2>👤 Tus datos</h2>
     <div class="form-grid" id="profileForm"></div>
@@ -842,7 +868,9 @@ const GOALS = {
   mantener: { label: "⚖️ Mantener", desc: "Comer lo que gastas.", protein: 1.8, adj: 0 },
   definir: { label: "🔥 Perder grasa", desc: "Déficit moderado conservando el músculo.", protein: 2.3, adj: -0.2 }
 };
-const STEPS = { 1: ["Poco activo (menos de 5.000 pasos al día)", 1.2], 2: ["Algo activo (5.000–8.000 pasos)", 1.3], 3: ["Activo (8.000–11.000 pasos)", 1.4], 4: ["Muy activo (más de 11.000 o trabajo físico)", 1.5] };
+const STEPS = { 1: ["Poco activo (menos de 5.000 pasos al día)", 1.2], 2: ["Algo activo (5.000–8.000 pasos)", 1.3], 3: ["Activo (8.000–11.000 pasos)", 1.4], 4: ["Muy activo (más de 11.000 pasos)", 1.5] };
+const JOB = { sentado: ["Sentado casi todo el día (oficina, estudiar)", 0], pie: ["De pie o caminando bastante (tienda, camarero, profesor)", 100], fisico: ["Trabajo físico (obra, almacén, reparto a pie)", 250] };
+const STRENGTH_INT = { ligera: ["Tranquila (descansos largos, pocas series)", 3], normal: ["Normal (descansos de 1–2 min)", 4], intensa: ["Intensa (descansos cortos, superseries)", 5] };
 const EXPERIENCE = { principiante: "Principiante (menos de 1 año entrenando)", intermedio: "Intermedio (1–3 años)", avanzado: "Avanzado (más de 3 años)" };
 const CARDIO_MET = { suave: 3.5, moderado: 6, intenso: 8.5 }; // MET netos (sin contar el gasto en reposo)
 const STRENGTH_MET = 4; // pesas: ~5 MET, 4 netos
@@ -854,7 +882,8 @@ const THYROID = {
 const defaultProfile = () => ({
   goal: "volumen", sex: "h", age: null, height: null, bf: null, exp: "intermedio", steps: 2,
   strengthSessions: 4, strengthMin: 60, cardioSessions: 1, cardioMin: 30, cardioInt: "moderado",
-  thyroid: "controlado", levo: true, adjust: 0
+  thyroid: "controlado", levo: true, adjust: 0,
+  stepsAvg: null, job: "sentado", strengthInt: "normal", kcalOverride: null, useMeasured: true
 });
 
 function latestWeight() {
@@ -862,21 +891,70 @@ function latestWeight() {
   return keys.length ? state.weights[keys[keys.length - 1]] : null;
 }
 
-// Metabolismo basal (Mifflin-St Jeor; si hay % de grasa, media con Katch-McArdle) × actividad diaria
-// + entrenos de la semana repartidos por día. El objetivo y la corrección por tu peso real van encima.
+// Lo que de verdad comes: kcal del menú de cada día (se guarda el día que lo comes, para que cambiar el objetivo
+// después no reescriba el pasado) × lo que apuntas en el diario (comí más / menos / no lo seguí).
+const ADHERENCE = { si: ["✅ Sí", 1], mas: ["⬆️ Comí más", 1.15], menos: ["⬇️ Comí menos", 0.85], no: ["❌ No lo seguí", null] };
+function snapshotIntake(k) {
+  if (!state.intake || k > today) return;
+  if (isDayFilled(k)) state.intake[k] = dayTotals(state.selections[k]).kcal;
+  else delete state.intake[k];
+}
+
+// Gasto real medido: lo que comes de media menos lo que cambia tu peso (7.700 kcal ≈ 1 kg).
+// Hace falta la tendencia de peso (6 pesadas en 14 días) y al menos 10 días con menú en ese tiempo.
+function calibration() {
+  const trend = weightTrend();
+  const res = { weighs: trend ? trend.count : 0, span: trend ? Math.round(trend.span) : 0, days: 0, ready: false };
+  if (!trend) return res;
+  const keys = Object.keys(state.weights).sort();
+  const last = keys[keys.length - 1];
+  let sum = 0;
+  for (let d = addDays(fromIso(last), -Math.round(trend.span)); iso(d) <= last; d = addDays(d, 1)) {
+    const k = iso(d), kcal = state.intake[k], a = state.adherence[k];
+    if (!kcal || a === "no") continue;
+    sum += kcal * (a ? ADHERENCE[a][1] : 1);
+    res.days++;
+  }
+  if (!trend.enough || res.days < 10) return res;
+  res.intake = sum / res.days;
+  res.perWeek = trend.perWeek;
+  res.tdee = res.intake - trend.perWeek * 7700 / 7;
+  res.conf = trend.span >= 21 && res.days >= 18 ? "alta" : "media";
+  res.ready = true;
+  return res;
+}
+
+// Metabolismo basal (Mifflin-St Jeor; si hay % de grasa, media con Katch-McArdle) × actividad diaria (o tus pasos
+// reales) + trabajo + entrenos de la semana repartidos por día. Si ya hay datos de peso y menú, se usa tu gasto
+// medido. El objetivo va encima, salvo que fijes las calorías a mano.
+let planCache;
 function computePlan() {
+  if (planCache === undefined) planCache = calcPlan();
+  return planCache;
+}
+function calcPlan() {
   const p = state.profile, kg = latestWeight();
   if (!p || !p.age || !p.height || !kg) return null;
   const mifflin = 10 * kg + 6.25 * p.height - 5 * p.age + (p.sex === "m" ? -161 : 5);
   const lbm = p.bf ? kg * (1 - p.bf / 100) : null;
   const bmr = (lbm ? (mifflin + 370 + 21.6 * lbm) / 2 : mifflin) * THYROID[p.thyroid][0];
-  const neat = bmr * STEPS[p.steps][1];
-  const exercise = (STRENGTH_MET * kg * p.strengthSessions * p.strengthMin / 60
+  // Con tus pasos: vida sedentaria (×1,2) + ~0,5 kcal por kg cada 1.000 pasos por encima de 3.000
+  const neat = p.stepsAvg ? bmr * 1.2 + Math.max(0, p.stepsAvg - 3000) * 0.0005 * kg : bmr * STEPS[p.steps][1];
+  const job = (JOB[p.job] || JOB.sentado)[1];
+  const exercise = ((STRENGTH_INT[p.strengthInt] || STRENGTH_INT.normal)[1] * kg * p.strengthSessions * p.strengthMin / 60
     + CARDIO_MET[p.cardioInt] * kg * p.cardioSessions * p.cardioMin / 60) / 7;
-  const tdee = neat + exercise;
+  const est = neat + job + exercise;
+  const cal = calibration();
+  // Si el gasto medido se aleja más de un 30 % del estimado, seguramente faltan datos (no se usa)
+  cal.sane = cal.ready && cal.tdee > est * 0.7 && cal.tdee < est * 1.3;
+  const useCal = cal.sane && p.useMeasured;
+  const tdee = useCal ? (cal.conf === "alta" ? cal.tdee : (cal.tdee + est) / 2) : est;
   const g = GOALS[p.goal];
   const adj = typeof g.adj === "number" ? g.adj : g.adj[p.exp];
-  const avg = tdee * (1 + adj) + (p.adjust || 0);
+  const manual = p.kcalOverride || null;
+  const fix = useCal ? 0 : (p.adjust || 0); // la corrección por peso ya va dentro del gasto medido
+  const avg = manual || tdee * (1 + adj) + fix;
+  const mode = manual ? "manual" : useCal ? "medido" : "estimado";
   // Días de fuerza un 5 % por encima de la media; los de cardio/descanso compensan para que la semana cuadre
   const nF = Object.values(state.weekly).filter(w => w.type === "fuerza").length;
   const fuerzaK = nF === 0 || nF === 7 ? avg : avg * 1.05;
@@ -887,7 +965,8 @@ function computePlan() {
     const fat = Math.round(k * 0.27 / 9);
     return { kcal: Math.round(k), p: prot, f: fat, c: Math.round((k - prot * 4 - fat * 9) / 4) };
   };
-  return { kg, bmr, neat, exercise, tdee, avg, adj, nF, weekly: tdee * adj * 7 / 7700, days: { fuerza: day(fuerzaK), cardio: day(cardioK) } };
+  const weekly = (manual ? manual - tdee - fix : tdee * adj) * 7 / 7700;
+  return { kg, bmr, neat, job, exercise, est, tdee, cal, useCal, mode, manual, fix, avg, adj, nF, weekly, days: { fuerza: day(fuerzaK), cardio: day(cardioK) } };
 }
 
 // Rangos válidos del día: del perfil si está completo; si no, los objetivos fijos de siempre (sin escalar raciones)
@@ -951,7 +1030,7 @@ function toast(msg) {
 function defaultState() {
   return {
     v: 4, selections: {}, weekly: JSON.parse(JSON.stringify(DEFAULT_WEEKLY)),
-    prefs: { suave: true, budget: true, tupper: true }, excluded: [], diary: {}, shopChecked: {}, profile: defaultProfile(), weights: {}
+    prefs: { suave: true, budget: true, tupper: true }, excluded: [], diary: {}, shopChecked: {}, profile: defaultProfile(), weights: {}, intake: {}, adherence: {}
   };
 }
 const normalizeWhen = (o) => {
@@ -988,6 +1067,8 @@ function normalizeState(s) {
   });
   out.profile = Object.assign(defaultProfile(), s.profile);
   out.weights = s.weights || {};
+  out.intake = s.intake || {};
+  out.adherence = s.adherence || {};
   out.v = 4;
   return out;
 }
@@ -1003,8 +1084,14 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) state = normalizeState(JSON.parse(raw)) || defaultState();
   } catch (e) { /* localStorage no disponible, seguimos con estado en memoria */ }
+  planCache = undefined;
+  // Primera vez: guarda lo comido en los días pasados que ya tenían menú
+  for (let i = 1; i <= 35; i++) { const k = iso(addDays(fromIso(today), -i)); if (state.intake[k] === undefined) snapshotIntake(k); }
 }
 function saveState() {
+  planCache = undefined;
+  snapshotIntake(currentDate);
+  planCache = undefined;
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignorar */ }
 }
 
@@ -1836,6 +1923,16 @@ function renderDiary() {
   }));
   bowel.querySelector("#bristol").addEventListener("change", (e) => { save("bristol", parseInt(e.target.value, 10)); renderDiaryHistory(); });
 
+  const adh = document.getElementById("diaryAdherence");
+  const planned = isDayFilled(key) ? dayTotals(state.selections[key]).kcal : null;
+  adh.innerHTML = `<h2>¿Seguiste el menú?</h2><div class="small muted" style="margin:-6px 0 12px">${planned ? `El menú de este día eran ${nf(planned)} kcal. ` : "Este día no tiene menú. "}Sirve para medir tu gasto real y afinar tus calorías.</div>
+    <div class="scale">${Object.entries(ADHERENCE).map(([k, [l]]) => `<button type="button" data-a="${k}" class="${state.adherence[key] === k ? "on l" + (k === "si" ? 0 : k === "no" ? 3 : 1) : ""}">${l}</button>`).join("")}</div>`;
+  adh.querySelectorAll("[data-a]").forEach(b => b.addEventListener("click", () => {
+    if (state.adherence[key] === b.dataset.a) delete state.adherence[key]; else state.adherence[key] = b.dataset.a;
+    saveState();
+    renderDiary();
+  }));
+
   const habits = document.getElementById("diaryHabits");
   habits.innerHTML = "<h2>Hábitos que ayudan</h2>" + HABITS.map(([k, l]) =>
     `<label class="habit"><input type="checkbox" data-h="${k}"${entry.habits[k] ? " checked" : ""}><span>${l}</span></label>`).join("");
@@ -2051,9 +2148,13 @@ function renderProfile() {
   const act = document.getElementById("activityForm");
   act.innerHTML = "";
   [
-    { key: "steps", label: "Actividad diaria (sin contar el entreno)", options: Object.fromEntries(Object.entries(STEPS).map(([k, v]) => [k, v[0]])), num: true, full: true },
+    { key: "stepsAvg", label: "Pasos al día (media del móvil o reloj)", min: 500, max: 40000, step: 100, ph: "7500", full: true,
+      help: "Lo más preciso: mira la media semanal en la app de Salud o Google Fit. Si lo dejas vacío, se usa la opción de abajo." },
+    ...(state.profile.stepsAvg ? [] : [{ key: "steps", label: "Actividad diaria aproximada", options: Object.fromEntries(Object.entries(STEPS).map(([k, v]) => [k, v[0]])), num: true, full: true }]),
+    { key: "job", label: "Tu trabajo o día a día", options: Object.fromEntries(Object.entries(JOB).map(([k, v]) => [k, v[0]])), full: true },
     { key: "strengthSessions", label: "Días de pesas por semana", min: 0, max: 7 },
     { key: "strengthMin", label: "Minutos por sesión", min: 0, max: 240, step: 5 },
+    { key: "strengthInt", label: "Cómo son tus sesiones de pesas", options: Object.fromEntries(Object.entries(STRENGTH_INT).map(([k, v]) => [k, v[0]])), full: true },
     { key: "cardioSessions", label: "Sesiones de cardio por semana", min: 0, max: 14 },
     { key: "cardioMin", label: "Minutos por sesión", min: 0, max: 240, step: 5 },
     { key: "cardioInt", label: "Intensidad del cardio", options: { suave: "Suave (andar rápido, bici tranquila)", moderado: "Moderada (correr suave, elíptica)", intenso: "Intensa (correr rápido, HIIT)" }, full: true }
@@ -2072,43 +2173,109 @@ function renderProfile() {
     thy.appendChild(levo);
   }
 
+  renderPlanHero();
+  renderPrecision();
   renderPlanCard();
   renderWeights();
+}
+
+// Objetivo del día en grande, arriba del todo
+const MODE_LABELS = { estimado: ["Estimado con tus datos", "±10 %"], medido: ["Calibrado con tu peso real", "±5 %"], manual: ["Fijado a mano", ""] };
+function renderPlanHero() {
+  const plan = computePlan();
+  const el = document.getElementById("planHero");
+  if (!plan) {
+    const missing = [!state.profile.age && "edad", !state.profile.height && "altura", !latestWeight() && "peso"].filter(Boolean);
+    el.innerHTML = `<span class="hero-label">Tu objetivo diario</span><div class="hero-num">—</div>
+      <div class="hero-sub">Para calcularlo faltan: <strong>${missing.join(", ")}</strong>. El peso se guarda en «Peso» y lo demás en «Tus datos».</div>`;
+    return;
+  }
+  const [mode, err] = MODE_LABELS[plan.mode];
+  const box = (t, title) => `<div class="hero-day"><span>${title}</span><strong>${nf(t.kcal)} kcal</strong>
+    <small>P ${t.p} · G ${t.f} · H ${t.c} g</small></div>`;
+  const rate = Math.abs(plan.weekly) < 0.02 ? "mantener el peso" : `${plan.weekly > 0 ? "+" : "−"}${nf(Math.abs(plan.weekly), 2)} kg por semana`;
+  el.innerHTML = `<span class="hero-label">Tu objetivo diario (media)</span>
+    <div class="hero-num">${nf(plan.avg)}<span> kcal</span></div>
+    <div class="hero-badges"><span class="hero-badge">${plan.mode === "medido" ? "📏" : plan.mode === "manual" ? "✏️" : "🧮"} ${mode}${err ? ` · ${err}` : ""}</span><span class="hero-badge">Ritmo: ${rate}</span></div>
+    <div class="hero-days">${box(plan.days.fuerza, "💪 Fuerza")}${plan.nF < 7 ? box(plan.days.cardio, "🏃 Cardio / descanso") : ""}</div>`;
+}
+
+// Qué datos tienes y qué falta para afinar el cálculo
+function renderPrecision() {
+  const el = document.getElementById("precisionCard");
+  const p = state.profile, plan = computePlan();
+  if (!plan) { el.hidden = true; return; }
+  el.hidden = false;
+  const cal = plan.cal;
+  const items = [
+    [true, "Edad, altura y peso", ""],
+    [!!p.bf, "% de grasa corporal", "Añádelo en «Tus datos» si te lo han medido."],
+    [!!p.stepsAvg, "Pasos reales del móvil", "Pon tu media en «Actividad y entreno»."],
+    [cal.weighs >= 6 && cal.span >= 14, `Pesadas: ${Math.min(cal.weighs, 6)} de 6 en 2 semanas`, "Pésate 2–3 veces por semana."],
+    [cal.days >= 10, `Días con menú: ${Math.min(cal.days, 10)} de 10`, "Rellena el menú del día y, si comes distinto, apúntalo en «Diario»."]
+  ];
+  const score = items.filter(i => i[0]).length + (cal.sane ? 1 : 0);
+  const level = cal.sane ? ["Muy alta", "Tu gasto real ya está medido con tus datos"] : score >= 4 ? ["Alta", "Falta poco para medir tu gasto real"]
+    : score >= 2 ? ["Media", "Cada dato que añadas la mejora"] : ["Básica", "Añade datos para afinarla"];
+  let calHtml = "";
+  if (cal.ready && !cal.sane) {
+    calHtml = `<div class="advice act">📏 Tu gasto medido sale ${nf(cal.tdee)} kcal, muy lejos del estimado (${nf(plan.est)}). Suele ser porque no comiste lo del menú: apunta en «Diario» los días que comiste más, menos o fuera del menú.</div>`;
+  } else if (cal.sane) {
+    calHtml = `<div class="advice good">📏 <strong>Gasto real medido: ${nf(cal.tdee)} kcal/día</strong> (comes de media ${nf(cal.intake)} kcal y tu peso va a ${cal.perWeek >= 0 ? "+" : "−"}${nf(Math.abs(cal.perWeek), 2)} kg/semana). El estimado era ${nf(plan.est)} kcal.${cal.conf === "media" ? " Con menos de 3 semanas de datos se combina con el estimado." : ""}
+      <label class="switch" style="margin-top:10px"><input type="checkbox" id="useMeasured"${p.useMeasured ? " checked" : ""}><span>Usar mi gasto medido para el objetivo</span></label></div>`;
+  }
+  el.innerHTML = `<h2>🎚️ Precisión del cálculo</h2>
+    <div class="prec-head"><div class="prec-meter">${[1, 2, 3, 4, 5, 6].map(i => `<span class="${i <= score ? "on" : ""}"></span>`).join("")}</div>
+      <div><strong>${level[0]}</strong><div class="small muted">${level[1]}</div></div></div>
+    <ul class="prec-list">${items.map(([ok, t, h]) => `<li class="${ok ? "ok" : ""}"><span class="tick">${ok ? "✓" : ""}</span><div>${t}${ok || !h ? "" : `<div class="small muted">${h}</div>`}</div></li>`).join("")}</ul>
+    ${calHtml}`;
+  const um = el.querySelector("#useMeasured");
+  if (um) um.addEventListener("change", () => { p.useMeasured = um.checked; saveState(); renderProfile(); });
 }
 
 function renderPlanCard() {
   const plan = computePlan();
   const el = document.getElementById("planCard");
-  if (!plan) {
-    const missing = [!state.profile.age && "edad", !state.profile.height && "altura", !latestWeight() && "peso"].filter(Boolean);
-    el.innerHTML = `<h2>📊 Tus calorías</h2><div class="empty">Para calcularlas faltan: <strong>${missing.join(", ")}</strong>. Rellénalo abajo; el peso se guarda en el apartado «Peso».</div>`;
-    return;
-  }
+  if (!plan) { el.hidden = true; return; }
+  el.hidden = false;
   const p = state.profile;
   const pct = Math.round(plan.adj * 100);
   const sign = (v) => (v > 0 ? "+" : v < 0 ? "−" : "") + nf(Math.abs(v));
-  const day = (t, title) => `<div class="daytarget"><strong>${title}: ${nf(t.kcal)} kcal</strong>
-    <div class="chips" style="margin-top:0"><span class="chip">${dot("p")}Proteína ${t.p} g</span><span class="chip">${dot("f")}Grasa ${t.f} g</span><span class="chip">${dot("c")}Hidratos ${t.c} g</span></div></div>`;
-  const perMonth = plan.weekly * 4.33;
   const goalName = GOALS[p.goal].label.split(" ").slice(1).join(" ");
-  el.innerHTML = `<h2>📊 Tus calorías</h2>
+  const tdeeRow = plan.useCal
+    ? `<span><strong>Gasto real medido${plan.cal.conf === "media" ? " (mezclado con el estimado)" : ""}</strong></span><span class="v">${nf(plan.tdee)} kcal</span>`
+    : `<span><strong>Gasto diario estimado</strong></span><span class="v">${nf(plan.tdee)} kcal</span>`;
+  el.innerHTML = `<h2>📊 Cómo se calcula</h2>
     <div class="stats">
       <span>Metabolismo basal${p.bf ? " (con tu % de grasa)" : ""}</span><span class="v">${nf(plan.bmr)} kcal</span>
-      <span>Actividad diaria</span><span class="v">+${nf(plan.neat - plan.bmr)} kcal</span>
+      <span>${p.stepsAvg ? `Actividad diaria (${nf(p.stepsAvg)} pasos)` : "Actividad diaria"}</span><span class="v">+${nf(plan.neat - plan.bmr)} kcal</span>
+      ${plan.job ? `<span>Trabajo</span><span class="v">+${nf(plan.job)} kcal</span>` : ""}
       <span>Entreno (media por día)</span><span class="v">+${nf(plan.exercise)} kcal</span>
       <span class="sep"></span>
-      <span><strong>Gasto diario estimado</strong></span><span class="v">${nf(plan.tdee)} kcal</span>
-      <span>Objetivo «${goalName}» (${pct > 0 ? "+" : ""}${pct} %)</span><span class="v">${sign(plan.tdee * plan.adj)} kcal</span>
-      ${p.adjust ? `<span>Corrección por tu peso real</span><span class="v">${sign(p.adjust)} kcal</span>` : ""}
+      ${plan.useCal ? `<span>Estimado con tus datos</span><span class="v">${nf(plan.est)} kcal</span>` : ""}
+      ${tdeeRow}
+      ${plan.manual ? "" : `<span>Objetivo «${goalName}» (${pct > 0 ? "+" : ""}${pct} %)</span><span class="v">${sign(plan.tdee * plan.adj)} kcal</span>`}
+      ${plan.fix && !plan.manual ? `<span>Corrección por tu peso real</span><span class="v">${sign(plan.fix)} kcal</span>` : ""}
       <span class="sep"></span>
       <span><strong>Media diaria a comer</strong></span><span class="v">${nf(plan.avg)} kcal</span>
     </div>
-    ${day(plan.days.fuerza, "💪 Días de fuerza")}
-    ${plan.nF < 7 ? day(plan.days.cardio, "🏃 Días de cardio / descanso") : ""}
-    <div class="small muted" style="margin-top:10px">Ritmo esperado: ${plan.weekly === 0 ? "mantener el peso" : `${plan.weekly > 0 ? "+" : "−"}${nf(Math.abs(plan.weekly), 2)} kg/semana (≈ ${nf(Math.abs(perMonth), 1)} kg/mes)`}. Proteína: ${nf(GOALS[p.goal].protein, 1)} g por kg. Es una estimación (±10 %): el registro de peso la corrige con tus datos reales.</div>
-    ${p.adjust ? '<button class="btn ghost small" id="resetAdjust" style="margin-top:10px">Quitar la corrección por peso</button>' : ""}`;
+    <div class="small muted" style="margin-top:10px">Proteína: ${nf(GOALS[p.goal].protein, 1)} g por kg. Grasa: 27 % de las kcal. El resto, hidratos. Los días de fuerza llevan un 5 % más y los de descanso un poco menos.</div>
+    ${plan.fix && !plan.manual ? '<button class="btn ghost small" id="resetAdjust" style="margin-top:10px">Quitar la corrección por peso</button>' : ""}
+    <div class="manual-box">
+      <label class="label" for="kcalOverride">✏️ Fijar las calorías a mano (media diaria)</label>
+      <div class="row"><div><input type="number" id="kcalOverride" inputmode="numeric" min="1200" max="6000" step="50" placeholder="${nf(Math.round((plan.manual ? plan.tdee * (1 + plan.adj) : plan.avg) / 50) * 50)}" value="${p.kcalOverride || ""}"></div>
+        <div style="flex:0 0 auto"><button class="btn${p.kcalOverride ? "" : " primary"}" id="overrideSave">${p.kcalOverride ? "Quitar" : "Fijar"}</button></div></div>
+      <div class="help small muted" style="margin-top:6px">Por ejemplo, si te lo ha pautado un nutricionista. La proteína y el reparto de días se calculan igual.</div>
+    </div>`;
   const reset = el.querySelector("#resetAdjust");
   if (reset) reset.addEventListener("click", () => { p.adjust = 0; saveState(); renderProfile(); });
+  el.querySelector("#overrideSave").addEventListener("click", () => {
+    if (p.kcalOverride) { p.kcalOverride = null; saveState(); renderProfile(); toast("Vuelves al cálculo automático"); return; }
+    const v = parseInt(el.querySelector("#kcalOverride").value, 10);
+    if (!(v >= 1200 && v <= 6000)) { toast("Escribe unas calorías entre 1.200 y 6.000"); return; }
+    p.kcalOverride = Math.round(v / 10) * 10;
+    saveState(); renderProfile(); toast("Calorías fijadas ✓");
+  });
 }
 
 // Tendencia de peso: regresión lineal de los últimos 28 días (kg por semana)
@@ -2119,9 +2286,10 @@ function weightTrend() {
   const pts = keys.map(k => ({ x: (fromIso(k) - last) / 86400000, y: state.weights[k] })).filter(pt => pt.x >= -28);
   const span = pts.length ? -pts[0].x : 0;
   if (pts.length < 6 || span < 14) return { enough: false, count: pts.length, span };
+  const count = pts.length;
   const mx = pts.reduce((a, pt) => a + pt.x, 0) / pts.length, my = pts.reduce((a, pt) => a + pt.y, 0) / pts.length;
   const slope = pts.reduce((a, pt) => a + (pt.x - mx) * (pt.y - my), 0) / pts.reduce((a, pt) => a + (pt.x - mx) ** 2, 0);
-  return { enough: true, perWeek: slope * 7, span };
+  return { enough: true, perWeek: slope * 7, span, count };
 }
 
 function renderWeights() {
@@ -2158,6 +2326,7 @@ function renderWeights() {
   const advice = document.getElementById("weightAdvice");
   const plan = computePlan(), trend = weightTrend();
   if (!plan || !trend) advice.innerHTML = "";
+  else if (plan.useCal || plan.manual) advice.innerHTML = trend.enough ? `<div class="advice">📈 Tu peso va a ${trend.perWeek >= 0 ? "+" : "−"}${nf(Math.abs(trend.perWeek), 2)} kg/semana.${plan.manual ? "" : " El objetivo ya lo tiene en cuenta."}</div>` : "";
   else if (!trend.enough) {
     advice.innerHTML = `<div class="advice">📈 Para comprobar tu ritmo hacen falta al menos 6 pesadas en 2 semanas (llevas ${trend.count} en ${Math.round(trend.span)} días).</div>`;
   } else {
