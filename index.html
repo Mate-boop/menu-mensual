@@ -344,6 +344,7 @@
   .bars .num small { color: var(--muted); font-weight: 500; }
   .limits { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; font-size: 0.84rem; }
   .limits span { background: var(--surface-2); padding: 4px 10px; border-radius: 999px; font-weight: 600; }
+  .habits { margin-top: 10px; font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
   .limits .over { background: var(--accent-soft); color: var(--accent); }
 
   /* Selector a pantalla completa */
@@ -706,17 +707,18 @@
       <li><strong>Verdura cocinada mejor que cruda</strong> en los días malos (activa el modo digestión suave). La ensalada se cambia por calabacín o judías a la plancha.</li>
       <li><strong>Cenas ligeras y 3 horas antes de acostarte.</strong> Las grasas abundantes vacían el estómago más despacio y aumentan la pesadez.</li>
       <li><strong>Come despacio y mastica mucho</strong>; evita bebidas con gas, chicles y caramelos sin azúcar (llevan polioles y te hacen tragar aire).</li>
-      <li><strong>Agua: 2–2,5 L al día</strong>, más los días de entreno; repártela entre comidas.</li>
+      <li><strong>Agua: 2,5–3 L al día</strong>, más los días de entreno; repártela entre comidas. Si subes la fibra sin beber más, el estreñimiento empeora.</li>
       <li><strong>Yogur proteico:</strong> natural, <strong>sin lactosa</strong>, sin edulcorantes y con 8–10 g de proteína por 100 g, por ejemplo el yogur desnatado alto en proteínas sin lactosa de Pastoret (Carrefour, El Corte Inglés). Evita los «tipo skyr» de soja hechos con haba entera: llevan GOS (un FODMAP) y la mitad de proteína.</li>
       <li><strong>Infusiones que sientan bien:</strong> menta poleo y jengibre. La manzanilla y el hinojo, si son fuertes, son altos en FODMAP.</li>
-      <li><strong>Para el estreñimiento:</strong> 2 kiwis verdes al día, moverte a diario e ir al baño a la misma hora (después del desayuno) con los pies en alto sobre un taburete.</li>
+      <li><strong>Psyllium (cáscara de ispágula):</strong> fibra bien tolerada en dieta baja en FODMAP. Empieza con 5 g al día en un vaso grande de agua, con la comida, y sube a 10 g en 1–2 semanas. Siempre al menos 4 horas después del Eutirox.</li>
+      <li><strong>Para el estreñimiento:</strong> 2 kiwis verdes al día (el menú te avisa si te faltan), moverte a diario e ir al baño a la misma hora (después del desayuno) con los pies en alto sobre un taburete.</li>
       <li><strong>Si el cansancio no mejora,</strong> coméntalo a tu médico: con SIBO es frecuente revisar vitamina B12, hierro y vitamina D en una analítica.</li>
     </ul>
     <h3>Hipotiroidismo</h3>
     <ul>
       <li><strong>Levotiroxina en ayunas, solo con agua, 30–60 min antes del desayuno</strong> y siempre a la misma hora.</li>
       <li>El café, los lácteos, la soja (tofu) y mucha fibra junto a la pastilla reducen su absorción. Lo importante es <strong>ser constante cada día</strong>, para que tu médico pueda ajustar bien la dosis.</li>
-      <li>Los suplementos de <strong>calcio, hierro o magnesio y los antiácidos</strong>, al menos 4 horas separados de la pastilla.</li>
+      <li>Los suplementos de <strong>calcio, hierro o magnesio, los antiácidos y el psyllium</strong>, al menos 4 horas separados de la pastilla.</li>
       <li>No tomes yodo, selenio ni «suplementos para el tiroides» sin consultarlo: en el hipotiroidismo autoinmune el exceso de yodo puede empeorarlo.</li>
       <li>El brócoli y otras crucíferas, cocinados y en cantidades normales, no son un problema.</li>
       <li>Si está mal controlado da cansancio y estreñimiento, y cuesta más ganar músculo o perder grasa. Revisa la TSH cuando te diga tu médico (y 6–8 semanas después de cada cambio de dosis).</li>
@@ -1219,6 +1221,16 @@ function dayTotals(sel, override) {
   add(EXTRAS[pick.extra] || EXTRAS[0]);
   return t;
 }
+const KIWI_DAY = 150;
+const kiwiIn = (ing) => ing.reduce((a, [k, g]) => a + (k === "kiwi" ? g : 0), 0);
+function dayKiwi(sel) {
+  const f = dayScale(sel);
+  return Math.round(SLOTS.reduce((a, s) => a + (sel[s] >= 0 ? kiwiIn(scaledMeal(getMealsForSlot(s, sel)[sel[s]], f).i) : 0), 0) + kiwiIn((EXTRAS[sel.extra] || EXTRAS[0]).i));
+}
+function kiwiHint(sel) {
+  const kiwiExtra = EXTRAS.findIndex(e => e.i.length === 1 && e.i[0][0] === "kiwi");
+  return sel.extra ? "cambia el desayuno por uno con kiwi" : `añade de extra <strong>${esc(EXTRAS[kiwiExtra].label.split(" —")[0])}</strong>`;
+}
 const inTarget = (t, type) => { const T = targetRanges(type); return ["kcal", "p", "f", "c"].every(k => t[k] >= T[k][0] && t[k] <= T[k][1]); };
 
 // ---------- Pestañas ----------
@@ -1477,7 +1489,9 @@ function renderTotals(sel) {
     ${missing && anySelected ? `<div class="tip" style="margin:0 0 12px">Faltan ${missing} ${missing === 1 ? "comida" : "comidas"} por elegir: el total subirá al añadirlas.</div>` : ""}
     ${skipped.length ? `<div class="tip" style="margin:0 0 12px">🚫 Hoy sin ${skipped.map(x => SLOT_LABELS[x].toLowerCase()).join(" ni ")}: sus macros se reparten entre las demás comidas.${!missing && t.kcal < target.kcal[0] ? skipHint(sel) : ""}</div>` : ""}
     <div class="bars">${bars}</div>
-    <div class="limits"><span>💶 ≈ ${eur(dayCost(sel))} el día</span>${lim(t.h, 3, `🥚 ${t.h}/3 huevos`)}${lim(t.q, 40, `🧀 ${t.q}/40 g queso`)}${lim(t.j, 40, `🍖 ${t.j}/40 g jamón`)}</div>`;
+    ${!missing && anySelected && dayKiwi(sel) < KIWI_DAY ? `<div class="tip" style="margin:0 0 12px">🥝 Hoy llevas ${dayKiwi(sel)} g de kiwi. Para el estreñimiento van bien 2 kiwis (unos ${KIWI_DAY} g) al día: ${kiwiHint(sel)}.</div>` : ""}
+    <div class="limits"><span>💶 ≈ ${eur(dayCost(sel))} el día</span><span>🥝 ${anySelected ? dayKiwi(sel) : 0}/${KIWI_DAY} g kiwi</span>${lim(t.h, 3, `🥚 ${t.h}/3 huevos`)}${lim(t.q, 40, `🧀 ${t.q}/40 g queso`)}${lim(t.j, 40, `🍖 ${t.j}/40 g jamón`)}</div>
+    <div class="habits">Cada día: 💧 2,5–3 L de agua · 🌾 5–10 g de psyllium con un vaso grande de agua, al menos 4 h después del Eutirox</div>`;
 }
 
 // ---------- Selector de platos ----------
@@ -1674,6 +1688,8 @@ function pickCombo(day, usage, prev, rand, tup) {
     });
     if (titles.comida === titles.cena) score += 50;   // lo mismo en comida y cena, no
     if (cmb.extra) score += 1;
+    const kiwi = SLOTS.reduce((a, sl) => a + (cmb[sl] >= 0 ? kiwiIn(getMealsForSlot(sl, day)[cmb[sl]].i) : 0), 0) + kiwiIn(EXTRAS[cmb.extra].i);
+    if (kiwi < KIWI_DAY) score += 50;                   // 2 kiwis al día para el tránsito
     if (score < bestScore) { bestScore = score; best = cmb; }
   }
   return best;
