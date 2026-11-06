@@ -2935,8 +2935,50 @@ function renderTrainProgress() {
   box.querySelectorAll(".prog-item").forEach(b => b.addEventListener("click", () => openExerciseSheet(b.dataset.id)));
 }
 
+// Campanita sintetizada (sin archivos de audio). El audio se desbloquea al pulsar ✓, que es un toque del usuario.
+let audioCtx = null;
+function unlockAudio() {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch (e) { audioCtx = null; }
+}
+function bell() {
+  if (!audioCtx) return;
+  try {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const strike = (t0) => [[1318.5, 0.32], [2637, 0.12], [3950, 0.05]].forEach(([f, v]) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "sine";
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(v, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.6);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(t0);
+      o.stop(t0 + 1.7);
+    });
+    const t = audioCtx.currentTime + 0.02;
+    strike(t);
+    strike(t + 0.42); // «ding-ding»
+  } catch (e) { /* sin sonido */ }
+}
+// Notificación del sistema (sirve con la app en segundo plano; en iPhone solo con la app instalada en la pantalla de inicio)
+function askNotify() {
+  try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch (e) { /* sin notificaciones */ }
+}
+function notifyRestEnd() {
+  try {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    const opts = { body: "A por la siguiente serie 💪", tag: "descanso", renotify: true, icon: "icons/icon-192.png", badge: "icons/icon-192.png", vibrate: [200, 100, 200] };
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(reg => reg.showNotification("⏱️ Descanso terminado", opts));
+    else new Notification("⏱️ Descanso terminado", opts);
+  } catch (e) { /* sin notificaciones */ }
+}
 function startRest(sec) {
   if (!sec) return;
+  unlockAudio();
+  askNotify();
   restEnd = Date.now() + sec * 1000;
   clearInterval(restTimer);
   restTimer = setInterval(tickRest, 500);
@@ -2947,7 +2989,12 @@ function tickRest() {
   const left = Math.ceil((restEnd - Date.now()) / 1000);
   if (left <= 0) {
     clearInterval(restTimer);
-    if (restEnd) { try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) { /* sin vibración */ } toast("⏱️ Descanso terminado: a por la siguiente serie"); }
+    if (restEnd) {
+      try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) { /* sin vibración */ }
+      bell();
+      notifyRestEnd();
+      toast("⏱️ Descanso terminado: a por la siguiente serie");
+    }
     restEnd = 0;
     bar.hidden = true;
     document.body.classList.remove("has-rest");
@@ -2960,6 +3007,7 @@ function tickRest() {
   }
   bar.querySelector(".time").textContent = fmtMin(left);
 }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && restEnd) tickRest(); });
 document.getElementById("restBar").addEventListener("click", (ev) => {
   const b = ev.target.closest("button[data-rest]");
   if (!b) return;

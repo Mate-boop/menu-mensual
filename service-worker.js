@@ -1,4 +1,4 @@
-const CACHE_NAME = "menu-mensual-cache-v26";
+const CACHE_NAME = "menu-mensual-cache-v27";
 const ASSETS = [
   "./",
   "./index.html",
@@ -40,5 +40,16 @@ self.addEventListener("fetch", (event) => {
       }
       return response;
     }).catch(() => caches.match(event.request))
+  );
+});
+
+// Al tocar la notificación del descanso, vuelve a la app
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      const win = list.find((c) => "focus" in c);
+      return win ? win.focus() : self.clients.openWindow("./");
+    })
   );
 });
