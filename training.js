@@ -56,7 +56,25 @@ const ROUTINES = {
     ]
   }
 };
+// Músculo principal (para las series por semana) y nombre en inglés para buscar vídeos de técnica.
+// Las fotos (inicio y final) están en img/ex/<id>-0.jpg y -1.jpg, del repositorio libre yuhonas/free-exercise-db (Unlicense).
+const EX_INFO = {
+  "pec-deck": ["pecho", "pec deck machine fly"], "press-inclinado": ["pecho", "smith machine incline bench press"],
+  "press-plano": ["pecho", "smith machine bench press"], "press-hombro": ["hombro", "seated dumbbell shoulder press"],
+  "aperturas-altas": ["pecho", "high to low cable fly"], "elevacion-lateral": ["hombro", "one arm dumbbell lateral raise"],
+  "triceps-cabeza": ["triceps", "cable overhead triceps extension"], "bandas": ["hombro", "band pull apart external rotation"],
+  "jalon": ["espalda", "lat pulldown"], "remo-polea": ["espalda", "seated cable row"], "remo-maquina": ["espalda", "chest supported machine row"],
+  "face-pull": ["hombro", "half kneeling cable face pull"], "curl-predicador": ["biceps", "preacher curl"],
+  "core": ["core", "bird dog bear plank curl up"], "extension": ["cuadriceps", "leg extension machine"], "curl-femoral": ["femoral", "seated leg curl"],
+  "hip-thrust": ["gluteo", "machine hip thrust"], "patada-gluteo": ["gluteo", "cable glute kickback"], "aduccion": ["aductores", "hip adduction machine"],
+  "abduccion": ["gluteo", "hip abduction machine"], "gemelos": ["gemelos", "seated calf raise"], "hiperextension": ["lumbar", "45 degree back extension"],
+  "bird-dog": ["core", "bird dog exercise"], "remo-estrecho": ["espalda", "alternating seated machine row"], "curl-martillo": ["biceps", "hammer curl"],
+  "triceps-unilateral": ["triceps", "single arm cable triceps pushdown"], "curl-polea": ["biceps", "cable biceps curl"], "triceps-cuerda": ["triceps", "rope triceps pushdown"]
+};
+const EX_IMG = new Set(Object.keys(EX_INFO).filter(k => k !== "bird-dog"));
+const MUSCLES = { pecho: "Pecho", espalda: "Espalda", hombro: "Hombro", biceps: "Bíceps", triceps: "Tríceps", cuadriceps: "Cuádriceps", femoral: "Femoral", gluteo: "Glúteo", aductores: "Aductores", gemelos: "Gemelos", lumbar: "Lumbar", core: "Core" };
+
 // Plan por defecto: lunes Push, martes Pull, jueves Legs, viernes Torso y brazos
 const DEFAULT_TRAIN_PLAN = { 1: "push", 2: "pull", 4: "legs", 5: "torso" };
 
-if (typeof module !== "undefined") module.exports = { ROUTINES, DEFAULT_TRAIN_PLAN };
+if (typeof module !== "undefined") module.exports = { ROUTINES, DEFAULT_TRAIN_PLAN, EX_INFO, EX_IMG, MUSCLES };

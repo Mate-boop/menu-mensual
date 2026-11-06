@@ -204,6 +204,42 @@
   .restbar .time { font-size: 1.4rem; font-weight: 800; font-variant-numeric: tabular-nums; flex: 1; }
   .restbar button { min-height: 40px; border-radius: 10px; border: none; padding: 6px 10px; font-weight: 750; background: color-mix(in srgb, var(--surface) 18%, transparent); color: var(--surface); cursor: pointer; }
   body.has-rest { padding-bottom: calc(var(--nav-h) + 90px + env(safe-area-inset-bottom, 0px)); }
+  .ex-thumb { position: relative; flex: 0 0 64px; width: 64px; height: 64px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #fff; padding: 0; cursor: pointer; }
+  .ex-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ex-thumb img + img { animation: exswap 2.4s steps(1, end) infinite; }
+  @keyframes exswap { 0% { opacity: 0; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .ex-thumb img + img { animation: none; opacity: 0; } }
+  .ex-head .ex-main { flex: 1; min-width: 0; }
+  .ex-row { display: flex; gap: 12px; align-items: flex-start; }
+  .ex-pics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ex-pics figure { margin: 0; text-align: center; font-size: 0.78rem; color: var(--muted); font-weight: 700; }
+  .ex-pics img { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 12px; background: #fff; border: 1px solid var(--border); display: block; margin-bottom: 4px; }
+  .rec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+  .rec-grid div { background: var(--surface-2); border-radius: 12px; padding: 10px; font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+  .rec-grid strong { display: block; font-size: 1.1rem; color: var(--text); }
+  .chart { width: 100%; height: auto; display: block; margin: 6px 0 4px; }
+  .chart .line { fill: none; stroke: var(--primary); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+  .chart .area { fill: var(--primary-soft); opacity: 0.6; }
+  .chart circle { fill: var(--primary); }
+  .chart text { fill: var(--muted); font-size: 10px; font-weight: 600; }
+  .chart .grid { stroke: var(--border); stroke-width: 1; }
+  .cmp { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .cmp div { background: var(--surface-2); border-radius: 12px; padding: 10px 8px; text-align: center; font-size: 0.76rem; color: var(--muted); font-weight: 600; }
+  .cmp strong { display: block; font-size: 1.15rem; color: var(--text); }
+  .delta { font-weight: 800; font-size: 0.8rem; }
+  .delta.up { color: var(--primary-ink); }
+  .delta.down { color: var(--accent); }
+  .mus { display: grid; grid-template-columns: 92px 1fr 52px; gap: 8px; align-items: center; font-size: 0.86rem; margin-top: 8px; }
+  .mus .bar { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+  .mus .bar span { display: block; height: 100%; background: var(--primary); border-radius: 999px; }
+  .mus .num { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .prog-list { margin-top: 8px; }
+  .prog-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; padding: 10px 0; border: none; border-bottom: 1px solid var(--border); background: none; color: var(--text); text-align: left; cursor: pointer; font: inherit; }
+  .prog-item .t { font-weight: 700; font-size: 0.92rem; }
+  .prog-item .s { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+  .prog-tabs { display: flex; gap: 6px; margin-top: 12px; }
+  .prog-tabs button { flex: 1; min-height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+  .prog-tabs button.on { background: var(--primary-soft); color: var(--primary-ink); border-color: transparent; }
   .train-today { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); font-size: 0.92rem; }
 
   .card {
@@ -625,6 +661,7 @@
   </div>
   <div id="trainExercises"></div>
   <div id="trainFinish"></div>
+  <div class="card" id="trainProgress"></div>
   <div class="card" id="trainWeek"></div>
   <div class="card" id="trainHistory"></div>
   <div class="card" id="trainPlan"></div>
@@ -2665,7 +2702,7 @@ const bestOf = (hist) => hist.reduce((b, h) => Math.max(b, ...h.sets.map(x => e1
 // Doble progresión: si la última vez llegaste al tope del rango en todas las series, toca subir peso
 function suggestion(e, date) {
   const last = exHistory(e.id, date)[0];
-  if (e.warm) return { kg: last ? Math.min(...last.sets.map(x => x.kg)) : e.kg, msg: "Calentamiento: peso ligero, lejos del fallo.", cls: "" };
+  if (e.warm) return { kg: last ? Math.min(...last.sets.map(x => x.kg)) : e.kg, msg: "", cls: "" };
   if (!last) return e.kg === null
     ? { kg: null, msg: "Primera vez: elige un peso con el que hagas 12 repeticiones holgadas y apúntalo.", cls: "" }
     : { kg: e.kg, msg: `Empieza con ${fmtKg(e.kg)} kg (tu último registro en Lyfta).`, cls: "" };
@@ -2702,6 +2739,133 @@ function trainTodayHtml(date) {
   const st = logStats(date);
   const text = st && st.done ? `✅ ${ROUTINES[r].name} hecho${st.min ? ` · ${st.min} min` : ""}` : `${ROUTINES[r].icon} Hoy toca <strong>${ROUTINES[r].name}</strong>`;
   return `<div class="train-today"><span>${text}</span><button type="button" class="btn small soft" id="goTrain">${st && st.done ? "Ver" : "Abrir entreno"}</button></div>`;
+}
+
+
+// ---------- Progreso (como en Lyfta: ficha del ejercicio con récords y gráfica, y comparación semanal) ----------
+const baseId = (id) => id.replace(/-2$/, "");
+const exInfo = (id) => EX_INFO[baseId(id)] || ["otros", ""];
+function exById(id) {
+  for (const r of Object.values(ROUTINES)) for (const e of r.ex) { if (e.id === id) return e; if (e.alt && e.alt.id === id) return Object.assign({}, e, e.alt); }
+  return null;
+}
+const exThumb = (id) => EX_IMG.has(baseId(id))
+  ? `<button type="button" class="ex-thumb" aria-label="Ver técnica"><img src="img/ex/${baseId(id)}-0.jpg" alt="" loading="lazy"><img src="img/ex/${baseId(id)}-1.jpg" alt="" loading="lazy"></button>` : "";
+// Cada sesión de un ejercicio: mejor serie (1RM estimado), peso máximo y volumen
+function exSessions(id) {
+  return Object.keys(state.training.logs).sort().map(d => {
+    const sets = doneSets(state.training.logs[d].ex && state.training.logs[d].ex[id]);
+    if (!sets.length) return null;
+    const bestSet = sets.reduce((b, x) => e1rm(x.kg, x.reps) > e1rm(b.kg, b.reps) ? x : b);
+    return { date: d, sets, best: e1rm(bestSet.kg, bestSet.reps), bestSet, maxKg: Math.max(...sets.map(x => x.kg)), maxReps: Math.max(...sets.map(x => x.reps)), vol: sets.reduce((a, x) => a + x.kg * x.reps, 0) };
+  }).filter(Boolean);
+}
+const shortDate = (d) => { const x = fromIso(d); return `${x.getDate()}/${x.getMonth() + 1}`; };
+const deltaHtml = (v, unit) => Math.abs(v) < 0.05 ? '<span class="delta">=</span>' : `<span class="delta ${v > 0 ? "up" : "down"}">${v > 0 ? "▲ +" : "▼ "}${fmtKg(Math.round(v * 10) / 10)}${unit}</span>`;
+function lineChart(points, unit) {
+  if (points.length < 2) return '<p class="small muted">Con 2 sesiones o más verás aquí la gráfica.</p>';
+  const W = 320, H = 140, L = 34, R = 10, T = 12, B = 22;
+  const ys = points.map(p => p.y), lo = Math.min(...ys), hi = Math.max(...ys), pad = (hi - lo) * 0.15 || 1;
+  const y0 = lo - pad, y1 = hi + pad;
+  const X = (i) => L + (W - L - R) * (points.length === 1 ? 0.5 : i / (points.length - 1));
+  const Y = (v) => T + (H - T - B) * (1 - (v - y0) / (y1 - y0));
+  const path = points.map((p, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(p.y).toFixed(1)}`).join(" ");
+  const step = Math.max(1, Math.ceil(points.length / 5));
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolución">
+    ${[hi, (hi + lo) / 2, lo].map(v => `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L - 4}" y="${Y(v) + 3}" text-anchor="end">${fmtKg(Math.round(v))}</text>`).join("")}
+    <path class="area" d="${path} L${X(points.length - 1)},${H - B} L${X(0)},${H - B} Z"/>
+    <path class="line" d="${path}"/>
+    ${points.map((p, i) => `<circle cx="${X(i)}" cy="${Y(p.y)}" r="3.5"/>${i % step === 0 || i === points.length - 1 ? `<text x="${X(i)}" y="${H - 6}" text-anchor="middle">${shortDate(p.d)}</text>` : ""}`).join("")}
+  </svg><div class="small muted" style="text-align:right">${unit}</div>`;
+}
+let progMetric = "best";
+function openExerciseSheet(id) {
+  const e = exById(id);
+  if (!e) return;
+  const ses = exSessions(id);
+  const [, en] = exInfo(id);
+  const b = baseId(id);
+  const metrics = { best: ["1RM estimado", "kg (1RM estimado)", s => s.best], maxKg: ["Peso máximo", "kg", s => s.maxKg], vol: ["Volumen", "kg × reps en la sesión", s => s.vol] };
+  const draw = () => {
+    const [, unit, f] = metrics[progMetric];
+    const recBest = ses.length ? ses.reduce((a, s) => s.best > a.best ? s : a) : null;
+    document.getElementById("sheetBody").innerHTML = `
+      ${EX_IMG.has(b) ? `<div class="ex-pics"><figure><img src="img/ex/${b}-0.jpg" alt="Posición inicial de ${esc(e.name)}">Inicio</figure><figure><img src="img/ex/${b}-1.jpg" alt="Posición final de ${esc(e.name)}">Final</figure></div>` : ""}
+      ${e.note ? `<p class="ex-note">${esc(e.note)}</p>` : ""}
+      ${en ? `<a class="btn soft" style="display:block;text-align:center;margin-top:12px;text-decoration:none" href="https://www.youtube.com/results?search_query=${encodeURIComponent(en + " proper form")}" target="_blank" rel="noopener noreferrer">▶️ Ver vídeos de la técnica</a>` : ""}
+      ${e.check ? "" : ses.length ? `
+      <h3 style="margin:18px 0 0">🏆 Récords</h3>
+      <div class="rec-grid">
+        <div><strong>${fmtKg(Math.max(...ses.map(s => s.maxKg)))} kg</strong>Peso máximo</div>
+        <div><strong>${fmtKg(Math.round(recBest.best * 2) / 2)} kg</strong>Mejor 1RM estimado</div>
+        <div><strong>${fmtKg(recBest.bestSet.kg)} × ${recBest.bestSet.reps}</strong>Mejor serie</div>
+        <div><strong>${Math.max(...ses.map(s => s.maxReps))}</strong>Más repeticiones</div>
+      </div>
+      <h3 style="margin:6px 0 0">📈 Progreso</h3>
+      <div class="prog-tabs">${Object.entries(metrics).map(([k, [l]]) => `<button type="button" data-m="${k}" class="${k === progMetric ? "on" : ""}">${l}</button>`).join("")}</div>
+      ${lineChart(ses.map(s => ({ d: s.date, y: f(s) })), unit)}
+      <h3 style="margin:14px 0 0">🗂️ Sesiones</h3>
+      <div class="hist-list">${ses.slice().reverse().map((s, i, arr) => `<div><span>${shortDate(s.date)} · ${s.sets.map(x => `${fmtKg(x.kg)}×${x.reps}`).join(" · ")}</span>${arr[i + 1] ? deltaHtml(s.best - arr[i + 1].best, " kg") : "<span></span>"}</div>`).join("")}</div>`
+      : '<p class="small muted" style="margin-top:14px">Aún no hay series apuntadas de este ejercicio. Cuando las haya verás aquí tus récords, la gráfica y cada sesión.</p>'}`;
+    document.querySelectorAll("#sheetBody button[data-m]").forEach(btn => btn.addEventListener("click", () => { progMetric = btn.dataset.m; draw(); }));
+  };
+  document.getElementById("sheetTitle").innerHTML = `${esc(e.name)}<span class="sub">${esc(MUSCLES[exInfo(id)[0]] || "")}</span>`;
+  draw();
+  document.getElementById("sheet").hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function weekKeys(monday) { return Array.from({ length: 7 }, (_, i) => iso(addDays(monday, i))); }
+function weekTotals(monday) {
+  const t = { sessions: 0, sets: 0, vol: 0, mus: {} };
+  weekKeys(monday).forEach(k => {
+    const log = state.training.logs[k];
+    if (!logHasWork(log) || !ROUTINES[log.r]) return;
+    t.sessions++;
+    exercisesOf(log.r, log).forEach(e => {
+      if (e.check) return;
+      const d = doneSets(log.ex[e.id]);
+      d.forEach(x => { t.vol += x.kg * x.reps; });
+      if (e.warm) return;
+      t.sets += d.length;
+      const m = exInfo(e.id)[0];
+      t.mus[m] = (t.mus[m] || 0) + d.length;
+    });
+  });
+  return t;
+}
+// Series por músculo que pide tu plan en una semana
+function plannedMuscles() {
+  const m = {};
+  Object.values(state.training.plan).forEach(r => (ROUTINES[r] || { ex: [] }).ex.forEach(e => { if (!e.check && !e.warm) { const k = exInfo(e.id)[0]; m[k] = (m[k] || 0) + e.sets; } }));
+  return m;
+}
+function renderTrainProgress() {
+  const box = document.getElementById("trainProgress");
+  const d = fromIso(trainDate);
+  const monday = addDays(d, -((d.getDay() + 6) % 7));
+  const cur = weekTotals(monday), prev = weekTotals(addDays(monday, -7));
+  const pct = (a, b) => b ? Math.round((a - b) / b * 100) : null;
+  const cmp = (label, a, b, fmt) => { const p = pct(a, b); return `<div><strong>${fmt(a)}</strong>${label}<br>${p === null ? '<span class="delta">—</span>' : `<span class="delta ${p > 0 ? "up" : p < 0 ? "down" : ""}">${p > 0 ? "▲ +" : p < 0 ? "▼ " : ""}${p}%</span>`}</div>`; };
+  const plan = plannedMuscles();
+  const muscles = Object.keys(MUSCLES).filter(k => plan[k] || cur.mus[k]);
+  // Ejercicios con más de una sesión: cambio de la última respecto a la anterior
+  const ids = [...new Set(Object.values(state.training.logs).flatMap(l => Object.keys(l.ex || {})))].filter(id => exById(id) && !exById(id).warm);
+  const items = ids.map(id => ({ id, ses: exSessions(id) })).filter(o => o.ses.length).sort((a, b) => a.ses[a.ses.length - 1].date < b.ses[b.ses.length - 1].date ? 1 : -1);
+  box.innerHTML = `<h2>📈 Progreso</h2>
+    <div class="small muted">Esta semana frente a la anterior</div>
+    <div class="cmp">${cmp("entrenos", cur.sessions, prev.sessions, v => v)}${cmp("series", cur.sets, prev.sets, v => v)}${cmp("kg movidos", Math.round(cur.vol), Math.round(prev.vol), v => v >= 10000 ? `${fmtKg(Math.round(v / 100) / 10)}k` : v)}</div>
+    ${muscles.length ? `<h3 style="margin:16px 0 0">Series por músculo esta semana</h3>${muscles.map(k => {
+      const n = cur.mus[k] || 0, goal = plan[k] || 0;
+      return `<div class="mus"><span>${MUSCLES[k]}</span><span class="bar"><span style="width:${goal ? Math.min(100, n / goal * 100) : 100}%"></span></span><span class="num">${n}/${goal}</span></div>`;
+    }).join("")}` : ""}
+    <h3 style="margin:16px 0 0">Ejercicios</h3>
+    ${items.length ? `<div class="prog-list">${items.slice(0, 12).map(({ id, ses }) => {
+      const last = ses[ses.length - 1], before = ses[ses.length - 2];
+      return `<button type="button" class="prog-item" data-id="${id}"><span><span class="t">${esc(exById(id).name)}</span><div class="s">${shortDate(last.date)}: mejor serie ${fmtKg(last.bestSet.kg)} × ${last.bestSet.reps}${before ? ` · antes ${fmtKg(before.bestSet.kg)} × ${before.bestSet.reps} · volumen ${last.vol >= before.vol ? "+" : ""}${Math.round((last.vol - before.vol) / (before.vol || 1) * 100)}%` : ""}</div></span>${before ? deltaHtml(last.best - before.best, " kg") : '<span class="delta">nuevo</span>'}</button>`;
+    }).join("")}</div><div class="small muted" style="margin-top:8px">La flecha compara el 1RM estimado de tu mejor serie con la sesión anterior. Toca un ejercicio para ver la gráfica.</div>`
+      : '<div class="empty">Cuando apuntes tus primeras series verás aquí cuánto subes cada semana.</div>'}`;
+  box.querySelectorAll(".prog-item").forEach(b => b.addEventListener("click", () => openExerciseSheet(b.dataset.id)));
 }
 
 function startRest(sec) {
@@ -2761,6 +2925,7 @@ function renderTraining() {
   box.innerHTML = "";
   if (r) exercisesOf(r, log).forEach(e => box.appendChild(e.check ? checkCard(e, log) : exerciseCard(e, log)));
   renderTrainFinish(r);
+  renderTrainProgress();
   renderTrainWeek();
   renderTrainHistory();
   renderTrainPlan();
@@ -2770,8 +2935,9 @@ function checkCard(e, log) {
   const on = !!(log && log.checks && log.checks[e.id]);
   const card = document.createElement("div");
   card.className = "card ex-check" + (on ? " done" : "");
-  card.innerHTML = `<div class="ex-name" style="font-size:0.98rem">${esc(e.name)}</div><button type="button" class="btn small ${on ? "primary" : ""}">${on ? "✓ Hecho" : "Hecho"}</button>`;
-  card.querySelector("button").addEventListener("click", () => {
+  card.innerHTML = `<div class="ex-row" style="align-items:center;flex:1">${exThumb(e.id)}<div class="ex-name" style="font-size:0.98rem">${esc(e.name)}</div></div><button type="button" class="btn small mark ${on ? "primary" : ""}">${on ? "✓ Hecho" : "Hecho"}</button>`;
+  card.querySelectorAll(".ex-thumb").forEach(b => b.addEventListener("click", () => openExerciseSheet(e.id)));
+  card.querySelector(".mark").addEventListener("click", () => {
     const l = trainLog(trainDate, true);
     l.checks[e.id] = !on;
     if (!l.start) l.start = Date.now();
@@ -2804,14 +2970,15 @@ function exerciseCard(e, log) {
     </div>`;
   }).join("");
   card.innerHTML = `
-    <div class="ex-head"><div><div class="ex-name">${esc(e.name)}</div>
+    <div class="ex-row">${exThumb(e.id)}<div class="ex-main"><div class="ex-head"><div><div class="ex-name">${esc(e.name)}</div>
       <div class="ex-target">${e.sets} × ${e.reps[0]}–${e.reps[1]} · RIR ${e.rir}${e.rest ? ` · descanso ${fmtMin(e.rest)}` : " · sin descanso: pasa al siguiente"}</div></div>
-      ${e.alt || e.base ? `<button type="button" class="btn small ghost swap">Cambiar</button>` : ""}</div>
+      ${e.alt || e.base ? `<button type="button" class="btn small ghost swap">Cambiar</button>` : ""}</div></div></div>
     ${e.note ? `<p class="ex-note">${esc(e.note)}</p>` : ""}
-    <div class="ex-sug ${sug.cls}">${sug.msg}</div>
+    ${sug.msg ? `<div class="ex-sug ${sug.cls}">${sug.msg}</div>` : ""}
     <div class="sets"><div class="set-row head"><span>Serie</span><span>Anterior</span><span style="text-align:center">kg</span><span style="text-align:center">Reps</span><span></span></div>${rows}</div>
     <div class="ex-actions"><button type="button" class="btn small ghost add">＋ Serie</button>${n > 1 ? '<button type="button" class="btn small ghost del">− Serie</button>' : ""}</div>
-    ${hist.length ? `<details class="recipe"><summary>📈 Historial${best && !e.warm ? ` · mejor 1RM estimado ${fmtKg(Math.round(best * 2) / 2)} kg` : ""}</summary><div class="hist-list">${hist.slice(0, 6).map(h => `<div><span>${longDate(h.date).replace(/ de \w+$/, "")}</span><span>${h.sets.map(x => `${fmtKg(x.kg)}×${x.reps}`).join(" · ")}</span></div>`).join("")}</div></details>` : ""}`;
+    <button type="button" class="linkbtn info">📈 Técnica, récords y progreso${hist.length && best && !e.warm ? ` · 1RM est. ${fmtKg(Math.round(best * 2) / 2)} kg` : ""}</button>`;
+  card.querySelectorAll(".info, .ex-thumb").forEach(b => b.addEventListener("click", () => openExerciseSheet(e.id)));
 
   const write = (i, patch) => {
     const l = trainLog(trainDate, true);
