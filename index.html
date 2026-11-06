@@ -111,16 +111,16 @@
     background: var(--hero);
     color: #fff;
     border-radius: var(--radius);
-    padding: 16px 18px;
-    margin-bottom: 14px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
     gap: 14px;
     box-shadow: var(--shadow);
   }
   .topbar .logo {
-    width: 46px; height: 46px;
-    border-radius: 14px;
+    width: 38px; height: 38px;
+    border-radius: 12px;
     flex-shrink: 0;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
   }
@@ -337,6 +337,8 @@
   .day-btn.diary::before { content: ""; position: absolute; top: 5px; right: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
   .day-btn.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
   .day-btn.active.filled::after, .day-btn.active.diary::before { background: var(--on-primary); }
+  .cal-toggle { margin: 10px auto 0; padding: 6px 0; font-size: 0.9rem; text-decoration: none; }
+  .cal-week .legend { display: none; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--muted); margin-top: 10px; }
   .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: 0; }
 
@@ -388,6 +390,18 @@
   ul.ing li::before { content: ""; position: absolute; left: 3px; top: 0.85em; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); opacity: 0.55; }
   ul.ing .q { font-weight: 700; font-variant-numeric: tabular-nums; }
   .meal-empty { width: 100%; text-align: center; border: 1.5px dashed var(--border); background: none; color: var(--primary); }
+  details.when-d { margin-top: 14px; }
+  details.when-d summary { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; cursor: pointer; list-style: none; padding: 4px 0; }
+  details.when-d summary::-webkit-details-marker { display: none; }
+  details.when-d .when-now { font-weight: 700; font-size: 0.92rem; }
+  details.when-d .chg { margin-left: auto; color: var(--primary); font-weight: 700; font-size: 0.88rem; }
+  details.when-d[open] .chg { visibility: hidden; }
+  details.when-d .when-grid { margin-top: 10px; }
+  details.tip-d summary { cursor: pointer; font-weight: 650; list-style: none; }
+  details.tip-d summary::-webkit-details-marker { display: none; }
+  details.tip-d summary::after { content: " ▾"; color: var(--primary); font-weight: 700; }
+  details.tip-d[open] summary { margin-bottom: 6px; }
+  details.tip-d[open] summary::after { content: ""; }
   .skip-btn { width: 100%; margin-top: 8px; color: var(--muted); font-weight: 600; }
   .sheet-body .skip-btn { margin: 0 0 10px; }
   .meal.skipped { opacity: 0.85; border-style: dashed; }
@@ -624,6 +638,7 @@
     </div>
     <div class="weekdays"><div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div></div>
     <div class="day-grid" id="dayGrid"></div>
+    <button type="button" class="linkbtn cal-toggle" id="calToggle"></button>
     <div class="legend"><span><i style="background:var(--primary)"></i>Menú hecho</span><span><i style="background:var(--accent)"></i>Diario apuntado</span><span><i style="background:var(--warn-soft);border:1px solid var(--warn)"></i>Cardio / descanso</span></div>
   </div>
 
@@ -1378,13 +1393,29 @@ window.addEventListener("beforeunload", (e) => { if (isDirty()) { e.preventDefau
 
 // ---------- Menú ----------
 function renderDayGrid() {
+  const open = !!state.prefs.calOpen;
   document.getElementById("monthTitle").textContent = `${MONTHS[viewMonth][0].toUpperCase() + MONTHS[viewMonth].slice(1)} ${viewYear}`;
+  const card = document.getElementById("dayGrid").closest(".card");
+  card.classList.toggle("cal-week", !open);
+  document.getElementById("prevMonth").setAttribute("aria-label", open ? "Mes anterior" : "Semana anterior");
+  document.getElementById("nextMonth").setAttribute("aria-label", open ? "Mes siguiente" : "Semana siguiente");
+  const toggle = document.getElementById("calToggle");
+  toggle.textContent = open ? "Ver solo la semana ▴" : "Ver el mes completo ▾";
+  toggle.onclick = () => { state.prefs.calOpen = !open; saveState(); renderDayGrid(); };
   const grid = document.getElementById("dayGrid");
   grid.innerHTML = "";
-  const offset = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7;
-  for (let i = 0; i < offset; i++) grid.appendChild(document.createElement("div"));
-  for (let d = 1; d <= daysInMonth(viewYear, viewMonth); d++) {
-    const key = iso(new Date(viewYear, viewMonth, d));
+  let keys;
+  if (open) {
+    const offset = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7;
+    for (let i = 0; i < offset; i++) grid.appendChild(document.createElement("div"));
+    keys = Array.from({ length: daysInMonth(viewYear, viewMonth) }, (_, i) => iso(new Date(viewYear, viewMonth, i + 1)));
+  } else {
+    const c = fromIso(currentDate);
+    const monday = addDays(c, -((c.getDay() + 6) % 7));
+    keys = Array.from({ length: 7 }, (_, i) => iso(addDays(monday, i)));
+  }
+  keys.forEach(key => {
+    const d = fromIso(key).getDate();
     const sel = state.selections[key];
     const type = sel ? sel.type : weeklyFor(key).type;
     const btn = document.createElement("button");
@@ -1393,11 +1424,13 @@ function renderDayGrid() {
     btn.textContent = d;
     btn.addEventListener("click", () => {
       currentDate = key;
+      viewYear = fromIso(key).getFullYear();
+      viewMonth = fromIso(key).getMonth();
       renderAll();
-      document.getElementById("dayHead").scrollIntoView({ behavior: "smooth", block: "start" });
+      if (open) document.getElementById("dayHead").scrollIntoView({ behavior: "smooth", block: "start" });
     });
     grid.appendChild(btn);
-  }
+  });
 }
 
 function makeSeg(el, options, current, onPick) {
@@ -1429,7 +1462,7 @@ function renderPanel() {
   document.getElementById("panelTitle").textContent = longDate(currentDate);
   const sel = getDaySelection(currentDate);
 
-  makeSeg(document.getElementById("typeSeg"), [["fuerza", "💪 Fuerza"], ["cardio", "🏃 Cardio / descanso"]], sel.type, (val) => {
+  makeSeg(document.getElementById("typeSeg"), [["fuerza", "💪 Fuerza"], ["cardio", "😴 Descanso"]], sel.type, (val) => {
     if (val === sel.type) return;
     const before = poolsOf(sel);
     sel.type = val;
@@ -1454,10 +1487,10 @@ function renderPanel() {
       ? `Come ${w.pre === "desayuno" ? "el" : "la"} ${SLOT_LABELS[w.pre].toLowerCase()} 1–2 h antes de entrenar. Si al final pasan más de 3–4 h, toma un plátano o 2–3 tortitas de arroz 30–60 min antes.`
       : "Si en ayunas te cuesta, toma un plátano o 2 tortitas de arroz 30 min antes. El desayuno será tu comida post-entreno.";
     trainBox.innerHTML = `
-      <span class="label" style="margin-top:14px">¿Cuándo entrenas hoy?</span>
-      <div class="when-grid">${Object.entries(WHEN).map(([k, o]) => `<button type="button" class="when${sel.when === k ? " on" : ""}" data-when="${k}">${o.label}</button>`).join("")}</div>
+      <details class="when-d"><summary><span class="label" style="margin:0">¿Cuándo entrenas hoy?</span><span class="when-now">${w.label}</span><span class="chg">Cambiar</span></summary>
+      <div class="when-grid">${Object.entries(WHEN).map(([k, o]) => `<button type="button" class="when${sel.when === k ? " on" : ""}" data-when="${k}">${o.label}</button>`).join("")}</div></details>
       <div class="timeline">${items.join('<span class="arrow">→</span>')}</div>
-      <div class="tip">💡 ${tip}</div>
+      <details class="tip tip-d"><summary>💡 Qué comer antes de entrenar</summary>${tip}</details>
       ${trainTodayHtml(currentDate)}`;
     const goTrain = trainBox.querySelector("#goTrain");
     if (goTrain) goTrain.addEventListener("click", () => { trainDate = currentDate; currentTab = "entreno"; renderAll(); window.scrollTo(0, 0); });
@@ -1491,7 +1524,7 @@ function renderPanel() {
   cards.innerHTML = "";
   const f = dayScale(sel);
   if (!computePlan()) cards.innerHTML = '<div class="card tip" style="margin-top:0">👤 Rellena tu perfil en «Yo» y la app calculará tus calorías y ajustará las raciones de cada plato a tu objetivo.</div>';
-  else if (f !== 1) cards.innerHTML = `<div class="tip" style="margin:0 0 12px">⚖️ Raciones ajustadas a tu objetivo: proteína ×${nf(f.p, 2)} · hidratos y grasas ×${nf(f.c, 2)}. Se recalculan con cada plato que eliges, quitas o cambias (también con el postre o batido): si un plato trae mucha proteína, los demás bajan un poco. Por eso el total del día no sube lo mismo que el plato. Las verduras y frutas se quedan en su ración baja en FODMAP.</div>`;
+  else if (f !== 1) cards.innerHTML = `<details class="tip tip-d" style="margin:0 0 12px"><summary>⚖️ Raciones ajustadas: proteína ×${nf(f.p, 2)} · hidratos y grasas ×${nf(f.c, 2)}</summary>Se recalculan con cada plato que eliges, quitas o cambias (también con el postre o batido): si un plato trae mucha proteína, los demás bajan un poco. Por eso el total del día no sube lo mismo que el plato. Las verduras y frutas se quedan en su ración baja en FODMAP.</details>`;
   SLOTS.forEach(slot => cards.appendChild(mealCard(slot, sel, roles[slot], f)));
   cards.appendChild(extraCard(sel));
   renderTotals(sel);
@@ -1901,6 +1934,14 @@ document.getElementById("clearDayBtn").addEventListener("click", () => {
 });
 
 function moveMonth(delta) {
+  if (!state.prefs.calOpen) {
+    const w = addDays(fromIso(currentDate), delta * 7);
+    currentDate = iso(w);
+    viewYear = w.getFullYear();
+    viewMonth = w.getMonth();
+    renderAll();
+    return;
+  }
   const d = new Date(viewYear, viewMonth + delta, 1);
   viewYear = d.getFullYear();
   viewMonth = d.getMonth();
@@ -3173,7 +3214,7 @@ function renderAll() {
 }
 
 loadState();
-document.getElementById("topSub").textContent = `${longDate(today)} · bajo en FODMAP`;
+document.getElementById("topSub").textContent = longDate(today);
 renderAll();
 
 if ("serviceWorker" in navigator) {
