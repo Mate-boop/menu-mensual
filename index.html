@@ -1,11 +1,17 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Menú Mensual — Nicolás</title>
-<meta name="theme-color" content="#2f7a5d" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#101513" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#eff3ef" id="themeColor">
+<script>
+  // Tema antes de pintar para que no parpadee: claro por defecto; oscuro o automático si lo eliges en «Más»
+  try { const t = (JSON.parse(localStorage.getItem("menu-mensual-nicolas")) || {}).prefs?.theme || "light"; if (t !== "auto") document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; } catch (e) { /* claro */ }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
 <meta name="description" content="Menú mensual bajo en FODMAP con macros, lista de la compra y diario de síntomas.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/logo.svg" type="image/svg+xml">
@@ -16,26 +22,26 @@
 <meta name="apple-mobile-web-app-title" content="Menú Mensual">
 <style>
   :root {
-    --bg: #f5f4ef;
+    --bg: #eff3ef;
     --surface: #ffffff;
-    --surface-2: #eef1ea;
-    --text: #1d2722;
-    --muted: #56625b;
-    --primary: #2f7a5d;
-    --primary-soft: #dcece3;
-    --primary-ink: #1f5c45;
+    --surface-2: #edf2ed;
+    --text: #16201b;
+    --muted: #5a665f;
+    --primary: #22694f;
+    --primary-soft: #e2efe7;
+    --primary-ink: #17503b;
     --on-primary: #ffffff;
-    --accent: #c9573c;
-    --accent-soft: #fae3da;
-    --warn: #b7801a;
-    --warn-soft: #f8ecd2;
-    --border: #dde1d8;
-    --shadow: 0 1px 2px rgba(29, 39, 34, 0.05), 0 4px 14px rgba(29, 39, 34, 0.06);
-    --c-p: #3f6fc0;
-    --c-f: #c88a1e;
-    --c-h: #8a5fc0;
-    --hero: linear-gradient(135deg, #2f7a5d 0%, #4f9a74 100%);
-    --radius: 18px;
+    --accent: #c0502e;
+    --accent-soft: #fbe6dd;
+    --warn: #9a6a12;
+    --warn-soft: #f8eed8;
+    --border: #e4e6df;
+    --shadow: 0 1px 1px rgba(22, 32, 27, 0.04), 0 8px 24px -12px rgba(22, 32, 27, 0.14);
+    --c-p: #3b68b8;
+    --c-f: #c0821a;
+    --c-h: #8458bb;
+    --hero: linear-gradient(150deg, #1d5e47 0%, #2c7d5c 100%);
+    --radius: 20px;
     --nav-h: 66px;
   }
   @media (prefers-color-scheme: dark) {
@@ -90,20 +96,27 @@
     min-height: 100%;
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    font-family: "Figtree", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "tnum" 0;
+    -webkit-font-smoothing: antialiased;
     font-size: 16px;
     line-height: 1.5;
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
     padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(var(--nav-h) + 24px + env(safe-area-inset-bottom, 0px));
   }
-  h1 { font-size: 1.35rem; margin: 0; letter-spacing: -0.01em; }
-  h2 { font-size: 1.15rem; margin: 0 0 12px; letter-spacing: -0.01em; }
-  h3 { font-size: 1rem; margin: 18px 0 8px; }
+  h1 { font-size: 1.3rem; margin: 0; letter-spacing: -0.02em; font-weight: 800; }
+  h2 { font-size: 1.14rem; margin: 0 0 12px; letter-spacing: -0.015em; font-weight: 750; text-wrap: balance; }
+  h3 { font-size: 1rem; margin: 20px 0 8px; font-weight: 700; }
+  :root { accent-color: var(--primary); caret-color: var(--primary); color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
+  ::selection { background: var(--primary-soft); color: var(--primary-ink); }
+  .num, .mini-total, .set-row input, .summary-stats strong, .cmp strong, .rec-grid strong, .limits span { font-variant-numeric: tabular-nums; }
   button { font-family: inherit; }
   button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, summary:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+    border-radius: 10px;
   }
 
   /* Cabecera */
@@ -124,7 +137,8 @@
     flex-shrink: 0;
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
   }
-  .topbar .sub { font-size: 0.86rem; opacity: 0.92; margin-top: 2px; }
+  .topbar .sub { font-size: 0.86rem; opacity: 0.88; margin-top: 1px; font-weight: 500; }
+  .topbar h1 { color: #fff; }
 
   /* Barra de pestañas inferior (al alcance del pulgar) */
   .tabs {
@@ -159,9 +173,9 @@
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
   }
-  .tabs button .ico { font-size: 1.35rem; line-height: 1; filter: grayscale(1); opacity: 0.7; transition: filter 0.15s, opacity 0.15s; }
+  .tabs button .ico { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
   .tabs button.active { color: var(--primary-ink); background: var(--primary-soft); }
-  .tabs button.active .ico { filter: none; opacity: 1; }
+  .tabs button.active .ico { stroke-width: 2.2; transform: translateY(-1px); }
   .view[hidden] { display: none; }
   .tabs button { min-width: 0; font-size: 0.7rem; }
 
@@ -274,6 +288,8 @@
     transition: transform 0.08s, background 0.15s;
   }
   .btn:active { transform: scale(0.98); }
+  @media (hover: hover) { .btn:hover { background: var(--surface-2); } .btn.primary:hover { background: var(--primary-ink); border-color: var(--primary-ink); } .btn.soft:hover { filter: brightness(0.97); } }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); box-shadow: var(--shadow); }
   .btn.soft { background: var(--primary-soft); border-color: transparent; color: var(--primary-ink); }
   .btn.ghost { background: none; }
@@ -294,7 +310,9 @@
     color: var(--text);
     font-size: 1rem;
     font-family: inherit;
+    transition: border-color 0.15s, background 0.15s;
   }
+  select:focus, input:focus, textarea:focus { border-color: var(--primary); background: var(--surface); }
   textarea { min-height: 80px; resize: vertical; }
   .seg { display: flex; background: var(--surface-2); border-radius: 14px; padding: 4px; gap: 4px; }
   .seg button {
@@ -308,7 +326,7 @@
     font-weight: 700;
     cursor: pointer;
   }
-  .seg button.on { background: var(--surface); color: var(--primary-ink); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+  .seg button.on { background: var(--surface); color: var(--primary-ink); box-shadow: 0 1px 2px rgba(22, 32, 27, 0.08), 0 2px 8px -2px rgba(22, 32, 27, 0.12); }
 
   /* Calendario */
   .month-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
@@ -781,6 +799,11 @@
     <label class="switch"><input type="checkbox" id="suaveToggle"><span><strong>Modo digestión suave</strong><br><span class="small muted">El autocompletar prefiere verdura cocinada a ensalada cruda y cenas con menos grasa. Recomendado si notas mucha hinchazón o pesadez.</span></span></label>
   </div>
   <div class="card">
+    <h2>🎨 Apariencia</h2>
+    <label class="label" for="themeSelect">Tema</label>
+    <select id="themeSelect"><option value="light">Claro</option><option value="dark">Oscuro</option><option value="auto">Automático (como el móvil)</option></select>
+  </div>
+  <div class="card">
     <h2>💶 Presupuesto</h2>
     <label class="switch"><input type="checkbox" id="budgetToggle"><span><strong>Presupuesto ajustado</strong><br><span class="small muted">El autocompletar no usa platos caros (gambas, dorada, bacalao, filete de ternera…) y prefiere los más baratos. El salmón sí se mantiene. Los precios son orientativos de supermercado.</span></span></label>
   </div>
@@ -889,12 +912,12 @@
 </section>
 
 <nav class="tabs" id="tabs">
-  <button data-tab="menu" class="active"><span class="ico">🍽️</span>Menú</button>
-  <button data-tab="entreno"><span class="ico">🏋️</span>Entreno</button>
-  <button data-tab="compra"><span class="ico">🛒</span>Compra</button>
-  <button data-tab="diario"><span class="ico">📓</span>Diario</button>
-  <button data-tab="yo"><span class="ico">👤</span>Yo</button>
-  <button data-tab="mas"><span class="ico">⚙️</span>Más</button>
+  <button data-tab="menu" class="active"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3Zm0 0v7"/></svg>Menú</button>
+  <button data-tab="entreno"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5v11"/><path d="M17.5 6.5v11"/><path d="M6.5 12h11"/><rect x="2.5" y="8.5" width="4" height="7" rx="1.2"/><rect x="17.5" y="8.5" width="4" height="7" rx="1.2"/></svg>Entreno</button>
+  <button data-tab="compra"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>Compra</button>
+  <button data-tab="diario"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M9 7h6"/></svg>Diario</button>
+  <button data-tab="yo"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Yo</button>
+  <button data-tab="mas"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3"/><path d="M14 2v4M8 10v4M16 18v4"/></svg>Más</button>
 </nav>
 
 <div class="restbar" id="restBar" hidden></div>
@@ -2247,6 +2270,9 @@ function renderSettings() {
     grid.append(label, select);
   });
 
+  const theme = document.getElementById("themeSelect");
+  theme.value = state.prefs.theme || "light";
+  theme.onchange = () => { state.prefs.theme = theme.value; saveState(); applyTheme(); };
   const budget = document.getElementById("budgetToggle");
   budget.checked = !!state.prefs.budget;
   budget.onchange = () => { state.prefs.budget = budget.checked; combosCache = {}; saveState(); };
@@ -3213,7 +3239,15 @@ function renderAll() {
   if (currentTab !== "yo") { document.getElementById("yoSaveBar").hidden = true; document.body.classList.remove("has-savebar"); }
 }
 
+// Claro por defecto; «auto» sigue el modo del móvil
+function applyTheme() {
+  const t = state.prefs.theme || "light";
+  if (t === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+  const dark = t === "dark" || (t === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.getElementById("themeColor").setAttribute("content", dark ? "#101513" : "#eff3ef");
+}
 loadState();
+applyTheme();
 document.getElementById("topSub").textContent = longDate(today);
 renderAll();
 
