@@ -1160,8 +1160,30 @@ function normalizeState(s) {
   out.weights = s.weights || {};
   out.intake = s.intake || {};
   out.adherence = s.adherence || {};
-  out.training = Object.assign({ plan: { ...DEFAULT_TRAIN_PLAN }, logs: {} }, s.training);
+  out.training = cleanTraining(s.training);
   out.v = 4;
+  return out;
+}
+
+// Datos de entreno (también los de una copia importada): solo fechas, sesiones y números válidos, para que nada raro llegue al HTML
+function cleanTraining(t) {
+  const num = (v) => typeof v === "number" && isFinite(v) && v >= 0 ? v : null;
+  const out = { plan: { ...DEFAULT_TRAIN_PLAN }, logs: {} };
+  if (!t || typeof t !== "object") return out;
+  if (t.plan && typeof t.plan === "object") {
+    out.plan = {};
+    Object.entries(t.plan).forEach(([wd, r]) => { if (/^[0-6]$/.test(wd) && Object.hasOwn(ROUTINES, r)) out.plan[wd] = r; });
+  }
+  Object.entries(t.logs && typeof t.logs === "object" ? t.logs : {}).forEach(([d, l]) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !l || typeof l !== "object") return;
+    const log = { r: Object.hasOwn(ROUTINES, l.r) ? l.r : null, ex: {}, checks: {}, cnt: {}, alt: {}, start: num(l.start), end: num(l.end), min: num(l.min) };
+    const ids = (o) => Object.entries(o && typeof o === "object" ? o : {}).filter(([k]) => /^[a-z0-9-]+$/.test(k));
+    ids(l.ex).forEach(([k, arr]) => { if (Array.isArray(arr)) log.ex[k] = arr.map(x => x && typeof x === "object" ? { kg: num(x.kg), reps: num(x.reps) === null ? null : Math.round(x.reps), done: x.done === true && num(x.kg) !== null && num(x.reps) !== null } : null); });
+    ids(l.checks).forEach(([k, v]) => { log.checks[k] = v === true; });
+    ids(l.alt).forEach(([k, v]) => { log.alt[k] = v === true; });
+    ids(l.cnt).forEach(([k, v]) => { if (Number.isInteger(v) && v > 0 && v < 20) log.cnt[k] = v; });
+    out.logs[d] = log;
+  });
   return out;
 }
 
