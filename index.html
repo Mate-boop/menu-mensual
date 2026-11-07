@@ -420,6 +420,10 @@
   details.tip-d summary::after { content: " ▾"; color: var(--primary); font-weight: 700; }
   details.tip-d[open] summary { margin-bottom: 6px; }
   details.tip-d[open] summary::after { content: ""; }
+  .badge.done { background: var(--primary); color: var(--on-primary); margin-left: 6px; }
+  .meal-state { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+  .meal-state .btn { flex: 1; min-width: 140px; }
+  .meal-state .small { flex: 1 1 100%; }
   .skip-btn { width: 100%; margin-top: 8px; color: var(--muted); font-weight: 600; }
   .sheet-body .skip-btn { margin: 0 0 10px; }
   .meal.skipped { opacity: 0.85; border-style: dashed; }
@@ -1329,7 +1333,7 @@ function getMealsForSlot(slot, day) {
 // Al cambiar el momento del entreno o el tipo de día, vacía solo las comidas cuyo tipo (pre/post/normal) ha cambiado
 const poolsOf = (sel) => Object.fromEntries(SLOTS.map(s => [s, getMealsForSlot(s, sel)]));
 function resetChangedSlots(sel, before) {
-  SLOTS.forEach(s => { if (getMealsForSlot(s, sel) !== before[s] && sel[s] !== SKIP) sel[s] = -1; });
+  SLOTS.forEach(s => { if (getMealsForSlot(s, sel) !== before[s] && sel[s] !== SKIP) { sel[s] = -1; if (sel.done) delete sel.done[s]; } });
 }
 
 const excludeKey = (slot, meal) => slot + "|" + titleOf(meal);
@@ -1365,25 +1369,73 @@ function dayScale(sel, override) {
   return { p: Math.round(f.p * 100) / 100, c: Math.round(f.c * 100) / 100 };
 }
 
+// Estado de cada comida: hecha (sel.done[slot] guarda sus factores y ya no cambia), pendiente o no realizada (SKIP).
+// Las pendientes se reajustan para cuadrar el día, pero como mucho entre ×0,75 y ×1,3 de su ración normal:
+// si así no llega, se acepta la diferencia y se enseña en el total.
+const PEND_BAND = [0.75, 1.3];
+const validF = (f) => !!f && typeof f.p === "number" && typeof f.c === "number" && isFinite(f.p) && isFinite(f.c) && f.p > 0 && f.c > 0;
+const isDone = (sel, slot) => sel[slot] >= 0 && validF(sel.done && sel.done[slot]);
+const isPastOrToday = (date) => date <= today;
+// Comidas que se dan por hechas al tocar una comida posterior (hoy o días pasados)
+function earlierSlots(sel, slot) {
+  const at = slot === "extra" ? (SLOTS.includes(sel.extraAt) ? sel.extraAt : "merienda") : slot;
+  return SLOTS.slice(0, SLOTS.indexOf(at)).filter(s => sel[s] >= 0 && !isDone(sel, s));
+}
+function slotScale(sel, override = {}) {
+  const pick = Object.assign({}, sel, override);
+  const base = dayScale(sel, override);
+  const frozen = {};
+  SLOTS.forEach(s => { if (isDone(sel, s) && pick[s] === sel[s]) frozen[s] = sel.done[s]; });
+  if (override.__lock && override.__lock.length) {
+    const cur = slotScale(sel);
+    override.__lock.forEach(s => { if (!frozen[s] && sel[s] >= 0 && pick[s] === sel[s]) frozen[s] = cur[s]; });
+  }
+  const out = { base, pend: base, short: false, locked: Object.keys(frozen) };
+  const skipped = SLOTS.filter(sl => pick[sl] === SKIP);
+  if (base === 1 || (!out.locked.length && !skipped.length)) { SLOTS.forEach(sl => { out[sl] = base; }); return out; }
+  // Ración «normal» de referencia: la del día completo, como si las comidas no realizadas siguieran ahí
+  const ref = skipped.length ? dayScale(sel, Object.assign({}, override, Object.fromEntries(skipped.map(sl => [sl, -1])))) : base;
+  const T = targetRanges(sel.type);
+  const extra = EXTRAS[pick.extra] || EXTRAS[0];
+  const K = { fx: extra.kcal, pr: 0, cb: 0 }, P = { fx: extra.p, pr: 0, cb: 0 };
+  SLOTS.forEach(sl => {
+    const list = getMealsForSlot(sl, sel);
+    const m = pick[sl] >= 0 ? list[pick[sl]] : pick[sl] === SKIP ? null : poolAverage(list);
+    if (!m) return;
+    K.fx += m.fx.kcal; P.fx += m.fx.p;
+    if (frozen[sl]) { K.fx += m.pr.kcal * frozen[sl].p + m.cb.kcal * frozen[sl].c; P.fx += m.pr.p * frozen[sl].p + m.cb.p * frozen[sl].c; }
+    else { K.pr += m.pr.kcal; K.cb += m.cb.kcal; P.pr += m.pr.p; P.cb += m.cb.p; }
+  });
+  let f = { p: ref.p, c: ref.c };
+  if (K.pr + K.cb > 0) {
+    const want = solveScale(K, P, T);
+    f = { p: clamp(want.p, [ref.p * PEND_BAND[0], ref.p * PEND_BAND[1]]), c: clamp(want.c, [ref.c * PEND_BAND[0], ref.c * PEND_BAND[1]]) };
+    out.short = Math.abs(f.p - want.p) > 0.01 || Math.abs(f.c - want.c) > 0.01;
+  }
+  out.pend = { p: Math.round(f.p * 100) / 100, c: Math.round(f.c * 100) / 100 };
+  SLOTS.forEach(sl => { out[sl] = frozen[sl] || out.pend; });
+  return out;
+}
+
 function dayCost(sel) {
-  const f = dayScale(sel);
-  return SLOTS.reduce((a, s) => a + (sel[s] >= 0 ? scaledMeal(getMealsForSlot(s, sel)[sel[s]], f).cost : 0), 0) + (EXTRAS[sel.extra] || EXTRAS[0]).cost;
+  const fm = slotScale(sel);
+  return SLOTS.reduce((a, s) => a + (sel[s] >= 0 ? scaledMeal(getMealsForSlot(s, sel)[sel[s]], fm[s]).cost : 0), 0) + (EXTRAS[sel.extra] || EXTRAS[0]).cost;
 }
 
 function dayTotals(sel, override) {
   const t = { kcal: 0, p: 0, f: 0, c: 0, h: 0, q: 0, j: 0 };
   const add = (m) => { if (m) Object.keys(t).forEach(k => { t[k] += m[k] || 0; }); };
   const pick = Object.assign({}, sel, override);
-  const f = dayScale(sel, override);
-  SLOTS.forEach(slot => { if (pick[slot] >= 0) add(scaledMeal(getMealsForSlot(slot, sel)[pick[slot]], f)); });
+  const fm = slotScale(sel, override);
+  SLOTS.forEach(slot => { if (pick[slot] >= 0) add(scaledMeal(getMealsForSlot(slot, sel)[pick[slot]], fm[slot])); });
   add(EXTRAS[pick.extra] || EXTRAS[0]);
   return t;
 }
 const KIWI_DAY = 150;
 const kiwiIn = (ing) => ing.reduce((a, [k, g]) => a + (k === "kiwi" ? g : 0), 0);
 function dayKiwi(sel) {
-  const f = dayScale(sel);
-  return Math.round(SLOTS.reduce((a, s) => a + (sel[s] >= 0 ? kiwiIn(scaledMeal(getMealsForSlot(s, sel)[sel[s]], f).i) : 0), 0) + kiwiIn((EXTRAS[sel.extra] || EXTRAS[0]).i));
+  const fm = slotScale(sel);
+  return Math.round(SLOTS.reduce((a, s) => a + (sel[s] >= 0 ? kiwiIn(scaledMeal(getMealsForSlot(s, sel)[sel[s]], fm[s]).i) : 0), 0) + kiwiIn((EXTRAS[sel.extra] || EXTRAS[0]).i));
 }
 function kiwiHint(sel) {
   const kiwiExtra = EXTRAS.findIndex(e => e.i.length === 1 && e.i[0][0] === "kiwi");
@@ -1545,10 +1597,11 @@ function renderPanel() {
 
   const cards = document.getElementById("mealCards");
   cards.innerHTML = "";
-  const f = dayScale(sel);
+  const fm = slotScale(sel);
+  const f = fm.pend;
   if (!computePlan()) cards.innerHTML = '<div class="card tip" style="margin-top:0">👤 Rellena tu perfil en «Yo» y la app calculará tus calorías y ajustará las raciones de cada plato a tu objetivo.</div>';
-  else if (f !== 1) cards.innerHTML = `<details class="tip tip-d" style="margin:0 0 12px"><summary>⚖️ Raciones ajustadas: proteína ×${nf(f.p, 2)} · hidratos y grasas ×${nf(f.c, 2)}</summary>Se recalculan con cada plato que eliges, quitas o cambias (también con el postre o batido): si un plato trae mucha proteína, los demás bajan un poco. Por eso el total del día no sube lo mismo que el plato. Las verduras y frutas se quedan en su ración baja en FODMAP.</details>`;
-  SLOTS.forEach(slot => cards.appendChild(mealCard(slot, sel, roles[slot], f)));
+  else if (f !== 1) cards.innerHTML = `<details class="tip tip-d" style="margin:0 0 12px"><summary>⚖️ ${fm.locked.length ? "Comidas pendientes" : "Raciones ajustadas"}: proteína ×${nf(f.p, 2)} · hidratos y grasas ×${nf(f.c, 2)}</summary>Se recalculan con cada plato que eliges, quitas o cambias (también con el postre o batido): si un plato trae mucha proteína, los demás bajan un poco. Por eso el total del día no sube lo mismo que el plato. Las verduras y frutas se quedan en su ración baja en FODMAP.<br><br>Las comidas que marcas como <strong>✓ hechas</strong> no se tocan: solo se reajustan las pendientes, y como mucho entre un 25 % menos y un 30 % más, para que las raciones sigan siendo normales. Si al tocar una comida hay otras anteriores sin marcar, se dan por hechas.</details>`;
+  SLOTS.forEach(slot => cards.appendChild(mealCard(slot, sel, roles[slot], fm[slot])));
   cards.appendChild(extraCard(sel));
   renderTotals(sel);
 }
@@ -1564,10 +1617,12 @@ function mealCard(slot, sel, role, f = 1) {
   card.className = "card meal";
   const hasRole = !!ROLE_LABELS[role] && sel[slot] !== SKIP;
   const badge = hasRole ? `<span class="badge">${ROLE_LABELS[role]}</span>` : "";
-  const top = `<div class="meal-top"><span class="meal-ico${hasRole ? " role" : ""}" aria-hidden="true">${SLOT_ICONS[slot]}</span><div><span class="slot">${SLOT_LABELS[slot]}</span>${badge}</div>${meal ? '<button class="btn small soft change">Cambiar</button>' : ""}</div>`;
+  const done = isDone(sel, slot);
+  const stateBadge = done ? '<span class="badge done">✓ Hecha</span>' : "";
+  const top = `<div class="meal-top"><span class="meal-ico${hasRole ? " role" : ""}" aria-hidden="true">${SLOT_ICONS[slot]}</span><div><span class="slot">${SLOT_LABELS[slot]}</span>${badge}${stateBadge}</div>${meal ? '<button class="btn small soft change">Cambiar</button>' : ""}</div>`;
   if (sel[slot] === SKIP) {
     card.classList.add("skipped");
-    card.innerHTML = top + `<div class="skip-note">🚫 Hoy no haces esta comida. Sus macros se reparten entre las demás.</div>
+    card.innerHTML = top + `<div class="skip-note">🚫 ${isPastOrToday(currentDate) ? "No realizada" : "Ese día no harás esta comida"}: cuenta como no comida y sus macros se reparten entre las comidas pendientes.</div>
       <button class="btn soft" style="width:100%">Volver a añadir ${SLOT_LABELS[slot].toLowerCase()}</button>`;
     card.querySelector("button").addEventListener("click", () => choose(slot, -1));
     return card;
@@ -1588,12 +1643,26 @@ function mealCard(slot, sel, role, f = 1) {
     ${slot === "desayuno" && state.profile.levo && state.profile.thyroid !== "no" ? '<div class="tip">💊 Levotiroxina en ayunas, solo con agua, 30–60 min antes de desayunar.</div>' : ""}
     <div class="chips">${macroChips(meal)}<span class="chip">💶 ≈ ${eur(meal.cost)}</span>${base.pricey ? '<span class="chip warn">caro</span>' : ""}${meal.raw && state.prefs.suave ? '<span class="chip">🥗 lleva crudo</span>' : ""}</div>
     ${guideChip ? `<div class="chips">${guideChip}</div>` : ""}
+    ${isPastOrToday(currentDate) ? `<div class="meal-state">${done
+      ? '<span class="small muted">🔒 Hecha: sus cantidades ya no cambian.</span><button type="button" class="btn small ghost unlock">Desmarcar</button>'
+      : '<button type="button" class="btn small soft mark-done">✓ La he comido</button>'}<button type="button" class="btn small ghost not-done">🚫 ${done ? "No la hice" : "No la voy a hacer"}</button></div>` : ""}
     <details class="recipe"><summary>👩‍🍳 Receta e ingredientes</summary>
       <p>${esc(PREP[titleOf(meal)] || "")}</p>
       <ul>${ingredientList(meal.i)}</ul>
       <div class="exclude-box"></div>
     </details>`;
   card.querySelector(".change").addEventListener("click", () => openPicker(slot));
+  const markDone = card.querySelector(".mark-done");
+  if (markDone) markDone.addEventListener("click", () => {
+    sel.done = Object.assign({}, sel.done, { [slot]: slotScale(sel)[slot] });
+    saveState();
+    renderAll();
+    toast(`${SLOT_LABELS[slot]} hecha: sus cantidades ya no cambiarán.`);
+  });
+  const unlock = card.querySelector(".unlock");
+  if (unlock) unlock.addEventListener("click", () => { delete sel.done[slot]; saveState(); renderAll(); });
+  const notDone = card.querySelector(".not-done");
+  if (notDone) notDone.addEventListener("click", () => choose(slot, SKIP));
   renderExcludeBox(card.querySelector(".exclude-box"), slot, meal);
   return card;
 }
@@ -1644,7 +1713,11 @@ function extraCard(sel) {
 // Si sin esa comida no llegas a tus kcal, propone un extra que sí te haga llegar
 function skipHint(sel) {
   const fit = EXTRAS.map((e, i) => i).filter(i => i && i !== sel.extra && inTarget(dayTotals(sel, { extra: i }), sel.type));
-  return fit.length ? ` Para llegar a tus calorías, añade de extra: <strong>${esc(EXTRAS[fit[0]].label.split(":")[0])}</strong>.` : " Con estos platos no llegas a tus calorías: pulsa «🔀 Otro menú para este día» y elegirá platos que sí lleguen.";
+  if (fit.length) return ` Para llegar a tus calorías, añade de extra: <strong>${esc(EXTRAS[fit[0]].label.split(":")[0])}</strong>.`;
+  // Sin uno que cuadre del todo: el que más te acerca sin pasarte
+  const T = targetRanges(sel.type), now = dayTotals(sel).kcal;
+  const best = EXTRAS.map((e, i) => ({ i, k: dayTotals(sel, { extra: i }).kcal })).filter(o => o.i && o.k <= T.kcal[1] && o.k > now + 50).sort((a, b) => b.k - a.k)[0];
+  return best ? ` Para acercarte a tus calorías, añade de extra: <strong>${esc(EXTRAS[best.i].label.split(":")[0])}</strong> (${best.k} kcal en el día).` : "";
 }
 function renderTotals(sel) {
   const t = dayTotals(sel);
@@ -1664,9 +1737,16 @@ function renderTotals(sel) {
   const lim = (v, max, text) => `<span class="${v > max ? "over" : ""}">${text}</span>`;
   const missing = SLOTS.filter(s => !(sel[s] >= 0) && sel[s] !== SKIP).length;
   const skipped = skippedSlots(sel);
+  const fm = slotScale(sel);
+  const gap = (k, unit) => { const [lo, hi] = target[k]; return t[k] < lo ? `${lo - t[k]} ${unit} por debajo` : t[k] > hi ? `${t[k] - hi} ${unit} por encima` : ""; };
+  const gaps = [gap("kcal", "kcal"), gap("p", "g de proteína")].filter(Boolean);
+  const why = fm.locked.length ? `Con ${fm.locked.map(x => SLOT_LABELS[x].toLowerCase()).join(", ")} ya ${fm.locked.length === 1 ? "hecha" : "hechas"}` : `Sin ${skipped.map(x => SLOT_LABELS[x].toLowerCase()).join(" ni ")}`;
+  const lockTip = (fm.locked.length || skipped.length) && !missing && gaps.length
+    ? `<div class="tip" style="margin:0 0 12px">${fm.locked.length ? "🔒" : "⚖️"} ${why}, las comidas pendientes se han ajustado hasta donde las raciones siguen siendo normales. Te quedas ${gaps.join(" y ")} del objetivo.</div>` : "";
   document.getElementById("dayTotal").innerHTML = `
     ${missing && anySelected ? `<div class="tip" style="margin:0 0 12px">Faltan ${missing} ${missing === 1 ? "comida" : "comidas"} por elegir: el total subirá al añadirlas.</div>` : ""}
     ${skipped.length ? `<div class="tip" style="margin:0 0 12px">🚫 Hoy sin ${skipped.map(x => SLOT_LABELS[x].toLowerCase()).join(" ni ")}: sus macros se reparten entre las demás comidas.${!missing && t.kcal < target.kcal[0] ? skipHint(sel) : ""}</div>` : ""}
+    ${lockTip}
     <div class="bars">${bars}</div>
     ${!missing && anySelected && dayKiwi(sel) < KIWI_DAY ? `<div class="tip" style="margin:0 0 12px">🥝 Hoy llevas ${dayKiwi(sel)} g de kiwi. Para el estreñimiento van bien 2 kiwis (unos ${KIWI_DAY} g) al día: ${kiwiHint(sel)}.</div>` : ""}
     <div class="limits"><span>💶 ≈ ${eur(dayCost(sel))} el día</span><span>🥝 ${anySelected ? dayKiwi(sel) : 0}/${KIWI_DAY} g kiwi</span>${lim(t.h, 3, `🥚 ${t.h}/3 huevos`)}${lim(t.q, 40, `🧀 ${t.q}/40 g queso`)}${lim(t.j, 40, `🍖 ${t.j}/40 g jamón`)}</div>
@@ -1686,6 +1766,12 @@ function openPicker(slot) {
   const items = options.map((meal, idx) => ({ meal, idx, excluded: !isExtra && isExcluded(slot, meal) }))
     .sort((a, b) => a.excluded - b.excluded || (state.prefs.budget ? (a.meal.pricey || false) - (b.meal.pricey || false) : 0));
   body.innerHTML = "";
+  if (isExtra && isPastOrToday(currentDate)) {
+    const at = document.createElement("div");
+    at.innerHTML = `<span class="label">Lo tomas con</span><div class="seg" style="margin-bottom:12px">${SLOTS.map(s => `<button type="button" data-at="${s}" class="${(sel.extraAt || "merienda") === s ? "on" : ""}">${SLOT_LABELS[s]}</button>`).join("")}</div>`;
+    at.querySelectorAll("button[data-at]").forEach(b => b.addEventListener("click", () => { sel.extraAt = b.dataset.at; saveState(); openPicker("extra"); }));
+    body.appendChild(at);
+  }
   if (!isExtra) {
     const search = document.createElement("input");
     search.type = "search";
@@ -1721,8 +1807,9 @@ function openPicker(slot) {
   const guide = ROLE_GUIDE[role];
   items.forEach(({ meal: base, idx, excluded }) => {
     const current = isExtra ? sel.extra === idx : sel[slot] === idx;
-    const proj = dayTotals(sel, { [slot]: idx });
-    const meal = isExtra ? base : scaledMeal(base, dayScale(sel, { [slot]: idx }));
+    const ov = { [slot]: idx, __lock: isPastOrToday(currentDate) ? earlierSlots(sel, slot) : [] };
+    const proj = dayTotals(sel, ov);
+    const meal = isExtra ? base : scaledMeal(base, slotScale(sel, ov)[slot]);
     const fits = inTarget(proj, sel.type);
     const btn = document.createElement("button");
     btn.className = "opt" + (current ? " current" : "") + (excluded ? " excluded" : "");
@@ -1749,16 +1836,23 @@ function closePicker() {
 function choose(slot, idx) {
   const sel = getDaySelection(currentDate);
   const before = dayTotals(sel);
+  // Hoy o en días pasados, las comidas anteriores sin marcar se dan por hechas y se congelan tal cual estaban
+  const autoDone = isPastOrToday(currentDate) && idx !== -1 ? earlierSlots(sel, slot) : [];
+  if (autoDone.length) { const cur = slotScale(sel); sel.done = Object.assign({}, sel.done); autoDone.forEach(s => { sel.done[s] = cur[s]; }); }
+  if (slot !== "extra" && sel.done) delete sel.done[slot]; // la comida que cambias vuelve a estar pendiente
   if (slot === "extra") sel.extra = idx; else sel[slot] = idx;
+  if (idx === -1 && sel.done) delete sel.done[slot];
   saveState();
   closePicker();
   renderAll();
   if (!computePlan()) return;
   const after = dayTotals(sel);
-  const dish = slot === "extra" ? EXTRAS[idx] : idx >= 0 ? scaledMeal(getMealsForSlot(slot, sel)[idx], dayScale(sel)) : null;
+  const dish = slot === "extra" ? EXTRAS[idx] : idx >= 0 ? scaledMeal(getMealsForSlot(slot, sel)[idx], slotScale(sel)[slot]) : null;
   const sign = (v) => `${v >= 0 ? "+" : "−"}${Math.abs(v)}`;
-  if (idx === SKIP) toast(`Hoy sin ${SLOT_LABELS[slot].toLowerCase()}: las demás comidas se han ajustado para llegar a tus macros.`);
-  else if (dish && dish.p) toast(`Día ${sign(after.kcal - before.kcal)} kcal y ${sign(after.p - before.p)} g de proteína. El plato trae ${dish.p} g; el resto de raciones se ha reajustado.`);
+  const names = (list) => list.map(x => SLOT_LABELS[x].toLowerCase()).join(" y ");
+  const doneNote = autoDone.length ? ` ${names(autoDone)[0].toUpperCase() + names(autoDone).slice(1)} ${autoDone.length === 1 ? "queda como hecha" : "quedan como hechas"} y no cambian.` : "";
+  if (idx === SKIP) toast(`Sin ${SLOT_LABELS[slot].toLowerCase()}: se reparte entre las comidas pendientes.${doneNote}`);
+  else if (dish && dish.p) toast(`Día ${sign(after.kcal - before.kcal)} kcal y ${sign(after.p - before.p)} g de proteína. Solo se reajustan las comidas pendientes.${doneNote}`);
 }
 document.getElementById("sheetClose").addEventListener("click", closePicker);
 document.getElementById("sheetBackdrop").addEventListener("click", closePicker);
@@ -1771,10 +1865,11 @@ function generateValidCombos(day) {
   const roles = dayRoles(day);
   const T = targetRanges(day.type);
   const skip = day.skip || [];
-  const cacheKey = day.type + "|" + SLOTS.map(s => roles[s]).join(",") + "|" + JSON.stringify(T) + "|" + state.prefs.budget + "|" + skip.join(",");
+  const fixed = day.fixed || {};
+  const cacheKey = day.type + "|" + SLOTS.map(s => roles[s]).join(",") + "|" + JSON.stringify(T) + "|" + state.prefs.budget + "|" + skip.join(",") + "|" + JSON.stringify(fixed);
   if (combosCache[cacheKey]) return combosCache[cacheKey];
   // Por plato: parte fija (FODMAP, huevos, queso, jamón), parte proteica y parte de hidratos/grasas
-  const lists = SLOTS.map(slot => skip.includes(slot) ? [{ idx: SKIP, meal: NO_MEAL }] : getMealsForSlot(slot, day).map((meal, idx) => ({ idx, meal }))
+  const lists = SLOTS.map(slot => skip.includes(slot) ? [{ idx: SKIP, meal: NO_MEAL }] : fixed[slot] !== undefined ? [{ idx: fixed[slot], meal: getMealsForSlot(slot, day)[fixed[slot]] }] : getMealsForSlot(slot, day).map((meal, idx) => ({ idx, meal }))
     .filter(o => !isExcluded(slot, o.meal) && !(state.prefs.budget && o.meal.pricey)));
   const [d, c, m, n] = lists;
   const scaled = T.scale[0] !== T.scale[1];
@@ -1939,11 +2034,15 @@ document.getElementById("autofillDayBtn").addEventListener("click", () => {
   }
   titlesOfDay(sel).forEach(t => { usage[t] = (usage[t] || 0) + 3; }); // que cambie respecto a lo que hay
   const prev = titlesOfDay(state.selections[iso(addDays(fromIso(currentDate), -1))]);
-  const cmb = pickCombo({ ...sel, skip: skippedSlots(sel) }, usage, prev, mulberry32(Date.now() % 100000));
+  const fixed = {};
+  SLOTS.forEach(s => { if (isDone(sel, s)) fixed[s] = sel[s]; });
+  const cmb = pickCombo({ ...sel, skip: skippedSlots(sel), fixed }, usage, prev, mulberry32(Date.now() % 100000));
   if (!cmb) { alert(skippedSlots(sel).length ? "Sin esa comida no hay combinaciones que lleguen a tus macros. Prueba a elegir los platos a mano o añade un batido." : "No hay combinaciones válidas para este tipo de día."); return; }
-  const custom = sel.custom;
+  const custom = sel.custom, done = sel.done, extraAt = sel.extraAt;
   applyCombo(currentDate, sel, cmb);
   if (custom) state.selections[currentDate].custom = true;
+  if (done) state.selections[currentDate].done = done;
+  if (extraAt) state.selections[currentDate].extraAt = extraAt;
   saveState();
   renderAll();
 });
@@ -1952,6 +2051,7 @@ document.getElementById("clearDayBtn").addEventListener("click", () => {
   const sel = getDaySelection(currentDate);
   SLOTS.forEach(s => { sel[s] = -1; });
   sel.extra = 0;
+  delete sel.done;
   saveState();
   renderAll();
 });
@@ -1996,7 +2096,7 @@ function buildShopping() {
     const add = (ing) => ing.forEach(([k, a]) => { totals[k] = (totals[k] || 0) + a; });
     SLOTS.forEach(slot => {
       const meal = sel[slot] >= 0 && getMealsForSlot(slot, sel)[sel[slot]];
-      if (meal) add(scaledIngredients(meal, dayScale(sel)));
+      if (meal) add(scaledIngredients(meal, slotScale(sel)[slot]));
     });
     add((EXTRAS[sel.extra] || EXTRAS[0]).i);
   }
@@ -2060,11 +2160,11 @@ function renderTuppers() {
     const key = iso(addDays(fromIso(start), o));
     const sel = state.selections[key];
     if (!sel) continue;
-    const f = dayScale(sel);
+    const fm = slotScale(sel);
     TUPPER_SLOTS.forEach(sl => {
       const base = sel[sl] >= 0 && getMealsForSlot(sl, sel)[sel[sl]];
       if (!base) return;
-      const meal = scaledMeal(base, f);
+      const meal = scaledMeal(base, fm[sl]);
       const d = dishes[titleOf(base)] = dishes[titleOf(base)] || { list: [], tot: {} };
       d.list.push({ key, sl, meal, store: tupperStore(base, o) });
       meal.i.forEach(([k, a]) => { d.tot[k] = (d.tot[k] || 0) + a; });
