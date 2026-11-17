@@ -970,7 +970,9 @@ const FIXED_FOODS = ["huevo", "queso", "jamon", "gelatina"];
 const PROTEIN_FOODS = ["pollo", "pavo", "lomo", "ternera", "solomillo", "merluza", "bacalao", "dorada", "salmon", "gambas",
   "atun", "sardinas", "caballa", "sepia", "conejo", "claras", "pavofiambre", "tofu", "skyr", "proteina", "leche"];
 const isFixedFood = (k) => FIXED_FOODS.includes(k) || !!FOODS[k].lim;
-const foodGroup = (k) => isFixedFood(k) ? "fx" : PROTEIN_FOODS.includes(k) ? "pr" : "cb";
+// Con avena (porridge, batido) la leche y la proteína en polvo no se escalan: la avena tiene tope y la mezcla quedaría líquida.
+const OAT_LIQUIDS = ["leche", "proteina"];
+const foodGroup = (k, ing = []) => isFixedFood(k) || (OAT_LIQUIDS.includes(k) && ing.some(([x]) => x === "avena")) ? "fx" : PROTEIN_FOODS.includes(k) ? "pr" : "cb";
 // Coste aproximado (precios de foods.js, en crudo tal como se compra)
 const dishCost = (ing) => ing.reduce((a, [k, q]) => { const f = FOODS[k]; return a + (f.unit ? q * f.eur : q * (f.raw || 1) / 1000 * f.eur); }, 0);
 // Plato caro: lleva un ingrediente de 12 €/kg o más en cantidad (pescados y carnes caras) o pasa de 3,60 €.
@@ -987,7 +989,7 @@ Object.values(POOLS).forEach(roles => Object.values(roles).forEach(list => list.
   Object.assign(r, calcIngredients(r.i));
   r.cost = dishCost(r.i);
   r.pricey = isPricey(r.i);
-  ["fx", "pr", "cb"].forEach(g => { r[g] = calcIngredients(r.i.filter(([k]) => foodGroup(k) === g)); });
+  ["fx", "pr", "cb"].forEach(g => { r[g] = calcIngredients(r.i.filter(([k]) => foodGroup(k, r.i) === g)); });
 })));
 EXTRAS.forEach(e => { Object.assign(e, calcIngredients(e.i)); e.cost = dishCost(e.i); });
 
@@ -998,7 +1000,7 @@ function roundAmount(k, a) {
 }
 // f = 1 (sin ajuste) o { p, c }: factores para alimentos proteicos e hidratos/grasas
 const scaledIngredients = (meal, f) => f === 1 ? meal.i : meal.i.map(([k, a]) => {
-  const g = foodGroup(k);
+  const g = foodGroup(k, meal.i);
   return [k, g === "fx" ? a : roundAmount(k, a * (g === "pr" ? f.p : f.c))];
 });
 const SCALE_P = [0.6, 1.7], SCALE_C = [0.5, 2.5];
